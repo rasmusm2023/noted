@@ -1,45 +1,76 @@
 import { AuthProvider } from "./contexts/AuthContext";
 import { Login } from "./pages/Login";
 import { useAuth } from "./contexts/AuthContext";
+import { Dashboard } from "./pages/Dashboard";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Next7Days } from "./pages/Next7Days";
+import { Habits } from "./pages/Habits";
+import { Goals } from "./pages/Goals";
+import { Settings } from "./pages/Settings";
+import { Layout } from "./components/Layout";
 
 function AppContent() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
 
   if (!currentUser) {
     return <Login />;
   }
 
   return (
-    <div className="min-h-screen bg-neu-900">
-      <nav className="bg-neu-200 p-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-neu-100 text-xl font-bold">Noted</h1>
-          <button
-            onClick={logout}
-            className="text-neu-100 hover:text-pri-blue-500 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
-      <main className="max-w-7xl mx-auto p-4">
-        <div className="bg-neu-200 rounded-lg p-6">
-          <h2 className="text-neu-100 text-2xl mb-4">
-            Welcome, {currentUser.email}
-          </h2>
-          {/* Add your main content here */}
-        </div>
-      </main>
-    </div>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Layout>
+            <Dashboard />
+          </Layout>
+        }
+      />
+      <Route
+        path="/next7days"
+        element={
+          <Layout>
+            <Next7Days />
+          </Layout>
+        }
+      />
+      <Route
+        path="/habits"
+        element={
+          <Layout>
+            <Habits />
+          </Layout>
+        }
+      />
+      <Route
+        path="/goals"
+        element={
+          <Layout>
+            <Goals />
+          </Layout>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <Layout>
+            <Settings />
+          </Layout>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
 function App() {
   return (
     <div className="min-h-screen bg-neu-900">
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </BrowserRouter>
     </div>
   );
 }
