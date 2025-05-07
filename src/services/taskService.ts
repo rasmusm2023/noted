@@ -21,6 +21,9 @@ export const taskService = {
     userId: string,
     taskData: Omit<Task, "id" | "userId" | "createdAt" | "updatedAt">
   ): Promise<Task> {
+    console.log("Creating task for user:", userId);
+    console.log("Task data:", taskData);
+
     const now = new Date().toISOString();
     const task: Omit<Task, "id"> = {
       ...taskData,
@@ -30,26 +33,58 @@ export const taskService = {
       updatedAt: now,
     };
 
+    console.log("Full task object to be saved:", task);
+
     const docRef = await addDoc(collection(db, tasksCollection), task);
-    return { ...task, id: docRef.id };
+    const createdTask = { ...task, id: docRef.id };
+    console.log("Task created successfully:", createdTask);
+    return createdTask;
   },
 
   // Get all tasks for a user
   async getUserTasks(userId: string): Promise<Task[]> {
-    const q = query(
-      collection(db, tasksCollection),
-      where("userId", "==", userId),
-      orderBy("createdAt", "desc")
-    );
+    if (!userId) {
+      console.error("getUserTasks called with no userId");
+      return [];
+    }
 
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(
-      (doc) =>
-        ({
+    console.log("Querying tasks for user:", userId);
+    try {
+      // Temporarily remove orderBy until the index is created
+      const q = query(
+        collection(db, tasksCollection),
+        where("userId", "==", userId)
+      );
+
+      const querySnapshot = await getDocs(q);
+      console.log("Query snapshot size:", querySnapshot.size);
+
+      if (querySnapshot.empty) {
+        console.log("No tasks found for user:", userId);
+        return [];
+      }
+
+      const tasks = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        console.log("Raw task data from Firestore:", data);
+        return {
           id: doc.id,
-          ...doc.data(),
-        } as Task)
-    );
+          ...data,
+        } as Task;
+      });
+
+      // Sort tasks in memory instead of in the query
+      tasks.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      console.log("Retrieved tasks:", tasks);
+      return tasks;
+    } catch (error) {
+      console.error("Error in getUserTasks:", error);
+      throw error;
+    }
   },
 
   // Update a task

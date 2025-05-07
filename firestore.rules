@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Helper function to check if user owns the parent list
+    function ownsParentList(listId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/lists/$(listId)) &&
+        isOwner(get(/databases/$(database)/documents/lists/$(listId)).data.userId);
+    }
+
+    // Lists collection rules
+    match /lists/{listId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // List items collection rules
+    match /lists/{listId}/items/{itemId} {
+      allow read: if ownsParentList(listId);
+      allow create: if ownsParentList(listId);
+      allow update, delete: if ownsParentList(listId);
+    }
+
+    // Tasks collection rules (if you have one)
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+  }
+} 

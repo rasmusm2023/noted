@@ -1,13 +1,9 @@
 import { useState } from "react";
 import { Sidebar } from "../Sidebar";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLocation } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-export function Layout({ children }: LayoutProps) {
+export function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const location = useLocation();
 
@@ -26,7 +22,7 @@ export function Layout({ children }: LayoutProps) {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
           >
-            {children}
+            <Outlet />
           </motion.div>
         </AnimatePresence>
       </main>

@@ -8,3 +8,10 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Timestamp {
+  id: string;
+  time: string;
+  isExpanded: boolean;
+  tasks: Task[];
+}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Button } from "../components/Button";
+import { Button } from "../components/Button/Button";
+import { useNavigate } from "react-router-dom";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const { login, signup } = useAuth();
+  const navigate = useNavigate();
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,6 +29,27 @@ export function Login() {
     }
   };
 
+  const getErrorMessage = (errorCode: string) => {
+    switch (errorCode) {
+      case "auth/invalid-credential":
+        return "Invalid email or password. Please try again.";
+      case "auth/user-not-found":
+        return "No account found with this email. Please sign up first.";
+      case "auth/wrong-password":
+        return "Incorrect password. Please try again.";
+      case "auth/email-already-in-use":
+        return "An account with this email already exists. Please try logging in.";
+      case "auth/weak-password":
+        return "Password should be at least 6 characters long.";
+      case "auth/invalid-email":
+        return "Please enter a valid email address.";
+      case "auth/configuration-not-found":
+        return "Unable to connect to authentication service. Please try again later.";
+      default:
+        return "An error occurred. Please try again.";
+    }
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -36,20 +59,27 @@ export function Login() {
     }
 
     try {
+      console.log(
+        "Attempting to",
+        isLogin ? "login" : "signup",
+        "with email:",
+        email
+      );
       setError("");
       setLoading(true);
+
       if (isLogin) {
         await login(email, password);
+        console.log("Login successful");
+        navigate("/");
       } else {
         await signup(email, password);
+        console.log("Signup successful");
+        navigate("/");
       }
-    } catch (err) {
-      setError(
-        isLogin
-          ? "We could not sign you in. Check your credentials and try again."
-          : "Failed to create an account"
-      );
-      console.error(err);
+    } catch (err: any) {
+      console.error("Authentication error:", err);
+      setError(getErrorMessage(err.code));
     } finally {
       setLoading(false);
     }

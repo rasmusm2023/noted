@@ -5,17 +5,15 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 
 interface AuthContextType {
   currentUser: User | null;
-  loading: boolean;
-  signup: (email: string, password: string) => Promise<UserCredential>;
   login: (email: string, password: string) => Promise<UserCredential>;
+  signup: (email: string, password: string) => Promise<UserCredential>;
   logout: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -32,38 +30,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  function signup(email: string, password: string) {
-    return createUserWithEmailAndPassword(auth, email, password);
-  }
-
-  function login(email: string, password: string) {
-    return signInWithEmailAndPassword(auth, email, password);
-  }
-
-  function logout() {
-    return signOut(auth);
-  }
-
-  function resetPassword(email: string) {
-    return sendPasswordResetEmail(auth, email);
-  }
-
   useEffect(() => {
+    console.log("Setting up auth state listener");
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("Auth state changed:", user ? "User logged in" : "No user");
+      if (user) {
+        console.log("Current user details:", {
+          email: user.email,
+          uid: user.uid,
+          emailVerified: user.emailVerified,
+          lastSignInTime: user.metadata.lastSignInTime,
+        });
+      }
       setCurrentUser(user);
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      console.log("Cleaning up auth state listener");
+      unsubscribe();
+    };
   }, []);
+
+  async function login(
+    email: string,
+    password: string
+  ): Promise<UserCredential> {
+    try {
+      console.log("Attempting login for:", email);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      console.log("Login successful for:", userCredential.user.email);
+      return userCredential;
+    } catch (error: any) {
+      console.error("Login error:", error.code, error.message);
+      throw error;
+    }
+  }
+
+  async function signup(
+    email: string,
+    password: string
+  ): Promise<UserCredential> {
+    try {
+      console.log("Attempting signup for:", email);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      console.log("Signup successful for:", userCredential.user.email);
+      return userCredential;
+    } catch (error: any) {
+      console.error("Signup error:", error.code, error.message);
+      throw error;
+    }
+  }
+
+  async function logout() {
+    try {
+      console.log("Attempting logout");
+      await signOut(auth);
+      console.log("Logout successful");
+    } catch (error: any) {
+      console.error("Logout error:", error.code, error.message);
+      throw error;
+    }
+  }
 
   const value = {
     currentUser,
-    loading,
-    signup,
     login,
+    signup,
     logout,
-    resetPassword,
+    loading,
   };
 
   return (
