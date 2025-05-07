@@ -6,12 +6,34 @@ export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [emailWarning, setEmailWarning] = useState("");
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const { login, signup } = useAuth();
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+
+    if (!isLogin && newEmail && !validateEmail(newEmail)) {
+      setEmailWarning("Please enter a valid email address");
+    } else {
+      setEmailWarning("");
+    }
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!isLogin && !validateEmail(email)) {
+      setEmailWarning("Please enter a valid email address");
+      return;
+    }
 
     try {
       setError("");
@@ -24,7 +46,7 @@ export function Login() {
     } catch (err) {
       setError(
         isLogin
-          ? "Failed to sign in, incorrect email or password"
+          ? "We could not sign you in. Check your credentials and try again."
           : "Failed to create an account"
       );
       console.error(err);
@@ -34,7 +56,7 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-neu-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-outfit">
+    <div className="min-h-screen bg-neu-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-outfit">
       <div className="w-full max-w-lg space-y-8">
         <div>
           <h2 className="text-center text-5xl font-bold text-pri-blue-100">
@@ -43,7 +65,7 @@ export function Login() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-sup-err-100 text-sup-err-500 p-4 rounded-md text-sm font-semibold">
+            <div className="bg-sup-err-400 text-sup-err-100 p-4 rounded-md text-sm font-semibold">
               {error}
             </div>
           )}
@@ -51,9 +73,9 @@ export function Login() {
             <div>
               <label
                 htmlFor="email-address"
-                className="block text-md font-medium text-neu-800 mb-2"
+                className="block text-md font-medium text-neu-300 mb-2"
               >
-                Email address
+                Email
               </label>
               <input
                 id="email-address"
@@ -61,16 +83,21 @@ export function Login() {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none relative block w-full px-6 py-4 border-2 border-neu-300 placeholder-neu-500 text-neu-900 bg-neu-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent text-lg"
+                className="appearance-none relative block w-full px-6 py-4 border-2 border-neu-600 placeholder-neu-600 text-neu-200 bg-neu-800 rounded-md hover:border-neu-400 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent text-md"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
               />
+              {emailWarning && (
+                <div className="mt-2 text-sm text-sup-war-500">
+                  {emailWarning}
+                </div>
+              )}
             </div>
             <div>
               <label
                 htmlFor="password"
-                className="block text-md font-medium text-neu-800 mb-2"
+                className="block text-md font-medium text-neu-300 mb-2"
               >
                 Password
               </label>
@@ -80,7 +107,7 @@ export function Login() {
                 type="password"
                 autoComplete={isLogin ? "current-password" : "new-password"}
                 required
-                className="appearance-none relative block w-full px-6 py-4 border-2 border-neu-300 placeholder-neu-500 text-neu-900 bg-neu-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent text-lg"
+                className="appearance-none relative block w-full px-6 py-4 border-2 border-neu-600 placeholder-neu-600 text-neu-200 bg-neu-800 rounded-md hover:border-neu-400 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent text-md"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -92,7 +119,7 @@ export function Login() {
             <Button
               type="submit"
               variant="primary"
-              className="w-full py-4 text-lg"
+              className="w-full py-4 text-lg text-neu-100"
               disabled={loading}
             >
               {loading
@@ -106,10 +133,10 @@ export function Login() {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="w-full text-center text-neu-600 hover:text-pri-blue-500 transition-colors"
+              className="w-full text-center text-neu-500 hover:text-pri-blue-500 transition-colors"
             >
               {isLogin
-                ? "Need an account? Sign up"
+                ? "New here? Sign up"
                 : "Already have an account? Sign in"}
             </button>
           </div>
