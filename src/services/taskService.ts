@@ -10,6 +10,7 @@ import {
   getDocs,
   orderBy,
   Timestamp,
+  writeBatch,
 } from "firebase/firestore";
 import type { Task } from "../types/task";
 
@@ -19,7 +20,7 @@ export const taskService = {
   // Create a new task
   async createTask(
     userId: string,
-    taskData: Omit<Task, "id" | "userId" | "createdAt" | "updatedAt">
+    taskData: Omit<Task, "id" | "userId" | "createdAt" | "updatedAt" | "order">
   ): Promise<Task> {
     console.log("Creating task for user:", userId);
     console.log("Task data:", taskData);
@@ -31,6 +32,7 @@ export const taskService = {
       completed: false,
       createdAt: now,
       updatedAt: now,
+      order: 0, // Default order for new tasks
     };
 
     console.log("Full task object to be saved:", task);
@@ -109,6 +111,55 @@ export const taskService = {
     taskId: string,
     completed: boolean
   ): Promise<void> {
-    await this.updateTask(taskId, { completed });
+    const taskRef = doc(db, tasksCollection, taskId);
+    await updateDoc(taskRef, {
+      completed,
+      updatedAt: new Date().toISOString(),
+    });
+  },
+
+  async updateTaskOrder(
+    userId: string,
+    taskOrders: { id: string; order: number }[]
+  ): Promise<void> {
+    const batch = writeBatch(db);
+
+    taskOrders.forEach(({ id, order }) => {
+      const taskRef = doc(db, tasksCollection, id);
+      batch.update(taskRef, { order, updatedAt: new Date().toISOString() });
+    });
+
+    await batch.commit();
+  },
+
+  async updateTimestampOrder(
+    userId: string,
+    timestampOrders: { id: string; order: number }[]
+  ): Promise<void> {
+    const batch = writeBatch(db);
+
+    timestampOrders.forEach(({ id, order }) => {
+      const timestampRef = doc(db, "timestamps", id);
+      batch.update(timestampRef, {
+        order,
+        updatedAt: new Date().toISOString(),
+      });
+    });
+
+    await batch.commit();
+  },
+
+  async updateTitleOrder(
+    userId: string,
+    titleOrders: { id: string; order: number }[]
+  ): Promise<void> {
+    const batch = writeBatch(db);
+
+    titleOrders.forEach(({ id, order }) => {
+      const titleRef = doc(db, "titles", id);
+      batch.update(titleRef, { order, updatedAt: new Date().toISOString() });
+    });
+
+    await batch.commit();
   },
 };

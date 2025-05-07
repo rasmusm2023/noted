@@ -1,22 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
 import type { Task, Timestamp } from "../types/task";
-import { TrashBinTrash, Pen } from "solar-icon-set";
+import { TrashBinTrash, Pen, CheckCircle, Record } from "solar-icon-set";
 
-type ListItem = Task | Timestamp;
+type TitleItem = {
+  id: string;
+  type: "title";
+  text: string;
+};
+
+type ListItem = Task | Timestamp | TitleItem;
 
 export function Dashboard() {
   const { currentUser } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [timestamps, setTimestamps] = useState<Timestamp[]>([]);
+  const [titles, setTitles] = useState<
+    { id: string; type: "title"; text: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isCreatingTimestamp, setIsCreatingTimestamp] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTimestampTime, setNewTimestampTime] = useState("");
+  const [newTitleText, setNewTitleText] = useState("");
+  const [currentDate, setCurrentDate] = useState("");
+  const [dayOfWeek, setDayOfWeek] = useState("");
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const taskInputRef = useRef<HTMLInputElement>(null);
 
   // Drag and drop state
   const [draggedItem, setDraggedItem] = useState<ListItem | null>(null);
@@ -25,8 +40,37 @@ export function Dashboard() {
     position: "before" | "after";
   } | null>(null);
 
-  // Combine tasks and timestamps into a single array
-  const allItems: ListItem[] = [...timestamps, ...tasks];
+  // Combine tasks, timestamps, and titles into a single array
+  const allItems: ListItem[] = [...timestamps, ...titles, ...tasks];
+
+  // Update date on mount and every day
+  useEffect(() => {
+    const updateDate = () => {
+      const now = new Date();
+      const day = now.getDate().toString().padStart(2, "0");
+      const month = now.toLocaleString("default", { month: "short" });
+      setCurrentDate(`${day} ${month}`);
+      setDayOfWeek(now.toLocaleString("default", { weekday: "long" }));
+    };
+
+    updateDate();
+    // Update at midnight
+    const now = new Date();
+    const tomorrow = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1
+    );
+    const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+
+    const timer = setTimeout(() => {
+      updateDate();
+      // Set up daily updates
+      setInterval(updateDate, 24 * 60 * 60 * 1000);
+    }, timeUntilMidnight);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDragStart = (e: React.DragEvent, item: ListItem) => {
     e.dataTransfer.effectAllowed = "move";
@@ -52,7 +96,7 @@ export function Dashboard() {
     setDropShadow({ index, position });
   };
 
-  const handleDrop = (e: React.DragEvent, index: number) => {
+  const handleDrop = async (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (!draggedItem) return;
 
@@ -70,12 +114,47 @@ export function Dashboard() {
     const newTimestamps = newItems.filter(
       (item): item is Timestamp => "time" in item
     );
-    const newTasks = newItems.filter((item): item is Task => !("time" in item));
+    const newTitles = newItems.filter(
+      (item): item is TitleItem => "type" in item && item.type === "title"
+    );
+    const newTasks = newItems.filter(
+      (item): item is Task => !("time" in item) && !("type" in item)
+    );
 
+    // Update local state
     setTimestamps(newTimestamps);
+    setTitles(newTitles);
     setTasks(newTasks);
     setDraggedItem(null);
     setDropShadow(null);
+
+    // Save the new order to the database
+    try {
+      if (currentUser) {
+        // Save tasks order
+        const taskOrder = newTasks.map((task, index) => ({
+          id: task.id,
+          order: index,
+        }));
+        await taskService.updateTaskOrder(currentUser.uid, taskOrder);
+
+        // Save timestamps order
+        const timestampOrder = newTimestamps.map((ts, index) => ({
+          id: ts.id,
+          order: index,
+        }));
+        await taskService.updateTimestampOrder(currentUser.uid, timestampOrder);
+
+        // Save titles order
+        const titleOrder = newTitles.map((title, index) => ({
+          id: title.id,
+          order: index,
+        }));
+        await taskService.updateTitleOrder(currentUser.uid, titleOrder);
+      }
+    } catch (error) {
+      console.error("Error saving item order:", error);
+    }
   };
 
   useEffect(() => {
@@ -85,7 +164,11 @@ export function Dashboard() {
           console.log("Loading tasks for user:", currentUser.uid);
           const userTasks = await taskService.getUserTasks(currentUser.uid);
           console.log("Loaded tasks:", userTasks);
-          setTasks(userTasks);
+          // Sort tasks by their order
+          const sortedTasks = userTasks.sort(
+            (a, b) => (a.order || 0) - (b.order || 0)
+          );
+          setTasks(sortedTasks);
         } catch (error) {
           console.error("Error loading tasks:", error);
         } finally {
@@ -119,19 +202,24 @@ export function Dashboard() {
       return;
     }
 
+    if (!newTaskTitle.trim()) return;
+
     try {
       console.log("Attempting to create new task for user:", currentUser.uid);
       const newTask = await taskService.createTask(currentUser.uid, {
-        title: newTaskTitle || "Untitled Task",
-        description: newTaskDescription || "",
+        title: newTaskTitle.trim(),
+        description: newTaskDescription.trim(),
         scheduledTime: new Date().toLocaleString(),
         completed: false,
       });
       console.log("Task created successfully:", newTask);
       setTasks((prevTasks) => [newTask, ...prevTasks]);
-      setIsCreatingTask(false);
       setNewTaskTitle("");
       setNewTaskDescription("");
+      // Keep focus on the input field
+      if (taskInputRef.current) {
+        taskInputRef.current.focus();
+      }
     } catch (error) {
       console.error("Error creating task:", error);
     }
@@ -139,6 +227,7 @@ export function Dashboard() {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       handleAddTask();
     } else if (e.key === "Escape") {
       setIsCreatingTask(false);
@@ -177,25 +266,51 @@ export function Dashboard() {
     }
   };
 
+  const formatTimeFromInput = (input: string): string => {
+    // Remove any non-digit characters
+    const numbers = input.replace(/\D/g, "");
+
+    if (numbers.length === 0) return "";
+
+    // Handle different input lengths
+    if (numbers.length <= 2) {
+      // Just hours
+      const hours = parseInt(numbers);
+      if (hours > 23) return "23:00";
+      return `${hours.toString().padStart(2, "0")}:00`;
+    } else if (numbers.length <= 4) {
+      // Hours and minutes
+      const hours = parseInt(numbers.slice(0, -2));
+      const minutes = parseInt(numbers.slice(-2));
+      if (hours > 23) return "23:00";
+      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    } else {
+      // Too many digits, take first 4
+      const hours = parseInt(numbers.slice(0, 2));
+      const minutes = parseInt(numbers.slice(2, 4));
+      if (hours > 23) return "23:00";
+      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    }
+  };
+
   const handleAddTimestamp = () => {
-    setIsCreatingTimestamp(true);
+    const formattedTime = formatTimeFromInput(newTimestampTime);
+    if (!formattedTime) return;
+
     const newTimestamp: Timestamp = {
       id: Date.now().toString(),
-      time: "09:00",
+      time: formattedTime,
       isExpanded: true,
       tasks: [],
     };
     setTimestamps([...timestamps, newTimestamp]);
-    // Focus the time input after a short delay to ensure the element is rendered
-    setTimeout(() => {
-      const timeInput = document.querySelector(
-        `[data-id="${newTimestamp.id}"] input[type="time"]`
-      ) as HTMLInputElement;
-      if (timeInput) {
-        timeInput.focus();
-        timeInput.select();
-      }
-    }, 0);
+    setNewTimestampTime("");
   };
 
   const handleDeleteTimestamp = (timestampId: string) => {
@@ -203,30 +318,75 @@ export function Dashboard() {
     setIsCreatingTimestamp(false);
   };
 
+  const handleAddTitle = () => {
+    if (!newTitleText.trim()) return;
+    const newTitle = {
+      id: Date.now().toString(),
+      type: "title" as const,
+      text: newTitleText.trim(),
+    };
+    setTitles([...titles, newTitle]);
+    setNewTitleText("");
+    setEditingTitle(newTitle.id);
+    // Focus the input after a short delay to ensure it's rendered
+    setTimeout(() => {
+      if (titleInputRef.current) {
+        titleInputRef.current.focus();
+        titleInputRef.current.select();
+      }
+    }, 0);
+  };
+
+  const handleTitleEdit = (titleId: string, newText: string) => {
+    setTitles(
+      titles.map((title) =>
+        title.id === titleId ? { ...title, text: newText } : title
+      )
+    );
+    setEditingTitle(null);
+  };
+
+  const handleTitleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    titleId: string
+  ) => {
+    if (e.key === "Enter") {
+      handleTitleEdit(titleId, e.currentTarget.value);
+    } else if (e.key === "Escape") {
+      setEditingTitle(null);
+    }
+  };
+
+  const handleTitleBlur = (titleId: string, currentText: string) => {
+    handleTitleEdit(titleId, currentText);
+  };
+
+  const handleDeleteTitle = (titleId: string) => {
+    setTitles(titles.filter((title) => title.id !== titleId));
+  };
+
+  const isTask = (item: ListItem): item is Task => {
+    return !("time" in item) && !("type" in item);
+  };
+
+  const [focusedInput, setFocusedInput] = useState<
+    "task" | "timestamp" | "title" | null
+  >(null);
+
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-neu-100 mb-8">
-          Today's Overview
-        </h1>
+        <div className="flex items-center gap-4 mb-8">
+          <h1 className="text-4xl font-bold text-neu-100">Today</h1>
+          <span className="text-2xl text-neu-400 uppercase">{currentDate}</span>
+        </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <button
-            onClick={() => {
-              setIsCreatingTask(true);
-              // Focus the input after a short delay to ensure it's rendered
-              setTimeout(() => {
-                const input = document.querySelector(
-                  "[data-task-input]"
-                ) as HTMLInputElement;
-                if (input) {
-                  input.focus();
-                  input.select();
-                }
-              }, 0);
-            }}
-            className="p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors"
+          <div
+            className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+              focusedInput === "task" ? "ring-2 ring-pri-blue-500" : ""
+            }`}
           >
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-pri-blue-500 rounded-lg">
@@ -245,16 +405,28 @@ export function Dashboard() {
                   />
                 </svg>
               </div>
-              <div className="text-left">
-                <h3 className="text-lg font-semibold text-neu-100">Add Task</h3>
-                <p className="text-neu-400">Create a new task</p>
+              <div className="text-left flex-1">
+                <input
+                  ref={taskInputRef}
+                  type="text"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  onFocus={() => setFocusedInput("task")}
+                  onBlur={() => setFocusedInput(null)}
+                  placeholder="Add new task..."
+                  className="w-full bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                  autoFocus
+                />
+                <p className="text-neu-400 text-sm">Press Enter to add</p>
               </div>
             </div>
-          </button>
+          </div>
 
-          <button
-            onClick={handleAddTimestamp}
-            className="p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors"
+          <div
+            className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+              focusedInput === "timestamp" ? "ring-2 ring-pri-blue-500" : ""
+            }`}
           >
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-sup-suc-500 rounded-lg">
@@ -273,16 +445,37 @@ export function Dashboard() {
                   />
                 </svg>
               </div>
-              <div className="text-left">
-                <h3 className="text-lg font-semibold text-neu-100">
-                  Add Timestamp
-                </h3>
-                <p className="text-neu-400">Add a time marker</p>
+              <div className="text-left flex-1">
+                <input
+                  type="text"
+                  value={newTimestampTime}
+                  onChange={(e) => setNewTimestampTime(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAddTimestamp();
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    // Allow numbers and specific symbols
+                    if (!/[0-9.:;-]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  onFocus={() => setFocusedInput("timestamp")}
+                  onBlur={() => setFocusedInput(null)}
+                  placeholder="Add a timestamp..."
+                  className="w-full bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                />
+                <p className="text-neu-400 text-sm">Example: 09:00</p>
               </div>
             </div>
-          </button>
+          </div>
 
-          <button className="p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors">
+          <div
+            className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+              focusedInput === "title" ? "ring-2 ring-pri-blue-500" : ""
+            }`}
+          >
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-sup-war-500 rounded-lg">
                 <svg
@@ -296,22 +489,35 @@ export function Dashboard() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    d="M4 6h16M4 12h16m-7 6h7"
                   />
                 </svg>
               </div>
-              <div className="text-left">
-                <h3 className="text-lg font-semibold text-neu-100">Schedule</h3>
-                <p className="text-neu-400">Plan your day</p>
+              <div className="text-left flex-1">
+                <input
+                  type="text"
+                  value={newTitleText}
+                  onChange={(e) => setNewTitleText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newTitleText.trim()) {
+                      handleAddTitle();
+                    }
+                  }}
+                  onFocus={() => setFocusedInput("title")}
+                  onBlur={() => setFocusedInput(null)}
+                  placeholder="Add a title..."
+                  className="w-full bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                />
+                <p className="text-neu-400 text-sm">Press Enter to add</p>
               </div>
             </div>
-          </button>
+          </div>
         </div>
 
         {/* Today's Tasks with Timestamps */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-neu-100 mb-4">
-            Today's Tasks
+            {dayOfWeek} Tasks
           </h2>
           {loading ? (
             <div className="text-neu-400">Loading tasks...</div>
@@ -321,7 +527,7 @@ export function Dashboard() {
               {isCreatingTask && (
                 <div className="p-4 bg-neu-800 rounded-lg flex flex-col space-y-4">
                   <input
-                    data-task-input
+                    ref={taskInputRef}
                     type="text"
                     value={newTaskTitle}
                     onChange={(e) => setNewTaskTitle(e.target.value)}
@@ -400,7 +606,7 @@ export function Dashboard() {
               <div className="space-y-4">
                 {allItems.map((item, index) => (
                   <div key={item.id}>
-                    {/* Drop position indicator */}
+                    {/* Drop position indicators */}
                     {dropShadow?.index === index &&
                       dropShadow.position === "before" && (
                         <div className="h-1 bg-pri-blue-500 rounded-full my-2 transition-all duration-150" />
@@ -457,8 +663,40 @@ export function Dashboard() {
                           </div>
                           <div className="flex-1 h-px bg-neu-700 transition-all duration-300"></div>
                         </div>
-                      ) : (
-                        // Task
+                      ) : "type" in item && item.type === "title" ? (
+                        // Title rendering
+                        <div className="p-4 bg-neu-800 rounded-lg flex items-center justify-between">
+                          {editingTitle === item.id ? (
+                            <input
+                              ref={titleInputRef}
+                              type="text"
+                              defaultValue={item.text}
+                              className="flex-1 bg-transparent text-xl font-semibold text-neu-100 focus:outline-none"
+                              onKeyDown={(e) => handleTitleKeyDown(e, item.id)}
+                              onBlur={(e) =>
+                                handleTitleBlur(item.id, e.target.value)
+                              }
+                              autoFocus
+                            />
+                          ) : (
+                            <div
+                              className="flex-1 cursor-pointer"
+                              onDoubleClick={() => setEditingTitle(item.id)}
+                            >
+                              <h3 className="text-xl font-semibold text-neu-100">
+                                {item.text}
+                              </h3>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => handleDeleteTitle(item.id)}
+                            className="p-2 text-neu-400 hover:text-red-500 transition-colors"
+                          >
+                            <TrashBinTrash size={24} color="currentColor" />
+                          </button>
+                        </div>
+                      ) : isTask(item) ? (
+                        // Task rendering
                         <div
                           className={`p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
                             item.completed
@@ -467,91 +705,89 @@ export function Dashboard() {
                           }`}
                         >
                           <div className="flex items-center space-x-4 flex-1">
-                            <button
-                              onClick={() =>
-                                handleTaskCompletion(item.id, !item.completed)
-                              }
-                              className={`transition-colors duration-200 ${
-                                item.completed
-                                  ? "text-sup-suc-900 hover:text-sup-suc-800"
-                                  : "text-neu-400 hover:text-pri-blue-500"
-                              }`}
-                            >
-                              {item.completed ? (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                                  <path d="m9 12 2 2 4-4" />
-                                </svg>
-                              ) : (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-6 w-6"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                                </svg>
-                              )}
-                            </button>
+                            <div className="flex items-center justify-center h-full">
+                              <button
+                                onClick={() =>
+                                  handleTaskCompletion(item.id, !item.completed)
+                                }
+                                className={`transition-colors duration-200 flex items-center justify-center ${
+                                  item.completed
+                                    ? "text-sup-suc-900 hover:text-sup-suc-800"
+                                    : "text-pri-blue-500 hover:text-sup-suc-500"
+                                }`}
+                              >
+                                {item.completed ? (
+                                  <CheckCircle size={32} color="currentColor" />
+                                ) : (
+                                  <Record size={32} color="currentColor" />
+                                )}
+                              </button>
+                            </div>
                             {editingTask?.id === item.id ? (
-                              <div className="flex-1 space-y-2">
-                                <input
-                                  type="text"
-                                  value={editingTask.title}
-                                  onChange={(e) =>
-                                    setEditingTask({
-                                      ...editingTask,
-                                      title: e.target.value,
-                                    })
-                                  }
-                                  className="w-full p-2 bg-neu-700 rounded text-neu-100"
-                                />
-                                <input
-                                  type="text"
-                                  value={editingTask.description}
-                                  onChange={(e) =>
-                                    setEditingTask({
-                                      ...editingTask,
-                                      description: e.target.value,
-                                    })
-                                  }
-                                  className="w-full p-2 bg-neu-700 rounded text-neu-100"
-                                />
-                                <div className="flex space-x-2">
+                              <div className="flex-1 flex items-center justify-between">
+                                <div className="flex-1">
+                                  <input
+                                    type="text"
+                                    value={editingTask.title}
+                                    onChange={(e) =>
+                                      setEditingTask({
+                                        ...editingTask,
+                                        title: e.target.value,
+                                      })
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        handleEditTask(item.id, {
+                                          title: editingTask.title,
+                                        });
+                                      } else if (e.key === "Escape") {
+                                        setEditingTask(null);
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      handleEditTask(item.id, {
+                                        title: editingTask.title,
+                                      });
+                                    }}
+                                    className="w-full bg-transparent text-lg font-semibold text-neu-100 focus:outline-none"
+                                    autoFocus
+                                  />
+                                </div>
+                                <div className="flex items-center space-x-2">
                                   <button
                                     onClick={() =>
                                       handleEditTask(item.id, {
                                         title: editingTask.title,
-                                        description: editingTask.description,
                                       })
                                     }
-                                    className="px-3 py-1 bg-pri-blue-500 text-neu-100 rounded hover:bg-pri-blue-600"
+                                    className={`p-2 ${
+                                      item.completed
+                                        ? "text-sup-suc-900 hover:text-sup-suc-800"
+                                        : "text-neu-400 hover:text-neu-100"
+                                    }`}
                                   >
-                                    Save
+                                    <Pen size={24} color="currentColor" />
                                   </button>
                                   <button
-                                    onClick={() => setEditingTask(null)}
-                                    className="px-3 py-1 bg-neu-700 text-neu-100 rounded hover:bg-neu-600"
+                                    onClick={() => handleDeleteTask(item.id)}
+                                    className={`p-2 ${
+                                      item.completed
+                                        ? "text-sup-suc-900 hover:text-sup-suc-800"
+                                        : "text-neu-400 hover:text-red-500"
+                                    }`}
                                   >
-                                    Cancel
+                                    <TrashBinTrash
+                                      size={24}
+                                      color="currentColor"
+                                    />
                                   </button>
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex-1">
+                              <div
+                                className="flex-1 cursor-pointer"
+                                onDoubleClick={() => setEditingTask(item)}
+                              >
                                 <h3
                                   className={`text-lg font-semibold ${
                                     item.completed
@@ -561,15 +797,6 @@ export function Dashboard() {
                                 >
                                   {item.title}
                                 </h3>
-                                <p
-                                  className={`${
-                                    item.completed
-                                      ? "text-sup-suc-900 line-through"
-                                      : "text-neu-400"
-                                  }`}
-                                >
-                                  {item.description}
-                                </p>
                               </div>
                             )}
                           </div>
@@ -584,7 +811,7 @@ export function Dashboard() {
                                       : "text-neu-400 hover:text-neu-100"
                                   }`}
                                 >
-                                  <Pen size={20} color="currentColor" />
+                                  <Pen size={24} color="currentColor" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteTask(item.id)}
@@ -595,7 +822,7 @@ export function Dashboard() {
                                   }`}
                                 >
                                   <TrashBinTrash
-                                    size={20}
+                                    size={24}
                                     color="currentColor"
                                   />
                                 </button>
@@ -603,7 +830,7 @@ export function Dashboard() {
                             )}
                           </div>
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* Drop position indicator */}
