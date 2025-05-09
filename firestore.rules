@@ -19,6 +19,14 @@ service cloud.firestore {
         isOwner(get(/databases/$(database)/documents/lists/$(listId)).data.userId);
     }
 
+    // Users collection rules
+    match /users/{userId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && isOwner(userId);
+      allow delete: if false; // Prevent user deletion through client
+    }
+
     // Lists collection rules
     match /lists/{listId} {
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
@@ -33,8 +41,22 @@ service cloud.firestore {
       allow update, delete: if ownsParentList(listId);
     }
 
-    // Tasks collection rules (if you have one)
+    // Tasks collection rules
     match /tasks/{taskId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Timestamps collection rules
+    match /timestamps/{timestampId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Titles collection rules
+    match /titles/{titleId} {
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);

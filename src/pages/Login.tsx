@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
   const [emailWarning, setEmailWarning] = useState("");
   const [loading, setLoading] = useState(false);
@@ -58,6 +60,11 @@ export function Login() {
       return;
     }
 
+    if (!isLogin && (!firstName.trim() || !lastName.trim())) {
+      setError("Please enter both first and last name");
+      return;
+    }
+
     try {
       console.log(
         "Attempting to",
@@ -73,7 +80,7 @@ export function Login() {
         console.log("Login successful");
         navigate("/");
       } else {
-        await signup(email, password);
+        await signup(email, password, firstName.trim(), lastName.trim());
         console.log("Signup successful");
         navigate("/");
       }
@@ -89,7 +96,7 @@ export function Login() {
     <div className="min-h-screen bg-neu-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-outfit">
       <div className="w-full max-w-lg space-y-8">
         <div>
-          <h2 className="text-center text-5xl font-bold text-pri-blue-100">
+          <h2 className="text-center text-5xl font-bold text-pri-blue-100 font-outfit">
             {isLogin ? "Sign in to your account" : "Create a new account"}
           </h2>
         </div>
@@ -100,10 +107,50 @@ export function Login() {
             </div>
           )}
           <div className="space-y-4">
+            {!isLogin && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="first-name"
+                    className="block text-sm font-medium text-neu-300 mb-2 font-outfit"
+                  >
+                    First Name
+                  </label>
+                  <input
+                    id="first-name"
+                    name="firstName"
+                    type="text"
+                    required
+                    className="appearance-none relative block w-full px-6 py-4 border-2 border-neu-600 placeholder-neu-600 text-neu-200 bg-neu-800 rounded-md hover:border-neu-400 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent text-md"
+                    placeholder="Enter your first name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="last-name"
+                    className="block text-sm font-medium text-neu-300 mb-2 font-outfit"
+                  >
+                    Last Name
+                  </label>
+                  <input
+                    id="last-name"
+                    name="lastName"
+                    type="text"
+                    required
+                    className="appearance-none relative block w-full px-6 py-4 border-2 border-neu-600 placeholder-neu-600 text-neu-200 bg-neu-800 rounded-md hover:border-neu-400 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent text-md"
+                    placeholder="Enter your last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <label
                 htmlFor="email-address"
-                className="block text-md font-medium text-neu-300 mb-2"
+                className="block text-sm font-medium text-neu-300 mb-2 font-outfit"
               >
                 Email
               </label>
@@ -127,7 +174,7 @@ export function Login() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-md font-medium text-neu-300 mb-2"
+                className="block text-sm font-medium text-neu-300 mb-2 font-outfit"
               >
                 Password
               </label>
@@ -162,8 +209,12 @@ export function Login() {
             </Button>
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="w-full text-center text-neu-500 hover:text-pri-blue-500 transition-colors"
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+                setEmailWarning("");
+              }}
+              className="w-full text-center text-neu-500 hover:text-pri-blue-500 transition-colors font-outfit"
             >
               {isLogin
                 ? "New here? Sign up"

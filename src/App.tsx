@@ -15,6 +15,7 @@ import { Next7Days } from "./pages/Next7Days";
 import { Habits } from "./pages/Habits";
 import { Goals } from "./pages/Goals";
 import { Settings } from "./pages/Settings";
+import { Account } from "./pages/Account";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
               <Route path="habits" element={<Habits />} />
               <Route path="goals" element={<Goals />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="account" element={<Account />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

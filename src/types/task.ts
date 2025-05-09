@@ -15,4 +15,18 @@ export interface Timestamp {
   time: string;
   isExpanded: boolean;
   tasks: Task[];
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  order?: number;
+}
+
+export interface TitleItem {
+  id: string;
+  type: "title";
+  text: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  order?: number;
 }

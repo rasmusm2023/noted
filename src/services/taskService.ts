@@ -12,9 +12,15 @@ import {
   Timestamp,
   writeBatch,
 } from "firebase/firestore";
-import type { Task } from "../types/task";
+import type {
+  Task,
+  Timestamp as TaskTimestamp,
+  TitleItem,
+} from "../types/task";
 
 const tasksCollection = "tasks";
+const timestampsCollection = "timestamps";
+const titlesCollection = "titles";
 
 export const taskService = {
   // Create a new task
@@ -25,6 +31,10 @@ export const taskService = {
     console.log("Creating task for user:", userId);
     console.log("Task data:", taskData);
 
+    // Get current tasks to determine the next order
+    const currentTasks = await this.getUserTasks(userId);
+    const nextOrder = currentTasks.length;
+
     const now = new Date().toISOString();
     const task: Omit<Task, "id"> = {
       ...taskData,
@@ -32,7 +42,7 @@ export const taskService = {
       completed: false,
       createdAt: now,
       updatedAt: now,
-      order: 0, // Default order for new tasks
+      order: nextOrder, // Set order to the next available position
     };
 
     console.log("Full task object to be saved:", task);
@@ -52,14 +62,13 @@ export const taskService = {
 
     console.log("Querying tasks for user:", userId);
     try {
-      // Temporarily remove orderBy until the index is created
-      const q = query(
-        collection(db, tasksCollection),
-        where("userId", "==", userId)
-      );
+      const tasksRef = collection(db, tasksCollection);
+      console.log("Collection reference created");
+
+      const q = query(tasksRef, where("userId", "==", userId));
+      console.log("Query created with filter:", { userId });
 
       const querySnapshot = await getDocs(q);
-      console.log("Query snapshot size:", querySnapshot.size);
 
       if (querySnapshot.empty) {
         console.log("No tasks found for user:", userId);
@@ -68,20 +77,12 @@ export const taskService = {
 
       const tasks = querySnapshot.docs.map((doc) => {
         const data = doc.data();
-        console.log("Raw task data from Firestore:", data);
         return {
           id: doc.id,
           ...data,
         } as Task;
       });
 
-      // Sort tasks in memory instead of in the query
-      tasks.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-      console.log("Retrieved tasks:", tasks);
       return tasks;
     } catch (error) {
       console.error("Error in getUserTasks:", error);
@@ -161,5 +162,167 @@ export const taskService = {
     });
 
     await batch.commit();
+  },
+
+  // Create a new timestamp
+  async createTimestamp(userId: string, time: string): Promise<TaskTimestamp> {
+    console.log("Creating timestamp for user:", userId);
+    const now = new Date().toISOString();
+    const timestamp: Omit<TaskTimestamp, "id"> = {
+      time,
+      userId,
+      isExpanded: true,
+      tasks: [],
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+    };
+
+    console.log("Full timestamp object to be saved:", timestamp);
+    const docRef = await addDoc(
+      collection(db, timestampsCollection),
+      timestamp
+    );
+    const createdTimestamp = { ...timestamp, id: docRef.id };
+    console.log("Timestamp created successfully:", createdTimestamp);
+    return createdTimestamp;
+  },
+
+  // Get all timestamps for a user
+  async getUserTimestamps(userId: string): Promise<TaskTimestamp[]> {
+    if (!userId) {
+      console.error("getUserTimestamps called with no userId");
+      return [];
+    }
+
+    console.log("Querying timestamps for user:", userId);
+    try {
+      const q = query(
+        collection(db, timestampsCollection),
+        where("userId", "==", userId)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        console.log("No timestamps found for user:", userId);
+        return [];
+      }
+
+      const timestamps = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+        } as TaskTimestamp;
+      });
+
+      return timestamps.sort((a, b) => (a.order || 0) - (b.order || 0));
+    } catch (error) {
+      console.error("Error in getUserTimestamps:", error);
+      throw error;
+    }
+  },
+
+  // Delete a timestamp
+  async deleteTimestamp(timestampId: string): Promise<void> {
+    console.log("Deleting timestamp:", timestampId);
+    const timestampRef = doc(db, timestampsCollection, timestampId);
+    await deleteDoc(timestampRef);
+    console.log("Timestamp deleted successfully");
+  },
+
+  // Update a timestamp
+  async updateTimestamp(
+    timestampId: string,
+    updates: Partial<TaskTimestamp>
+  ): Promise<void> {
+    console.log("Updating timestamp:", timestampId, updates);
+    const timestampRef = doc(db, timestampsCollection, timestampId);
+    const now = new Date().toISOString();
+    await updateDoc(timestampRef, {
+      ...updates,
+      updatedAt: now,
+    });
+    console.log("Timestamp updated successfully");
+  },
+
+  // Create a new title
+  async createTitle(userId: string, text: string): Promise<TitleItem> {
+    console.log("Creating title for user:", userId);
+    const now = new Date().toISOString();
+    const title: Omit<TitleItem, "id"> = {
+      type: "title",
+      text,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+      order: 0,
+    };
+
+    console.log("Full title object to be saved:", title);
+    const docRef = await addDoc(collection(db, titlesCollection), title);
+    const createdTitle = { ...title, id: docRef.id };
+    console.log("Title created successfully:", createdTitle);
+    return createdTitle;
+  },
+
+  // Get all titles for a user
+  async getUserTitles(userId: string): Promise<TitleItem[]> {
+    if (!userId) {
+      console.error("getUserTitles called with no userId");
+      return [];
+    }
+
+    console.log("Querying titles for user:", userId);
+    try {
+      const q = query(
+        collection(db, titlesCollection),
+        where("userId", "==", userId)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        console.log("No titles found for user:", userId);
+        return [];
+      }
+
+      const titles = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+        } as TitleItem;
+      });
+
+      return titles.sort((a, b) => (a.order || 0) - (b.order || 0));
+    } catch (error) {
+      console.error("Error in getUserTitles:", error);
+      throw error;
+    }
+  },
+
+  // Delete a title
+  async deleteTitle(titleId: string): Promise<void> {
+    console.log("Deleting title:", titleId);
+    const titleRef = doc(db, titlesCollection, titleId);
+    await deleteDoc(titleRef);
+    console.log("Title deleted successfully");
+  },
+
+  // Update a title
+  async updateTitle(
+    titleId: string,
+    updates: Partial<TitleItem>
+  ): Promise<void> {
+    console.log("Updating title:", titleId, updates);
+    const titleRef = doc(db, titlesCollection, titleId);
+    const now = new Date().toISOString();
+    await updateDoc(titleRef, {
+      ...updates,
+      updatedAt: now,
+    });
+    console.log("Title updated successfully");
   },
 };

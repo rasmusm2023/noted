@@ -173,7 +173,7 @@ export function ListPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 font-outfit">
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           {isEditingName ? (
@@ -184,19 +184,19 @@ export function ListPage() {
               onChange={(e) => setEditedName(e.target.value)}
               onKeyDown={handleNameKeyDown}
               onBlur={handleNameEdit}
-              className="text-4xl font-bold bg-neu-800 text-neu-100 px-2 py-1 rounded-md border border-neu-700 focus:outline-none focus:border-pri-blue-500"
+              className="text-4xl font-bold bg-neu-800 text-neu-100 px-4 py-2 rounded-lg border-2 border-neu-600 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent"
             />
           ) : (
             <h1
               onClick={() => setIsEditingName(true)}
-              className="text-4xl font-bold text-neu-100 cursor-pointer hover:text-neu-200 transition-colors"
+              className="text-4xl font-bold text-pri-blue-100 cursor-pointer hover:text-pri-blue-200 transition-colors"
             >
               {currentList.name}
             </h1>
           )}
           <button
             onClick={handleDeleteList}
-            className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+            className="px-6 py-2 bg-sup-err-400 text-sup-err-100 rounded-lg hover:bg-sup-err-500 transition-colors font-outfit"
           >
             Delete List
           </button>
@@ -213,11 +213,11 @@ export function ListPage() {
                 if (e.key === "Escape") setNewItemText("");
               }}
               placeholder="Add new item..."
-              className="flex-1 px-4 py-2 bg-neu-800 text-neu-100 rounded-md border border-neu-700 focus:outline-none focus:border-pri-blue-500"
+              className="flex-1 px-4 py-2 bg-neu-800 text-neu-100 rounded-lg border-2 border-neu-600 placeholder-neu-600 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent font-outfit"
             />
             <button
               type="submit"
-              className="px-6 py-2 bg-pri-blue-500 text-white rounded-md hover:bg-pri-blue-600 transition-colors"
+              className="px-6 py-2 bg-pri-blue-500 text-neu-100 rounded-lg hover:bg-pri-blue-600 transition-colors font-outfit"
             >
               Add Item
             </button>
@@ -228,16 +228,16 @@ export function ListPage() {
           {listItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-4 p-4 bg-neu-800 rounded-md border border-neu-700 hover:border-neu-600 transition-colors"
+              className="flex items-center gap-4 p-4 bg-neu-800 rounded-lg border-2 border-neu-600 hover:border-neu-500 transition-colors"
             >
               <input
                 type="checkbox"
                 checked={item.completed}
                 onChange={(e) => handleToggleItem(item.id, e.target.checked)}
-                className="w-5 h-5 rounded border-neu-600 text-pri-blue-500 focus:ring-pri-blue-500"
+                className="w-5 h-5 rounded border-2 border-neu-600 text-pri-blue-500 focus:ring-2 focus:ring-pri-blue-500"
               />
               <span
-                className={`flex-1 ${
+                className={`flex-1 font-outfit ${
                   item.completed ? "line-through text-neu-500" : "text-neu-100"
                 }`}
               >
@@ -245,7 +245,7 @@ export function ListPage() {
               </span>
               <button
                 onClick={() => handleDeleteItem(item.id)}
-                className="text-red-500 hover:text-red-400 transition-colors"
+                className="text-sup-err-400 hover:text-sup-err-300 transition-colors font-outfit"
               >
                 Delete
               </button>

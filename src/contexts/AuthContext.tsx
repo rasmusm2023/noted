@@ -7,11 +7,17 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 
 interface AuthContextType {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<UserCredential>;
-  signup: (email: string, password: string) => Promise<UserCredential>;
+  signup: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string
+  ) => Promise<UserCredential>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -31,9 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("Setting up auth state listener");
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("Auth state changed:", user ? "User logged in" : "No user");
       if (user) {
         console.log("Current user details:", {
           email: user.email,
@@ -73,7 +77,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signup(
     email: string,
-    password: string
+    password: string,
+    firstName: string,
+    lastName: string
   ): Promise<UserCredential> {
     try {
       console.log("Attempting signup for:", email);
@@ -82,6 +88,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password
       );
+
+      // Initialize Firestore and store user profile data
+      const db = getFirestore();
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        createdAt: new Date().toISOString(),
+      });
+
       console.log("Signup successful for:", userCredential.user.email);
       return userCredential;
     } catch (error: any) {
