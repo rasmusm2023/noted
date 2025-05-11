@@ -12,6 +12,7 @@ export interface Task extends BaseItem {
   description: string;
   scheduledTime: string;
   completed: boolean;
+  date: string; // ISO string format
 }
 
 export interface SectionItem extends BaseItem {
