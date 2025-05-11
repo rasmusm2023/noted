@@ -16,11 +16,13 @@ import type {
   Task,
   Timestamp as TaskTimestamp,
   TitleItem,
+  SectionItem,
 } from "../types/task";
 
 const tasksCollection = "tasks";
 const timestampsCollection = "timestamps";
 const titlesCollection = "titles";
+const sectionsCollection = "sections";
 
 export const taskService = {
   // Create a new task
@@ -324,5 +326,144 @@ export const taskService = {
       updatedAt: now,
     });
     console.log("Title updated successfully");
+  },
+
+  // Create a new section
+  async createSection(
+    userId: string,
+    sectionData: { text: string; time: string }
+  ): Promise<SectionItem> {
+    console.log("Creating section for user:", userId);
+    console.log("Section data:", sectionData);
+
+    // Get current sections to determine the next order
+    const currentSections = await this.getUserSections(userId);
+    console.log("Current sections count:", currentSections.length);
+
+    const now = new Date().toISOString();
+    const section: Omit<SectionItem, "id"> = {
+      type: "section",
+      text: sectionData.text,
+      time: sectionData.time,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+      order: 0, // New sections always get order 0
+    };
+
+    console.log("Full section object to be saved:", section);
+    try {
+      // First create the new section
+      const docRef = await addDoc(collection(db, sectionsCollection), section);
+      const createdSection = { ...section, id: docRef.id };
+      console.log("Section created successfully:", createdSection);
+
+      // Try to update existing sections' orders, but don't fail if it doesn't work
+      try {
+        const batch = writeBatch(db);
+        currentSections.forEach((existingSection) => {
+          const sectionRef = doc(db, sectionsCollection, existingSection.id);
+          batch.update(sectionRef, {
+            order: (existingSection.order ?? 0) + 1,
+            updatedAt: now,
+          });
+        });
+        await batch.commit();
+        console.log("Successfully updated existing sections' orders");
+      } catch (batchError) {
+        console.warn("Failed to update existing sections' orders:", batchError);
+        // Don't throw the error - we still want to return the created section
+      }
+
+      return createdSection;
+    } catch (error) {
+      console.error("Error creating section:", error);
+      throw error;
+    }
+  },
+
+  // Get all sections for a user
+  async getUserSections(userId: string): Promise<SectionItem[]> {
+    if (!userId) {
+      console.error("getUserSections called with no userId");
+      return [];
+    }
+
+    console.log("Querying sections for user:", userId);
+    try {
+      const sectionsRef = collection(db, sectionsCollection);
+      console.log("Collection reference created for sections");
+
+      const q = query(sectionsRef, where("userId", "==", userId));
+      console.log("Query created with filter:", { userId });
+
+      const querySnapshot = await getDocs(q);
+      console.log("Query executed, empty?", querySnapshot.empty);
+
+      if (querySnapshot.empty) {
+        console.log("No sections found for user:", userId);
+        return [];
+      }
+
+      console.log("Number of sections found:", querySnapshot.size);
+      const sections = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        console.log("Raw section data:", data);
+        return {
+          id: doc.id,
+          ...data,
+        } as SectionItem;
+      });
+
+      const sortedSections = sections.sort(
+        (a, b) => (a.order || 0) - (b.order || 0)
+      );
+      console.log("Sorted sections:", sortedSections);
+      return sortedSections;
+    } catch (error) {
+      console.error("Error in getUserSections:", error);
+      throw error;
+    }
+  },
+
+  // Delete a section
+  async deleteSection(sectionId: string): Promise<void> {
+    console.log("Deleting section:", sectionId);
+    const sectionRef = doc(db, sectionsCollection, sectionId);
+    await deleteDoc(sectionRef);
+    console.log("Section deleted successfully");
+  },
+
+  // Update a section
+  async updateSection(
+    sectionId: string,
+    updates: Partial<SectionItem>
+  ): Promise<void> {
+    console.log("Updating section:", sectionId, updates);
+    const sectionRef = doc(db, sectionsCollection, sectionId);
+    const now = new Date().toISOString();
+    await updateDoc(sectionRef, {
+      ...updates,
+      updatedAt: now,
+    });
+    console.log("Section updated successfully");
+  },
+
+  // Update section order
+  async updateSectionOrder(
+    userId: string,
+    sectionOrders: { id: string; order: number }[]
+  ): Promise<void> {
+    const batch = writeBatch(db);
+
+    sectionOrders.forEach(({ id, order }) => {
+      const sectionRef = doc(db, sectionsCollection, id);
+      batch.update(sectionRef, {
+        order,
+        updatedAt: new Date().toISOString(),
+      });
+    });
+
+    await batch.commit();
   },
 };

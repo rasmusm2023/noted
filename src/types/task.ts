@@ -30,3 +30,14 @@ export interface TitleItem {
   updatedAt: string;
   order?: number;
 }
+
+export interface SectionItem {
+  id: string;
+  type: "section";
+  text: string;
+  time: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+  order?: number;
+}

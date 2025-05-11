@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
-import type { Task, Timestamp, TitleItem } from "../types/task";
+import type { Task, Timestamp, TitleItem, SectionItem } from "../types/task";
 import { TrashBinTrash, Pen, CheckCircle, Record } from "solar-icon-set";
 
-type ListItem = Task | Timestamp | TitleItem;
+type ListItem = Task | Timestamp | TitleItem | SectionItem;
 
 type DragState = {
   item: ListItem;
@@ -18,9 +18,11 @@ export function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [timestamps, setTimestamps] = useState<Timestamp[]>([]);
   const [titles, setTitles] = useState<TitleItem[]>([]);
+  const [sections, setSections] = useState<SectionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
+  const [editingTime, setEditingTime] = useState<string | null>(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [isCreatingTimestamp, setIsCreatingTimestamp] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -29,6 +31,8 @@ export function Dashboard() {
   const [newTitleText, setNewTitleText] = useState("");
   const [currentDate, setCurrentDate] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("");
+  const [temperature, setTemperature] = useState<number | null>(null);
+  const [weatherCondition, setWeatherCondition] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const taskInputRef = useRef<HTMLInputElement>(null);
 
@@ -50,36 +54,20 @@ export function Dashboard() {
 
   const sortMenuRef = useRef<HTMLDivElement>(null);
 
+  // Add allItems state
+  const [allItems, setAllItems] = useState<ListItem[]>([]);
+
+  const [isCreatingSection, setIsCreatingSection] = useState(false);
+  const sectionInputRef = useRef<HTMLInputElement>(null);
+
   const isTask = (item: ListItem): item is Task => {
-    return !("time" in item) && !("type" in item);
+    return "completed" in item;
   };
 
   // Filter tasks based on hideCompleted state
   const filteredTasks = tasks.filter(
     (task) => !hideCompleted || !task.completed
   );
-
-  // Combine all items and sort by their order and completion status
-  const allItems: ListItem[] = [
-    ...timestamps,
-    ...titles,
-    ...filteredTasks,
-  ].sort((a, b) => {
-    const orderA = a.order ?? Number.MAX_SAFE_INTEGER;
-    const orderB = b.order ?? Number.MAX_SAFE_INTEGER;
-
-    // If we're sorting by completion status
-    if (completedPosition !== "mixed" && isTask(a) && isTask(b)) {
-      if (a.completed && !b.completed) {
-        return completedPosition === "top" ? -1 : 1;
-      }
-      if (!a.completed && b.completed) {
-        return completedPosition === "top" ? 1 : -1;
-      }
-    }
-
-    return orderA - orderB;
-  });
 
   // Update date on mount and every day
   useEffect(() => {
@@ -110,58 +98,270 @@ export function Dashboard() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Add temperature fetching
   useEffect(() => {
-    const loadTasks = async () => {
-      if (currentUser) {
-        try {
-          setLoading(true);
+    const fetchTemperature = async (latitude: number, longitude: number) => {
+      try {
+        console.log(
+          "Fetching temperature for coordinates:",
+          latitude,
+          longitude
+        );
+        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
-          // Load all data in parallel
-          const [userTasks, userTimestamps, userTitles] = await Promise.all([
-            taskService.getUserTasks(currentUser.uid),
-            taskService.getUserTimestamps(currentUser.uid),
-            taskService.getUserTitles(currentUser.uid),
-          ]);
-
-          // Sort tasks by their order, falling back to creation date if order is not set
-          const sortedTasks = userTasks.sort((a, b) => {
-            if (a.order !== undefined && b.order !== undefined) {
-              return a.order - b.order;
-            }
-            return (
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-            );
-          });
-
-          // Sort timestamps by order
-          const sortedTimestamps = userTimestamps.sort(
-            (a, b) => (a.order || 0) - (b.order || 0)
-          );
-
-          // Sort titles by order
-          const sortedTitles = userTitles.sort(
-            (a, b) => (a.order || 0) - (b.order || 0)
-          );
-
-          console.log("Sorted tasks:", sortedTasks);
-          console.log("Sorted timestamps:", sortedTimestamps);
-          console.log("Sorted titles:", sortedTitles);
-
-          setTasks(sortedTasks);
-          setTimestamps(sortedTimestamps);
-          setTitles(sortedTitles);
-        } catch (error) {
-          console.error("Error loading data:", error);
-        } finally {
-          setLoading(false);
+        if (!apiKey) {
+          console.error("OpenWeather API key is not configured");
+          return;
         }
-      } else {
+
+        const url = new URL("http://api.openweathermap.org/data/2.5/weather");
+        url.searchParams.append("lat", latitude.toString());
+        url.searchParams.append("lon", longitude.toString());
+        url.searchParams.append("units", "metric");
+        url.searchParams.append("appid", apiKey);
+
+        console.log("Fetching from URL:", url.toString());
+
+        const response = await fetch(url);
+        const data = await response.json();
+        console.log("Weather API response:", data);
+
+        if (data.cod === 401) {
+          console.error(
+            "Invalid API key. Please check your OpenWeather API key configuration."
+          );
+          return;
+        }
+
+        if (!data.main?.temp) {
+          console.error("Unexpected API response format:", data);
+          return;
+        }
+
+        setTemperature(Math.round(data.main.temp));
+        setWeatherCondition(data.weather[0]?.main || null);
+      } catch (error) {
+        console.error("Error fetching temperature:", error);
+      }
+    };
+
+    if ("geolocation" in navigator) {
+      console.log("Geolocation is available");
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log("Got position:", position);
+          fetchTemperature(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    } else {
+      console.log("Geolocation is not available");
+    }
+  }, []);
+
+  const getWeatherIcon = (condition: string | null) => {
+    if (!condition) return null;
+
+    const iconMap: { [key: string]: JSX.Element } = {
+      Clear: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-yellow-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+      ),
+      Clouds: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+          />
+        </svg>
+      ),
+      Rain: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-blue-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 19l3 3m0 0l3-3m-3 3V10"
+          />
+        </svg>
+      ),
+      Snow: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-blue-200"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 19l-2 2m0 0l-2-2m2 2V10"
+          />
+        </svg>
+      ),
+      Thunderstorm: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-yellow-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
+        </svg>
+      ),
+      Drizzle: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-blue-300"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 19l3 3m0 0l3-3m-3 3V10"
+          />
+        </svg>
+      ),
+      Mist: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-gray-300"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 19l3 3m0 0l3-3m-3 3V10"
+          />
+        </svg>
+      ),
+    };
+
+    return iconMap[condition] || null;
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!currentUser) {
         console.log("No user logged in, skipping data load");
+        setLoading(false);
+        return;
+      }
+
+      console.log("Starting data load for user:", currentUser.uid);
+      try {
+        setLoading(true);
+        const [userTasks, userSections] = await Promise.all([
+          taskService.getUserTasks(currentUser.uid),
+          taskService.getUserSections(currentUser.uid),
+        ]);
+
+        console.log("Raw data loaded:", {
+          tasks: userTasks,
+          sections: userSections,
+        });
+
+        // Sort tasks by order or creation date
+        const sortedTasks = [...userTasks].sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order;
+          }
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        });
+
+        // Sort sections by order
+        const sortedSections = [...userSections].sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order;
+          }
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        });
+
+        console.log("Sorted data:", {
+          tasks: sortedTasks,
+          sections: sortedSections,
+        });
+
+        setTasks(sortedTasks);
+        setSections(sortedSections);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
         setLoading(false);
       }
     };
 
-    loadTasks();
+    loadData();
   }, [currentUser]);
 
   const handleTaskCompletion = async (taskId: string, completed: boolean) => {
@@ -248,8 +448,14 @@ export function Dashboard() {
   };
 
   const formatTimeFromInput = (input: string): string => {
-    // Remove any non-digit characters
-    const numbers = input.replace(/\D/g, "");
+    // Allow only numbers and specific symbols
+    const cleaned = input.replace(/[^0-9.,:;-]/g, "");
+
+    if (cleaned.length === 0) return "";
+
+    // Split by any of the allowed separators
+    const parts = cleaned.split(/[.,:;-]/);
+    const numbers = parts.join("").replace(/\D/g, "");
 
     if (numbers.length === 0) return "";
 
@@ -316,24 +522,15 @@ export function Dashboard() {
     }
   };
 
-  const handleAddTitle = async () => {
+  const handleAddTitle = async (text: string) => {
     if (!currentUser) {
       console.error("No user logged in");
       return;
     }
 
-    const trimmedText = newTitleText.trim();
-    if (!trimmedText) {
-      console.error("Title text is empty");
-      return;
-    }
-
     try {
-      console.log("Creating new title:", trimmedText);
-      const newTitle = await taskService.createTitle(
-        currentUser.uid,
-        trimmedText
-      );
+      console.log("Creating new title:", text);
+      const newTitle = await taskService.createTitle(currentUser.uid, text);
       console.log("Title created:", newTitle);
       setTitles((prev) => [...prev, newTitle]);
       setNewTitleText("");
@@ -381,7 +578,7 @@ export function Dashboard() {
   };
 
   const [focusedInput, setFocusedInput] = useState<
-    "task" | "timestamp" | "title" | null
+    "task" | "timestamp" | "title" | "section" | null
   >(null);
 
   const handleDragStart = (
@@ -465,47 +662,36 @@ export function Dashboard() {
       targetIndex,
       position,
       item,
-      itemType:
-        "time" in item ? "timestamp" : "type" in item ? "title" : "task",
+      itemType: isSection(item) ? "section" : isTask(item) ? "task" : "other",
     });
 
-    // Create new array with reordered items, including all tasks regardless of completion status
-    const newItems = [...timestamps, ...titles, ...tasks].sort((a, b) => {
-      const orderA = a.order ?? Number.MAX_SAFE_INTEGER;
-      const orderB = b.order ?? Number.MAX_SAFE_INTEGER;
-      return orderA - orderB;
-    });
-
+    // Create new array with reordered items
+    const newItems = [...allItems];
     const [movedItem] = newItems.splice(sourceIndex, 1);
     newItems.splice(targetIndex, 0, movedItem);
 
-    // Update local state immediately with new orders
-    const newTimestamps = newItems
-      .filter((item): item is Timestamp => "time" in item)
-      .map((ts, index) => ({ ...ts, order: newItems.indexOf(ts) }));
-
-    const newTitles = newItems
+    // Update local state immediately
+    const newSections = newItems
       .filter(
-        (item): item is TitleItem => "type" in item && item.type === "title"
+        (item): item is SectionItem =>
+          "type" in item &&
+          item.type === "section" &&
+          "text" in item &&
+          "time" in item
       )
-      .map((title, index) => ({ ...title, order: newItems.indexOf(title) }));
-
+      .map((section, index) => ({ ...section, order: index }));
     const newTasks = newItems
-      .filter((item): item is Task => !("time" in item) && !("type" in item))
-      .map((task, index) => ({ ...task, order: newItems.indexOf(task) }));
+      .filter(
+        (item): item is Task =>
+          "title" in item &&
+          "description" in item &&
+          "scheduledTime" in item &&
+          "completed" in item
+      )
+      .map((task, index) => ({ ...task, order: index }));
 
-    console.log(
-      "New Items Order:",
-      newItems.map((item) => ({
-        id: item.id,
-        type: "time" in item ? "timestamp" : "type" in item ? "title" : "task",
-        order: newItems.indexOf(item),
-      }))
-    );
-
-    // Update all states at once
-    setTimestamps(newTimestamps);
-    setTitles(newTitles);
+    // Update state with the correct types
+    setSections(newSections);
     setTasks(newTasks);
     setDragState(null);
     setPreviewAnimation(null);
@@ -518,32 +704,25 @@ export function Dashboard() {
           id: task.id,
           order: task.order,
         }));
-        const timestampUpdates = newTimestamps.map((ts) => ({
-          id: ts.id,
-          order: ts.order,
-        }));
-        const titleUpdates = newTitles.map((title) => ({
-          id: title.id,
-          order: title.order,
+        const sectionUpdates = newSections.map((section) => ({
+          id: section.id,
+          order: section.order,
         }));
 
         console.log("Updating Orders:", {
           tasks: taskUpdates,
-          timestamps: timestampUpdates,
-          titles: titleUpdates,
+          sections: sectionUpdates,
         });
 
         await Promise.all([
           taskService.updateTaskOrder(currentUser.uid, taskUpdates),
-          taskService.updateTimestampOrder(currentUser.uid, timestampUpdates),
-          taskService.updateTitleOrder(currentUser.uid, titleUpdates),
+          taskService.updateSectionOrder(currentUser.uid, sectionUpdates),
         ]);
       }
     } catch (error) {
       console.error("Error saving item order:", error);
       // Revert state changes if the database update fails
-      setTimestamps(timestamps);
-      setTitles(titles);
+      setSections(sections);
       setTasks(tasks);
     }
   };
@@ -553,9 +732,10 @@ export function Dashboard() {
     console.log("State Changed:", {
       timestamps: timestamps.map((t) => ({ id: t.id, order: t.order })),
       titles: titles.map((t) => ({ id: t.id, order: t.order })),
+      sections: sections.map((s) => ({ id: s.id, order: s.order })),
       tasks: tasks.map((t) => ({ id: t.id, order: t.order })),
     });
-  }, [timestamps, titles, tasks]);
+  }, [timestamps, titles, sections, tasks]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -584,16 +764,292 @@ export function Dashboard() {
     };
   }, [isSortMenuOpen]);
 
+  // Update the handleAddSection function
+  const handleAddSection = async () => {
+    if (!currentUser) {
+      console.error("No user logged in");
+      return;
+    }
+
+    const title = newTitleText.trim();
+    const time = formatTimeFromInput(newTimestampTime.trim());
+
+    if (!title || !time) {
+      console.log("Missing required fields:", { title, time });
+      return;
+    }
+
+    try {
+      console.log(
+        "Attempting to create new section for user:",
+        currentUser.uid
+      );
+      const newSection = await taskService.createSection(currentUser.uid, {
+        text: title,
+        time: time,
+      });
+      console.log("Section created successfully:", newSection);
+
+      // Update sections state immediately
+      setSections((prevSections) => {
+        const updatedSections = [
+          newSection,
+          ...prevSections.map((section) => ({
+            ...section,
+            order: (section.order ?? 0) + 1,
+          })),
+        ];
+        console.log("Updated sections:", updatedSections);
+        return updatedSections;
+      });
+
+      // Update allItems state to include the new section
+      setAllItems((prevItems) => {
+        const updatedItems = [
+          newSection,
+          ...prevItems.map((item) => ({
+            ...item,
+            order: (item.order ?? 0) + 1,
+          })),
+        ];
+        console.log("Updated allItems:", updatedItems);
+        return updatedItems;
+      });
+
+      // Clear input fields
+      setNewTitleText("");
+      setNewTimestampTime("");
+
+      // Keep focus on the title input field
+      if (sectionInputRef.current) {
+        sectionInputRef.current.focus();
+      }
+    } catch (error) {
+      console.error("Error creating section:", error);
+    }
+  };
+
+  const handleSectionKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      // Format the time before adding the section
+      const formattedTime = formatTimeFromInput(newTimestampTime);
+      setNewTimestampTime(formattedTime);
+      handleAddSection();
+    } else if (e.key === "Escape") {
+      setIsCreatingSection(false);
+      setNewTitleText("");
+      setNewTimestampTime("");
+    }
+  };
+
+  // Add handleDeleteSection function
+  const handleDeleteSection = async (sectionId: string) => {
+    try {
+      await taskService.deleteSection(sectionId);
+      setSections(sections.filter((section) => section.id !== sectionId));
+    } catch (error) {
+      console.error("Error deleting section:", error);
+    }
+  };
+
+  // Add type guard for SectionItem
+  const isSection = (item: ListItem): item is SectionItem => {
+    return "type" in item && item.type === "section";
+  };
+
+  // Add debug logging for allItems
+  useEffect(() => {
+    console.log("Current state:", {
+      tasks: tasks,
+      sections: sections,
+      filteredTasks: tasks.filter((task) => !hideCompleted || !task.completed),
+    });
+  }, [tasks, sections, hideCompleted]);
+
+  // Update the allItems calculation
+  useEffect(() => {
+    console.log("Calculating allItems with:", {
+      tasks: tasks,
+      sections: sections,
+      hideCompleted: hideCompleted,
+    });
+
+    // Filter tasks based on hideCompleted state
+    const filteredTasks = hideCompleted
+      ? tasks.filter((task) => !task.completed)
+      : tasks;
+
+    // Combine and sort all items
+    const sortedItems = [...filteredTasks, ...sections].sort((a, b) => {
+      // If both items have order, use that
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      // If only one has order, prioritize the one with order
+      if (a.order !== undefined) return -1;
+      if (b.order !== undefined) return 1;
+      // If neither has order, maintain relative positions
+      return 0;
+    });
+
+    // Update orders to ensure they are sequential
+    const updatedItems = sortedItems.map((item, index) => ({
+      ...item,
+      order: index,
+    }));
+
+    console.log("Final sorted items:", updatedItems);
+    setAllItems(updatedItems);
+  }, [tasks, sections, hideCompleted]);
+
+  // Add handleEditSection function
+  const handleEditSection = async (
+    sectionId: string,
+    updates: Partial<SectionItem>
+  ) => {
+    try {
+      await taskService.updateSection(sectionId, updates);
+      setSections(
+        sections.map((section) =>
+          section.id === sectionId ? { ...section, ...updates } : section
+        )
+      );
+    } catch (error) {
+      console.error("Error updating section:", error);
+    }
+  };
+
+  const formatTimeDisplay = (time: string): string => {
+    // Convert HH:mm to HH.mm
+    return time.replace(":", ".");
+  };
+
+  // Update section rendering
+  const renderSection = (item: SectionItem) => (
+    <div className="p-4 bg-neu-800 rounded-lg flex items-center justify-between">
+      <div className="flex-1">
+        {editingTitle === item.id ? (
+          <input
+            ref={titleInputRef}
+            type="text"
+            defaultValue={item.text}
+            className="flex-1 bg-transparent text-xl font-semibold text-neu-100 focus:outline-none"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleEditSection(item.id, { text: e.currentTarget.value });
+                setEditingTitle(null);
+              } else if (e.key === "Escape") {
+                setEditingTitle(null);
+              }
+            }}
+            onBlur={(e) => {
+              handleEditSection(item.id, { text: e.target.value });
+              setEditingTitle(null);
+            }}
+            autoFocus
+          />
+        ) : (
+          <div
+            className="flex-1 cursor-pointer flex items-center"
+            onDoubleClick={() => {
+              setEditingTitle(item.id);
+              setEditingTime(null);
+            }}
+          >
+            <h3 className="text-xl font-semibold text-neu-100">{item.text}</h3>
+          </div>
+        )}
+      </div>
+      <div className="mx-4">
+        {editingTime === item.id ? (
+          <input
+            type="text"
+            value={item.time}
+            onChange={(e) => {
+              // Allow any input while typing, just clean invalid characters
+              const cleaned = e.target.value.replace(/[^0-9.,:;-]/g, "");
+              setSections(
+                sections.map((section) =>
+                  section.id === item.id
+                    ? { ...section, time: cleaned }
+                    : section
+                )
+              );
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const formattedTime = formatTimeFromInput(
+                  e.currentTarget.value
+                );
+                handleEditSection(item.id, { time: formattedTime });
+                setEditingTime(null);
+              } else if (e.key === "Escape") {
+                setEditingTime(null);
+              }
+            }}
+            onBlur={(e) => {
+              const formattedTime = formatTimeFromInput(e.currentTarget.value);
+              handleEditSection(item.id, { time: formattedTime });
+              setEditingTime(null);
+            }}
+            className="flex-1 bg-transparent text-xl font-semibold text-neu-100 focus:outline-none w-20 text-center"
+            autoFocus
+          />
+        ) : (
+          <div
+            className="flex-1 cursor-pointer flex items-center"
+            onDoubleClick={() => {
+              setEditingTime(item.id);
+              setEditingTitle(null);
+            }}
+          >
+            <h3 className="text-xl font-semibold text-neu-100">{item.time}</h3>
+          </div>
+        )}
+      </div>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => {
+            setEditingTitle(item.id);
+            setEditingTime(null);
+          }}
+          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center"
+        >
+          <Pen size={24} color="currentColor" autoSize={false} />
+        </button>
+        <button
+          onClick={() => handleDeleteSection(item.id)}
+          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center"
+        >
+          <TrashBinTrash size={24} color="currentColor" autoSize={false} />
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <h1 className="text-4xl font-bold text-neu-100">{dayOfWeek}</h1>
-          <span className="text-2xl text-neu-400 uppercase">{currentDate}</span>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <h1 className="text-4xl font-bold text-neu-100">{dayOfWeek}</h1>
+            <span className="text-2xl text-neu-400 uppercase">
+              {currentDate}
+            </span>
+          </div>
+          {temperature !== null && (
+            <div className="flex items-center gap-2">
+              {getWeatherIcon(weatherCondition)}
+              <span className="text-2xl text-neu-100">{temperature}°C</span>
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div
             className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
               focusedInput === "task" ? "ring-2 ring-pri-blue-500" : ""
@@ -638,11 +1094,11 @@ export function Dashboard() {
 
           <div
             className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
-              focusedInput === "timestamp" ? "ring-2 ring-pri-blue-500" : ""
+              focusedInput === "section" ? "ring-2 ring-pri-blue-500" : ""
             }`}
           >
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-sup-suc-500 rounded-lg">
+              <div className="p-3 bg-sup-war-500 rounded-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="text-neu-100"
@@ -661,73 +1117,35 @@ export function Dashboard() {
                 </svg>
               </div>
               <div className="text-left flex-1">
-                <input
-                  type="text"
-                  value={newTimestampTime}
-                  onChange={(e) => setNewTimestampTime(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddTimestamp();
-                    }
-                  }}
-                  onKeyPress={(e) => {
-                    // Allow numbers and specific symbols
-                    if (!/[0-9.:;-]/.test(e.key)) {
-                      e.preventDefault();
-                    }
-                  }}
-                  onFocus={() => setFocusedInput("timestamp")}
-                  onBlur={() => setFocusedInput(null)}
-                  placeholder="Add a timestamp..."
-                  className="w-full bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                />
-                <p className="text-neu-400 text-sm">For example 09.00</p>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
-              focusedInput === "title" ? "ring-2 ring-pri-blue-500" : ""
-            }`}
-          >
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-sup-war-500 rounded-lg">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-neu-100"
-                  width="24"
-                  height="24"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16m-7 6h7"
+                <div className="flex items-center gap-4">
+                  <input
+                    ref={sectionInputRef}
+                    type="text"
+                    value={newTitleText}
+                    onChange={(e) => setNewTitleText(e.target.value)}
+                    onKeyDown={handleSectionKeyPress}
+                    onFocus={() => setFocusedInput("section")}
+                    onBlur={() => setFocusedInput(null)}
+                    placeholder="Add a section..."
+                    className="flex-1 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
                   />
-                </svg>
-              </div>
-              <div className="text-left flex-1">
-                <input
-                  type="text"
-                  value={newTitleText}
-                  onChange={(e) => setNewTitleText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newTitleText.trim()) {
-                      e.preventDefault();
-                      handleAddTitle();
-                    }
-                  }}
-                  onFocus={() => setFocusedInput("title")}
-                  onBlur={() => setFocusedInput(null)}
-                  placeholder="Add a title..."
-                  className="w-full bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                />
-                <p className="text-neu-400 text-sm">Press Enter to add</p>
+                  <input
+                    type="text"
+                    value={newTimestampTime}
+                    onChange={(e) => {
+                      // Allow any input while typing, just clean invalid characters
+                      const cleaned = e.target.value.replace(
+                        /[^0-9.,:;-]/g,
+                        ""
+                      );
+                      setNewTimestampTime(cleaned);
+                    }}
+                    onKeyDown={handleSectionKeyPress}
+                    placeholder="Time"
+                    className="w-32 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                  />
+                </div>
+                <p className="text-neu-400 text-sm mt-1">Press Enter to add</p>
               </div>
             </div>
           </div>
@@ -736,9 +1154,37 @@ export function Dashboard() {
         {/* Today's Tasks with Timestamps */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold text-neu-100">
-              Today's Tasks
-            </h2>
+            <div className="flex items-center gap-8">
+              <h2 className="text-2xl font-semibold text-neu-100">
+                Todays tasks
+              </h2>
+              <div className="hidden 2xl:flex items-center gap-2">
+                <div className="w-[300px] h-2 bg-neu-700 rounded-full">
+                  <div
+                    className="h-full bg-sup-suc-500 rounded-full"
+                    style={{
+                      width: `${
+                        tasks.length > 0
+                          ? (tasks.filter((task) => task.completed).length /
+                              tasks.length) *
+                            100
+                          : 0
+                      }%`,
+                    }}
+                  ></div>
+                </div>
+                <span className="text-sm text-neu-400">
+                  {tasks.length > 0
+                    ? Math.round(
+                        (tasks.filter((task) => task.completed).length /
+                          tasks.length) *
+                          100
+                      )
+                    : 0}
+                  %
+                </span>
+              </div>
+            </div>
             <div className="flex items-center space-x-2">
               <div className="relative" ref={sortMenuRef}>
                 <button
@@ -1016,7 +1462,9 @@ export function Dashboard() {
                               : ""
                           }`}
                         >
-                          {"time" in item ? (
+                          {isSection(item) ? (
+                            renderSection(item)
+                          ) : "time" in item ? (
                             // Timestamp
                             <div className="flex items-center space-x-4 p-4 bg-neu-800 rounded-lg">
                               <div className="flex-1 h-px bg-neu-700 transition-all duration-300"></div>
