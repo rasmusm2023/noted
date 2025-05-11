@@ -243,7 +243,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
-          {menuSections.map((section) => (
+          {menuSections.map((section, index) => (
             <div key={section.title} className="space-y-2">
               {isOpen && (
                 <h2 className="px-3 text-sm font-bold text-neu-500 uppercase tracking-wider font-outfit">
@@ -271,11 +271,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   {isOpen && <span>{item.label}</span>}
                 </button>
               ))}
+              {index < menuSections.length - 1 && (
+                <div className="h-px bg-neu-700 my-4" />
+              )}
             </div>
           ))}
 
           {/* Lists Section */}
           <div className="space-y-2">
+            <div className="h-px bg-neu-700 mb-4" />
             {isOpen && (
               <h2 className="px-3 text-sm font-bold text-neu-500 uppercase tracking-wider font-outfit">
                 Lists
