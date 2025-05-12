@@ -18,7 +18,20 @@ import {
   Moon,
 } from "solar-icon-set";
 import { listService } from "../../services/listService";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
+
+// Import custom avatars
+import avatar1 from "../../assets/profile-avatars/PFP_option1.png";
+import avatar2 from "../../assets/profile-avatars/PFP_option2.png";
+import avatar3 from "../../assets/profile-avatars/PFP_option3.png";
+import avatar4 from "../../assets/profile-avatars/PFP_option4.png";
+
+const avatars = [
+  { id: 1, src: avatar1 },
+  { id: 2, src: avatar2 },
+  { id: 3, src: avatar3 },
+  { id: 4, src: avatar4 },
+];
 
 interface MenuItem {
   id: string;
@@ -74,8 +87,7 @@ const firstTimeGreetings = ["Welcome,", "Hello,", "Hi there,"];
 
 interface UserDetails {
   firstName: string;
-  avatarStyle?: string;
-  avatarSeed?: string;
+  selectedAvatar?: number;
   createdAt: string;
 }
 
@@ -91,8 +103,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [userDetails, setUserDetails] = useState<UserDetails>({
     firstName: "",
-    avatarStyle: "adventurer",
-    avatarSeed: "",
+    selectedAvatar: 1,
     createdAt: "",
   });
   const [isFirstLogin, setIsFirstLogin] = useState(true);
@@ -117,8 +128,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           const data = userDoc.data() as UserDetails;
           setUserDetails({
             firstName: data.firstName || "",
-            avatarStyle: data.avatarStyle || "adventurer",
-            avatarSeed: data.avatarSeed || currentUser.uid,
+            selectedAvatar: data.selectedAvatar || 1,
             createdAt: data.createdAt || "",
           });
 
@@ -135,6 +145,25 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     };
 
     fetchUserDetails();
+
+    // Set up a listener for user document changes
+    if (currentUser) {
+      const db = getFirestore();
+      const unsubscribe = onSnapshot(
+        doc(db, "users", currentUser.uid),
+        (doc) => {
+          if (doc.exists()) {
+            const data = doc.data() as UserDetails;
+            setUserDetails((prev) => ({
+              ...prev,
+              selectedAvatar: data.selectedAvatar || 1,
+            }));
+          }
+        }
+      );
+
+      return () => unsubscribe();
+    }
   }, [currentUser]);
 
   useEffect(() => {
@@ -427,10 +456,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className="w-full flex items-center space-x-4 p-4 rounded-md text-neu-400 hover:bg-neu-700 hover:text-neu-100"
             >
-              <div className="w-12 h-12 rounded-full bg-neu-700 flex items-center justify-center overflow-hidden">
-                {userDetails.avatarStyle && userDetails.avatarSeed ? (
+              <div className="w-12 h-12 rounded-lg bg-neu-700 flex items-center justify-center overflow-hidden">
+                {userDetails.selectedAvatar ? (
                   <img
-                    src={`https://api.dicebear.com/7.x/${userDetails.avatarStyle}/svg?seed=${userDetails.avatarSeed}`}
+                    src={
+                      avatars.find((a) => a.id === userDetails.selectedAvatar)
+                        ?.src
+                    }
                     alt="Profile Avatar"
                     className="w-full h-full object-cover"
                   />

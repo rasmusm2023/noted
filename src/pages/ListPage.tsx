@@ -238,7 +238,7 @@ export function ListPage() {
               />
               <span
                 className={`flex-1 font-outfit ${
-                  item.completed ? "line-through text-neu-500" : "text-neu-100"
+                  item.completed ? "text-neu-500" : "text-neu-100"
                 }`}
               >
                 {item.text}

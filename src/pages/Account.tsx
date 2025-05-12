@@ -2,27 +2,25 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 
+// Import custom avatars
+import avatar1 from "../assets/profile-avatars/PFP_option1.png";
+import avatar2 from "../assets/profile-avatars/PFP_option2.png";
+import avatar3 from "../assets/profile-avatars/PFP_option3.png";
+import avatar4 from "../assets/profile-avatars/PFP_option4.png";
+
 interface UserDetails {
   email: string;
   firstName: string;
   lastName: string;
   createdAt: string;
-  avatarStyle?: string;
-  avatarSeed?: string;
+  selectedAvatar?: number;
 }
 
-const avatarStyles = [
-  { id: "adventurer", name: "Adventurer" },
-  { id: "avataaars", name: "Avataaars" },
-  { id: "bottts", name: "Bottts" },
-  { id: "croodles", name: "Croodles" },
-  { id: "fun-emoji", name: "Fun Emoji" },
-  { id: "lorelei", name: "Lorelei" },
-  { id: "micah", name: "Micah" },
-  { id: "miniavs", name: "Miniavs" },
-  { id: "notionists", name: "Notionists" },
-  { id: "open-peeps", name: "Open Peeps" },
-  { id: "personas", name: "Personas" },
+const avatars = [
+  { id: 1, src: avatar1 },
+  { id: 2, src: avatar2 },
+  { id: 3, src: avatar3 },
+  { id: 4, src: avatar4 },
 ];
 
 export function Account() {
@@ -30,40 +28,23 @@ export function Account() {
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStyle, setSelectedStyle] = useState<string>("adventurer");
-  const [avatarSeed, setAvatarSeed] = useState<string>("");
+  const [selectedAvatar, setSelectedAvatar] = useState<number>(1);
 
-  const generateRandomSeed = () => {
-    return Math.random().toString(36).substring(2, 15);
-  };
-
-  const handleStyleSelect = (style: string) => {
-    setSelectedStyle(style);
-    handleAvatarUpdate(style, avatarSeed);
-  };
-
-  const handleRandomize = () => {
-    const newSeed = generateRandomSeed();
-    setAvatarSeed(newSeed);
-    handleAvatarUpdate(selectedStyle, newSeed);
-  };
-
-  const handleAvatarUpdate = async (style: string, seed: string) => {
+  const handleAvatarSelect = async (avatarId: number) => {
     if (!currentUser) return;
 
     try {
       const db = getFirestore();
       await updateDoc(doc(db, "users", currentUser.uid), {
-        avatarStyle: style,
-        avatarSeed: seed,
+        selectedAvatar: avatarId,
       });
 
+      setSelectedAvatar(avatarId);
       setUserDetails((prev) =>
         prev
           ? {
               ...prev,
-              avatarStyle: style,
-              avatarSeed: seed,
+              selectedAvatar: avatarId,
             }
           : null
       );
@@ -84,8 +65,7 @@ export function Account() {
         if (userDoc.exists()) {
           const data = userDoc.data() as UserDetails;
           setUserDetails(data);
-          setSelectedStyle(data.avatarStyle || "adventurer");
-          setAvatarSeed(data.avatarSeed || currentUser.uid);
+          setSelectedAvatar(data.selectedAvatar || 1);
         } else {
           setError("User details not found");
         }
@@ -134,39 +114,32 @@ export function Account() {
           <div className="flex flex-col items-center space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <img
-                src={`https://api.dicebear.com/7.x/${selectedStyle}/svg?seed=${avatarSeed}`}
+                src={avatars.find((a) => a.id === selectedAvatar)?.src}
                 alt="Profile Avatar"
-                className="w-32 h-32 rounded-full"
+                className="w-32 h-32 rounded-lg"
               />
-              <button
-                onClick={handleRandomize}
-                className="px-4 py-2 bg-neu-700 text-neu-100 rounded-lg hover:bg-neu-600 transition-colors"
-              >
-                Randomize Avatar
-              </button>
             </div>
 
             <div className="w-full">
               <h3 className="text-lg font-medium text-neu-100 mb-4">
-                Choose Avatar Style
+                Choose Avatar
               </h3>
-              <div className="flex flex-wrap justify-center gap-3">
-                {avatarStyles.map((style) => (
+              <div className="flex flex-wrap justify-center gap-4">
+                {avatars.map((avatar) => (
                   <button
-                    key={style.id}
-                    onClick={() => handleStyleSelect(style.id)}
+                    key={avatar.id}
+                    onClick={() => handleAvatarSelect(avatar.id)}
                     className={`flex flex-col items-center p-2 rounded-lg transition-all ${
-                      selectedStyle === style.id
+                      selectedAvatar === avatar.id
                         ? "bg-pri-blue-500 ring-2 ring-pri-blue-400"
                         : "bg-neu-700 hover:bg-neu-600"
                     }`}
                   >
                     <img
-                      src={`https://api.dicebear.com/7.x/${style.id}/svg?seed=${avatarSeed}`}
-                      alt={style.name}
-                      className="w-12 h-12 rounded-full mb-1"
+                      src={avatar.src}
+                      alt={`Avatar option ${avatar.id}`}
+                      className="w-16 h-16 rounded-lg"
                     />
-                    <span className="text-xs text-neu-100">{style.name}</span>
                   </button>
                 ))}
               </div>

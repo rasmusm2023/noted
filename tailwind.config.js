@@ -7,16 +7,46 @@ module.exports = {
         outfit: ["Outfit", "sans-serif"],
       },
       fontSize: {
-        xs: ["11px", { lineHeight: "130%", letterSpacing: "2%" }],
-        sm: ["13px", { lineHeight: "130%", letterSpacing: "2%" }],
-        base: ["15px", { lineHeight: "130%", letterSpacing: "2%" }],
-        md: ["17px", { lineHeight: "130%", letterSpacing: "2%" }],
-        lg: ["20px", { lineHeight: "150%", letterSpacing: "3%" }],
-        xl: ["23px", { lineHeight: "150%", letterSpacing: "3%" }],
-        "2xl": ["26px", { lineHeight: "175%", letterSpacing: "3%" }],
-        "3xl": ["30px", { lineHeight: "175%", letterSpacing: "3%" }],
-        "4xl": ["34px", { lineHeight: "175%", letterSpacing: "3%" }],
-        "5xl": ["39px", { lineHeight: "175%", letterSpacing: "3%" }],
+        xs: [
+          "11px",
+          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "outfit" },
+        ],
+        sm: [
+          "13px",
+          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "outfit" },
+        ],
+        base: [
+          "15px",
+          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "outfit" },
+        ],
+        md: [
+          "17px",
+          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "outfit" },
+        ],
+        lg: [
+          "20px",
+          { lineHeight: "150%", letterSpacing: "3%", fontFamily: "outfit" },
+        ],
+        xl: [
+          "23px",
+          { lineHeight: "150%", letterSpacing: "3%", fontFamily: "outfit" },
+        ],
+        "2xl": [
+          "26px",
+          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "outfit" },
+        ],
+        "3xl": [
+          "30px",
+          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "outfit" },
+        ],
+        "4xl": [
+          "34px",
+          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "outfit" },
+        ],
+        "5xl": [
+          "39px",
+          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "outfit" },
+        ],
       },
       borderRadius: {
         xs: "4px",

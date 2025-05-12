@@ -1,14 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
 import type { Task, Timestamp, TitleItem, SectionItem } from "../types/task";
 import {
   TrashBinTrash,
   Pen,
-  CheckCircle,
+  CheckSquare,
   Record,
   Eye,
   EyeClosed,
+  AddSquare,
+  ClockSquare,
+  CheckCircle,
+  Sort,
+  AlignBottom,
+  AlignTop,
+  AlignVerticalCenter,
 } from "solar-icon-set";
 import confetti from "canvas-confetti";
 
@@ -52,10 +59,16 @@ export function Dashboard() {
   const taskInputRef = useRef<HTMLInputElement>(null);
   const sectionInputRef = useRef<HTMLInputElement>(null);
 
-  const [hideCompleted, setHideCompleted] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(() => {
+    const savedState = localStorage.getItem("hideCompleted");
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const [completedPosition, setCompletedPosition] = useState<
     "top" | "bottom" | "mixed"
-  >("mixed");
+  >(() => {
+    const savedPosition = localStorage.getItem("completedPosition");
+    return (savedPosition as "top" | "bottom" | "mixed") || "mixed";
+  });
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
 
   // Add new drag and drop state
@@ -281,6 +294,11 @@ export function Dashboard() {
     event: React.MouseEvent
   ) => {
     try {
+      // Extract coordinates before any async/await
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width;
+      const y = (event.clientY - rect.top) / rect.height;
+
       await taskService.toggleTaskCompletion(taskId, completed);
       setItems(
         items.map((item) =>
@@ -300,11 +318,6 @@ export function Dashboard() {
           particleCount: 20,
           colors: ["#4ade80", "#22c55e", "#16a34a"],
         };
-
-        // Get click position relative to viewport
-        const rect = event.currentTarget.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width;
-        const y = (event.clientY - rect.top) / rect.height;
 
         const interval: any = setInterval(function () {
           const timeLeft = animationEnd - Date.now();
@@ -378,12 +391,16 @@ export function Dashboard() {
     if (!newTaskTitle.trim()) return;
 
     try {
+      // Add today's date at noon for the new task
+      const today = new Date();
+      today.setHours(12, 0, 0, 0);
       const newTask = await taskService.createTask(currentUser.uid, {
         type: "task",
         title: newTaskTitle.trim(),
         description: newTaskDescription.trim(),
-        scheduledTime: new Date().toLocaleString(),
+        scheduledTime: today.toLocaleString(),
         completed: false,
+        date: today.toISOString(),
       });
 
       setItems((prevItems) => [newTask, ...prevItems]);
@@ -762,16 +779,49 @@ export function Dashboard() {
     return time.replace(":", ".");
   };
 
-  // Update section rendering
+  // Add useEffect for handling click events
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      // Only handle non-input clicks at the document level
+      if (target.tagName !== "INPUT") {
+        console.log("Click event:", {
+          target: target.tagName,
+          className: target.className,
+          isInput: target.tagName === "INPUT",
+          eventPhase: e.eventPhase,
+          currentTarget: e.currentTarget as HTMLElement,
+        });
+      }
+    };
+
+    document.addEventListener("click", handleClick, false);
+    return () => {
+      document.removeEventListener("click", handleClick, false);
+    };
+  }, []);
+
+  // Update the input click handler
+  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    const input = e.currentTarget;
+    // Only focus if not already focused
+    if (document.activeElement !== input) {
+      input.focus();
+    }
+  };
+
+  // Update the section input
   const renderSection = (item: SectionItem) => (
     <div className="p-4 bg-neu-900 rounded-lg flex items-center justify-between">
       <div className="flex-1">
         {editingTitle === item.id ? (
           <input
-            ref={titleInputRef}
+            ref={sectionInputRef}
             type="text"
             defaultValue={item.text}
-            className="flex-1 bg-transparent text-lg font-semibold text-sup-sys-400 focus:outline-none"
+            onChange={(e) => {}}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -784,8 +834,17 @@ export function Dashboard() {
             onBlur={(e) => {
               handleEditSection(item.id, { text: e.target.value });
               setEditingTitle(null);
+              setFocusedInput(null);
             }}
+            onClick={handleInputClick}
+            onFocus={() => {
+              setFocusedInput("section");
+              console.log("Section edit input focused");
+            }}
+            style={inputStyles}
+            className="flex-1 bg-transparent text-lg font-semibold text-pri-blue-500 focus:outline-none cursor-text"
             autoFocus
+            tabIndex={0}
           />
         ) : (
           <div
@@ -795,7 +854,9 @@ export function Dashboard() {
               setEditingTime(null);
             }}
           >
-            <h3 className="text-lg font-semibold text-neu-100">{item.text}</h3>
+            <h3 className="text-lg font-outfit font-semibold text-neu-300">
+              {item.text}
+            </h3>
           </div>
         )}
       </div>
@@ -866,9 +927,10 @@ export function Dashboard() {
     </div>
   );
 
-  // Add renderTask function
+  // Update the task input
   const renderTask = (item: Task) => (
     <div
+      key={item.id}
       className={`p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
         item.completed ? "bg-sup-suc-400 bg-opacity-50" : "bg-neu-800"
       }`}
@@ -884,7 +946,7 @@ export function Dashboard() {
             }`}
           >
             {item.completed ? (
-              <CheckCircle size={32} color="currentColor" autoSize={false} />
+              <CheckSquare size={32} color="currentColor" autoSize={false} />
             ) : (
               <Record
                 size={32}
@@ -899,6 +961,7 @@ export function Dashboard() {
           <div className="flex-1 flex items-center justify-between">
             <div className="flex-1">
               <input
+                ref={taskInputRef}
                 type="text"
                 value={editingTask.title}
                 onChange={(e) =>
@@ -921,8 +984,11 @@ export function Dashboard() {
                     title: editingTask.title,
                   });
                 }}
-                className="w-full bg-transparent text-lg font-medium text-pri-blue-500 focus:outline-none"
+                onClick={handleInputClick}
+                style={inputStyles}
+                className="w-full bg-transparent text-base font-outfit font-semibold text-pri-blue-500 focus:outline-none cursor-text"
                 autoFocus
+                tabIndex={0}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -962,14 +1028,17 @@ export function Dashboard() {
             onDoubleClick={() => setEditingTask(item)}
           >
             <h3
-              className={`text-lg font-medium transition-all duration-300 ${
-                item.completed
-                  ? "text-neu-100 line-through scale-95"
-                  : "text-neu-100"
+              className={`text-base font-outfit font-semibold transition-all duration-300 ${
+                item.completed ? "text-neu-100 scale-95" : "text-neu-100"
               }`}
             >
               {item.title}
             </h3>
+            {item.description && (
+              <p className="text-xs font-outfit text-neu-400">
+                {item.description}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -1107,9 +1176,18 @@ export function Dashboard() {
 
     // Wait for animation to complete before updating state
     setTimeout(() => {
-      setHideCompleted(!hideCompleted);
+      const newState = !hideCompleted;
+      setHideCompleted(newState);
+      localStorage.setItem("hideCompleted", JSON.stringify(newState));
       setHidingItems(new Set());
     }, 300); // Match the animation duration
+  };
+
+  // Update the input styles to use explicit values instead of inherit
+  const inputStyles = {
+    width: "100%",
+    height: "auto",
+    minHeight: "24px",
   };
 
   return (
@@ -1140,25 +1218,15 @@ export function Dashboard() {
               }`}
             >
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-pri-blue-500 rounded-lg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="text-neu-100"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
+                <div className="p-2 bg-pri-blue-500 rounded-lg flex items-center justify-center">
+                  <AddSquare
+                    size={32}
+                    color="#fff"
+                    autoSize={false}
+                    iconStyle="Broken"
+                  />
                 </div>
-                <div className="text-left flex-1">
+                <div className="text-left font-outfit text-md flex-1">
                   <input
                     ref={taskInputRef}
                     type="text"
@@ -1168,10 +1236,12 @@ export function Dashboard() {
                     onFocus={() => setFocusedInput("task")}
                     onBlur={() => setFocusedInput(null)}
                     placeholder="Add new task..."
-                    className="w-full bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                    className="w-full bg-transparent font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
                     autoFocus
                   />
-                  <p className="text-neu-400 text-sm">Press Enter to add</p>
+                  <p className="text-neu-400 text-sm font-outfit mt-2">
+                    Press Enter to add
+                  </p>
                 </div>
               </div>
             </div>
@@ -1182,26 +1252,16 @@ export function Dashboard() {
               }`}
             >
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-sup-war-500 rounded-lg">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="text-neu-100"
-                    width="24"
-                    height="24"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                <div className="p-2 bg-sup-war-500 rounded-lg flex items-center justify-center">
+                  <ClockSquare
+                    size={32}
+                    color="#fff"
+                    autoSize={false}
+                    iconStyle="Broken"
+                  />
                 </div>
                 <div className="text-left flex-1">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center text-md font-outfit gap-4">
                     <input
                       ref={sectionInputRef}
                       type="text"
@@ -1210,6 +1270,18 @@ export function Dashboard() {
                       onKeyDown={handleSectionKeyPress}
                       onFocus={() => setFocusedInput("section")}
                       onBlur={() => setFocusedInput(null)}
+                      onClick={(e) => {
+                        const target = e.target as HTMLElement;
+                        console.log("Section input click:", {
+                          target: target.tagName,
+                          className: target.className,
+                          isInput: target.tagName === "INPUT",
+                          eventPhase: e.eventPhase,
+                          currentTarget: (e.currentTarget as HTMLElement)
+                            ?.tagName,
+                        });
+                        e.stopPropagation();
+                      }}
                       placeholder="Add a section..."
                       className="flex-1 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
                     />
@@ -1225,11 +1297,11 @@ export function Dashboard() {
                         setNewTimestampTime(cleaned);
                       }}
                       onKeyDown={handleSectionKeyPress}
-                      placeholder="Time"
+                      placeholder="09.00"
                       className="w-32 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
                     />
                   </div>
-                  <p className="text-neu-400 text-sm mt-1">
+                  <p className="text-neu-400 font-outfit text-sm mt-2">
                     Press Enter to add
                   </p>
                 </div>
@@ -1241,8 +1313,8 @@ export function Dashboard() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-8">
-                <h2 className="text-2xl font-semibold text-neu-100">
-                  Todays tasks
+                <h2 className="text-2xl font-outfit font-semibold text-neu-100">
+                  Today
                 </h2>
                 <div className="hidden 2xl:flex items-center gap-2">
                   <div className="w-[300px] h-2 bg-neu-700 rounded-full">
@@ -1253,7 +1325,7 @@ export function Dashboard() {
                       }}
                     ></div>
                   </div>
-                  <span className="text-sm text-neu-400">
+                  <span className="text-base font-outfit text-neu-400">
                     {completionPercentage}%
                   </span>
                 </div>
@@ -1264,23 +1336,13 @@ export function Dashboard() {
                     onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
                     className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="text-neu-100"
-                      width="20"
-                      height="20"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
-                      />
-                    </svg>
-                    <span>Sort</span>
+                    <Sort
+                      size={20}
+                      color="currentColor"
+                      autoSize={false}
+                      iconStyle="Broken"
+                    />
+                    <span className="text-base font-outfit">Sort</span>
                   </button>
                   {isSortMenuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-10">
@@ -1288,41 +1350,62 @@ export function Dashboard() {
                         <button
                           onClick={() => {
                             setCompletedPosition("top");
+                            localStorage.setItem("completedPosition", "top");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 ${
                             completedPosition === "top"
                               ? "text-pri-blue-500"
                               : "text-neu-100 hover:bg-neu-700"
                           }`}
                         >
-                          Completed on Top
+                          <AlignTop
+                            size={20}
+                            color="currentColor"
+                            autoSize={false}
+                            iconStyle="Broken"
+                          />
+                          <span>Completed on Top</span>
                         </button>
                         <button
                           onClick={() => {
                             setCompletedPosition("bottom");
+                            localStorage.setItem("completedPosition", "bottom");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 ${
                             completedPosition === "bottom"
                               ? "text-pri-blue-500"
                               : "text-neu-100 hover:bg-neu-700"
                           }`}
                         >
-                          Completed on Bottom
+                          <AlignBottom
+                            size={20}
+                            color="currentColor"
+                            autoSize={false}
+                            iconStyle="Broken"
+                          />
+                          <span>Completed on Bottom</span>
                         </button>
                         <button
                           onClick={() => {
                             setCompletedPosition("mixed");
+                            localStorage.setItem("completedPosition", "mixed");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full text-left px-4 py-2 text-sm ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 ${
                             completedPosition === "mixed"
                               ? "text-pri-blue-500"
                               : "text-neu-100 hover:bg-neu-700"
                           }`}
                         >
-                          Custom Order
+                          <AlignVerticalCenter
+                            size={20}
+                            color="currentColor"
+                            autoSize={false}
+                            iconStyle="Broken"
+                          />
+                          <span>Custom Order</span>
                         </button>
                       </div>
                     </div>
@@ -1337,7 +1420,7 @@ export function Dashboard() {
                         ) : (
                           <EyeClosed size={20} color="currentColor" />
                         )}
-                        <span>Hide completed</span>
+                        <span className="text-sm">Hide completed</span>
                         <div className="toggle-switch ml-2">
                           <input
                             type="checkbox"
@@ -1353,7 +1436,7 @@ export function Dashboard() {
               </div>
             </div>
             {loading ? (
-              <div className="text-neu-400">Loading tasks...</div>
+              <div className="text-neu-400 text-md">Loading tasks...</div>
             ) : (
               <div className="space-y-4">
                 {/* New Task Input */}
