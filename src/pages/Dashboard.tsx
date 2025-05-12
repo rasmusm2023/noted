@@ -291,10 +291,9 @@ export function Dashboard() {
     event: React.MouseEvent
   ) => {
     try {
-      // Extract coordinates before any async/await
-      const rect = event.currentTarget.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width;
-      const y = (event.clientY - rect.top) / rect.height;
+      // Get the absolute position of the click relative to the viewport
+      const x = event.clientX / window.innerWidth;
+      const y = event.clientY / window.innerHeight;
 
       await taskService.toggleTaskCompletion(taskId, completed);
       setItems(
@@ -314,6 +313,10 @@ export function Dashboard() {
           zIndex: 0,
           particleCount: 20,
           colors: ["#4ade80", "#22c55e", "#16a34a"],
+          origin: {
+            x: x,
+            y: y,
+          },
         };
 
         const interval: any = setInterval(function () {
@@ -328,10 +331,6 @@ export function Dashboard() {
           confetti({
             ...defaults,
             particleCount,
-            origin: {
-              x: x,
-              y: y,
-            },
           });
         }, 250);
       }
@@ -1095,15 +1094,19 @@ export function Dashboard() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <h1 className="text-4xl font-bold text-neu-100">{dayOfWeek}</h1>
-              <span className="text-2xl text-neu-400 uppercase">
+              <h1 className="text-4xl font-bold font-outfit text-neu-100">
+                {dayOfWeek}
+              </h1>
+              <span className="text-2xl font-outfit text-neu-400 uppercase">
                 {currentDate}
               </span>
             </div>
             {temperature !== null && (
               <div className="flex items-center gap-2">
                 {getWeatherIcon(weatherCondition)}
-                <span className="text-2xl text-neu-100">{temperature}°C</span>
+                <span className="text-2xl font-outfit text-neu-100">
+                  {temperature}°C
+                </span>
               </div>
             )}
           </div>
@@ -1232,7 +1235,7 @@ export function Dashboard() {
                 <div className="relative" ref={sortMenuRef}>
                   <button
                     onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                    className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2"
+                    className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
                   >
                     <Sort
                       size={20}
@@ -1251,7 +1254,7 @@ export function Dashboard() {
                             localStorage.setItem("completedPosition", "top");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
                             completedPosition === "top"
                               ? "text-pri-blue-500"
                               : "text-neu-100 hover:bg-neu-700"
@@ -1271,7 +1274,7 @@ export function Dashboard() {
                             localStorage.setItem("completedPosition", "bottom");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
                             completedPosition === "bottom"
                               ? "text-pri-blue-500"
                               : "text-neu-100 hover:bg-neu-700"
@@ -1291,7 +1294,7 @@ export function Dashboard() {
                             localStorage.setItem("completedPosition", "mixed");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
                             completedPosition === "mixed"
                               ? "text-pri-blue-500"
                               : "text-neu-100 hover:bg-neu-700"
@@ -1311,24 +1314,30 @@ export function Dashboard() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <div className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2">
-                        {hideCompleted ? (
-                          <Eye size={20} color="currentColor" />
-                        ) : (
-                          <EyeClosed size={20} color="currentColor" />
-                        )}
-                        <span className="text-sm">Hide completed</span>
-                        <div className="toggle-switch ml-2">
-                          <input
-                            type="checkbox"
-                            checked={hideCompleted}
-                            onChange={handleHideCompleted}
-                          />
-                          <span className="toggle-slider"></span>
-                        </div>
+                    <div className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500">
+                      {hideCompleted ? (
+                        <Eye size={20} color="currentColor" />
+                      ) : (
+                        <EyeClosed size={20} color="currentColor" />
+                      )}
+                      <label
+                        htmlFor="hide-completed-toggle"
+                        className="text-base font-outfit cursor-pointer"
+                      >
+                        Hide completed
+                      </label>
+                      <div className="toggle-switch ml-2">
+                        <input
+                          id="hide-completed-toggle"
+                          type="checkbox"
+                          checked={hideCompleted}
+                          onChange={handleHideCompleted}
+                          className="sr-only focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                          aria-label="Toggle hide completed tasks"
+                        />
+                        <span className="toggle-slider"></span>
                       </div>
-                    </label>
+                    </div>
                   </div>
                 </div>
               </div>
