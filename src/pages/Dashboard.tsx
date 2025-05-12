@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
-import type { Task, Timestamp, TitleItem, SectionItem } from "../types/task";
+import type { Task, SectionItem } from "../types/task";
 import {
   TrashBinTrash,
   Pen,
@@ -46,16 +46,13 @@ export function Dashboard() {
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [editingTime, setEditingTime] = useState<string | null>(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
-  const [isCreatingTimestamp, setIsCreatingTimestamp] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
-  const [newTimestampTime, setNewTimestampTime] = useState("");
   const [newTitleText, setNewTitleText] = useState("");
   const [currentDate, setCurrentDate] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
   const [weatherCondition, setWeatherCondition] = useState<string | null>(null);
-  const titleInputRef = useRef<HTMLInputElement>(null);
   const taskInputRef = useRef<HTMLInputElement>(null);
   const sectionInputRef = useRef<HTMLInputElement>(null);
 
@@ -454,98 +451,9 @@ export function Dashboard() {
     }
   };
 
-  const handleAddTimestamp = async () => {
-    if (!currentUser) {
-      console.error("No user logged in");
-      return;
-    }
-
-    const formattedTime = formatTimeFromInput(newTimestampTime);
-    if (!formattedTime) {
-      console.error("Invalid time format");
-      return;
-    }
-
-    try {
-      const newTimestamp = await taskService.createTimestamp(
-        currentUser.uid,
-        formattedTime
-      );
-      setNewTimestampTime("");
-    } catch (error) {
-      console.error("Error creating timestamp:", error);
-    }
-  };
-
-  const handleDeleteTimestamp = async (timestampId: string) => {
-    try {
-      await taskService.deleteTimestamp(timestampId);
-      setItems(
-        items.filter((item) => !isTask(item) || item.id !== timestampId)
-      );
-      setIsCreatingTimestamp(false);
-    } catch (error) {
-      console.error("Error deleting timestamp:", error);
-    }
-  };
-
-  const handleAddTitle = async (text: string) => {
-    if (!currentUser) {
-      console.error("No user logged in");
-      return;
-    }
-
-    try {
-      const newTitle = await taskService.createTitle(currentUser.uid, text);
-      setNewTitleText("");
-    } catch (error) {
-      console.error("Error creating title:", error);
-    }
-  };
-
-  const handleTitleEdit = async (titleId: string, newText: string) => {
-    try {
-      await taskService.updateTitle(titleId, { text: newText });
-      setItems(
-        items.map((item) =>
-          isTask(item) && item.id === titleId
-            ? { ...item, title: newText }
-            : item
-        )
-      );
-      setEditingTitle(null);
-    } catch (error) {
-      console.error("Error updating title:", error);
-    }
-  };
-
-  const handleTitleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    titleId: string
-  ) => {
-    if (e.key === "Enter") {
-      handleTitleEdit(titleId, e.currentTarget.value);
-    } else if (e.key === "Escape") {
-      setEditingTitle(null);
-    }
-  };
-
-  const handleTitleBlur = (titleId: string, currentText: string) => {
-    handleTitleEdit(titleId, currentText);
-  };
-
-  const handleDeleteTitle = async (titleId: string) => {
-    try {
-      await taskService.deleteTitle(titleId);
-      setItems(items.filter((item) => !isTask(item) || item.id !== titleId));
-    } catch (error) {
-      console.error("Error deleting title:", error);
-    }
-  };
-
-  const [focusedInput, setFocusedInput] = useState<
-    "task" | "timestamp" | "title" | "section" | null
-  >(null);
+  const [focusedInput, setFocusedInput] = useState<"task" | "section" | null>(
+    null
+  );
 
   const handleDragStart = (
     e: React.DragEvent,
@@ -693,7 +601,7 @@ export function Dashboard() {
     }
 
     const title = newTitleText.trim();
-    const time = formatTimeFromInput(newTimestampTime.trim());
+    const time = formatTimeFromInput(newTitleText.trim());
 
     if (!title || !time) {
       console.error("Missing required fields:", { title, time });
@@ -708,7 +616,6 @@ export function Dashboard() {
 
       setItems((prevItems) => [newSection, ...prevItems]);
       setNewTitleText("");
-      setNewTimestampTime("");
 
       // Keep focus on the title input field
       if (sectionInputRef.current) {
@@ -722,14 +629,10 @@ export function Dashboard() {
   const handleSectionKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      // Format the time before adding the section
-      const formattedTime = formatTimeFromInput(newTimestampTime);
-      setNewTimestampTime(formattedTime);
       handleAddSection();
     } else if (e.key === "Escape") {
-      setIsCreatingTimestamp(false);
+      setIsCreatingTask(false);
       setNewTitleText("");
-      setNewTimestampTime("");
     }
   };
 
@@ -772,11 +675,6 @@ export function Dashboard() {
     } catch (error) {
       console.error("Error updating section:", error);
     }
-  };
-
-  const formatTimeDisplay = (time: string): string => {
-    // Convert HH:mm to HH.mm
-    return time.replace(":", ".");
   };
 
   // Add useEffect for handling click events
@@ -1287,14 +1185,14 @@ export function Dashboard() {
                     />
                     <input
                       type="text"
-                      value={newTimestampTime}
+                      value={newTitleText}
                       onChange={(e) => {
                         // Allow any input while typing, just clean invalid characters
                         const cleaned = e.target.value.replace(
                           /[^0-9.,:;-]/g,
                           ""
                         );
-                        setNewTimestampTime(cleaned);
+                        setNewTitleText(cleaned);
                       }}
                       onKeyDown={handleSectionKeyPress}
                       placeholder="09.00"
@@ -1478,33 +1376,6 @@ export function Dashboard() {
                         Cancel
                       </button>
                     </div>
-                  </div>
-                )}
-
-                {/* Add Timestamp Input */}
-                {isCreatingTimestamp && (
-                  <div className="p-4 bg-neu-800 rounded-lg flex items-center space-x-4">
-                    <input
-                      type="time"
-                      value={newTimestampTime}
-                      onChange={(e) => setNewTimestampTime(e.target.value)}
-                      className="p-2 bg-neu-700 rounded text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
-                    />
-                    <button
-                      onClick={handleAddTimestamp}
-                      className="px-4 py-2 bg-pri-blue-500 text-neu-100 rounded hover:bg-pri-blue-600"
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsCreatingTimestamp(false);
-                        setNewTimestampTime("");
-                      }}
-                      className="px-4 py-2 bg-neu-700 text-neu-100 rounded hover:bg-neu-600"
-                    >
-                      Cancel
-                    </button>
                   </div>
                 )}
 
