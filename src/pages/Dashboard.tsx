@@ -1238,118 +1238,121 @@ export function Dashboard() {
     <>
       <style>{globalStyles}</style>
       <div className="p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <h1 className="text-4xl font-bold font-outfit text-neu-100">
-                {dayOfWeek}
-              </h1>
-              <span className="text-2xl font-outfit text-neu-400 uppercase">
-                {currentDate}
-              </span>
-            </div>
-            {temperature !== null && (
-              <div className="flex items-center gap-2">
-                {getWeatherIcon(weatherCondition)}
-                <span className="text-2xl font-outfit text-neu-100">
-                  {temperature}°C
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Header Box */}
+          <div className="bg-neu-600 rounded-xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <h1 className="text-4xl font-bold font-outfit text-neu-100">
+                  {dayOfWeek}
+                </h1>
+                <span className="text-2xl font-outfit text-neu-400 uppercase">
+                  {currentDate}
                 </span>
               </div>
-            )}
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div
-              className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
-                focusedInput === "task" ? "ring-2 ring-pri-blue-500" : ""
-              }`}
-            >
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-pri-blue-500 rounded-lg flex items-center justify-center">
-                  <AddSquare
-                    size={32}
-                    color="#fff"
-                    autoSize={false}
-                    iconStyle="Broken"
-                  />
+              {temperature !== null && (
+                <div className="flex items-center gap-2">
+                  {getWeatherIcon(weatherCondition)}
+                  <span className="text-2xl font-outfit text-neu-100">
+                    {temperature}°C
+                  </span>
                 </div>
-                <div className="text-left font-outfit text-md flex-1">
-                  <input
-                    ref={taskInputRef}
-                    type="text"
-                    value={newTaskTitle}
-                    onChange={(e) => setNewTaskTitle(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    onFocus={() => setFocusedInput("task")}
-                    onBlur={() => setFocusedInput(null)}
-                    placeholder="Add new task..."
-                    className="w-full bg-transparent font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                    autoFocus
-                  />
-                  <p className="text-neu-400 text-sm font-outfit mt-2">
-                    Press Enter to add
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
 
-            <div
-              className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
-                focusedInput === "section" ? "ring-2 ring-pri-blue-500" : ""
-              }`}
-            >
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-sup-war-500 rounded-lg flex items-center justify-center">
-                  <ClockSquare
-                    size={32}
-                    color="#fff"
-                    autoSize={false}
-                    iconStyle="Broken"
-                  />
-                </div>
-                <div className="text-left flex-1">
-                  <div className="flex items-center text-md font-outfit gap-4">
-                    <input
-                      ref={sectionInputRef}
-                      type="text"
-                      value={newSectionTitle}
-                      onChange={(e) => setNewSectionTitle(e.target.value)}
-                      onKeyDown={handleSectionKeyPress}
-                      onFocus={() => setFocusedInput("section")}
-                      onBlur={() => setFocusedInput(null)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      placeholder="Add a section..."
-                      className="flex-1 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      value={newSectionTime}
-                      onChange={(e) => {
-                        const cleaned = e.target.value.replace(
-                          /[^0-9.,:;-]/g,
-                          ""
-                        );
-                        setNewSectionTime(cleaned);
-                      }}
-                      onKeyDown={handleSectionKeyPress}
-                      placeholder="09.00"
-                      className="w-32 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div
+                className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+                  focusedInput === "task" ? "ring-2 ring-pri-blue-500" : ""
+                }`}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-pri-blue-500 rounded-lg flex items-center justify-center">
+                    <AddSquare
+                      size={32}
+                      color="#fff"
+                      autoSize={false}
+                      iconStyle="Broken"
                     />
                   </div>
-                  <p className="text-neu-400 font-outfit text-sm mt-2">
-                    Press Enter to add
-                  </p>
+                  <div className="text-left font-outfit text-md flex-1">
+                    <input
+                      ref={taskInputRef}
+                      type="text"
+                      value={newTaskTitle}
+                      onChange={(e) => setNewTaskTitle(e.target.value)}
+                      onKeyDown={handleKeyPress}
+                      onFocus={() => setFocusedInput("task")}
+                      onBlur={() => setFocusedInput(null)}
+                      placeholder="Add new task..."
+                      className="w-full bg-transparent font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                      autoFocus
+                    />
+                    <p className="text-neu-400 text-sm font-outfit mt-2">
+                      Press Enter to add
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+                  focusedInput === "section" ? "ring-2 ring-pri-blue-500" : ""
+                }`}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-sup-war-500 rounded-lg flex items-center justify-center">
+                    <ClockSquare
+                      size={32}
+                      color="#fff"
+                      autoSize={false}
+                      iconStyle="Broken"
+                    />
+                  </div>
+                  <div className="text-left flex-1">
+                    <div className="flex items-center text-md font-outfit gap-4">
+                      <input
+                        ref={sectionInputRef}
+                        type="text"
+                        value={newSectionTitle}
+                        onChange={(e) => setNewSectionTitle(e.target.value)}
+                        onKeyDown={handleSectionKeyPress}
+                        onFocus={() => setFocusedInput("section")}
+                        onBlur={() => setFocusedInput(null)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        placeholder="Add a section..."
+                        className="flex-1 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                      />
+                      <input
+                        type="text"
+                        value={newSectionTime}
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(
+                            /[^0-9.,:;-]/g,
+                            ""
+                          );
+                          setNewSectionTime(cleaned);
+                        }}
+                        onKeyDown={handleSectionKeyPress}
+                        placeholder="09.00"
+                        className="w-32 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                      />
+                    </div>
+                    <p className="text-neu-400 font-outfit text-sm mt-2">
+                      Press Enter to add
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Today's Tasks with Timestamps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+          {/* Tasks Box */}
+          <div className="bg-neu-600 rounded-xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-8">
                 <h2 className="text-2xl font-outfit font-semibold text-neu-100">
                   Today
@@ -1372,7 +1375,7 @@ export function Dashboard() {
                 <div className="relative" ref={sortMenuRef}>
                   <button
                     onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                    className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                    className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
                   >
                     <Sort
                       size={20}
@@ -1453,7 +1456,7 @@ export function Dashboard() {
                   <div className="relative">
                     <div
                       onClick={handleHideCompleted}
-                      className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
+                      className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
                     >
                       {hideCompleted ? (
                         <Eye size={20} color="currentColor" />
@@ -1479,6 +1482,8 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
+
+            {/* Tasks List */}
             {loading ? (
               <div className="text-neu-400 text-md">Loading tasks...</div>
             ) : (
@@ -1614,40 +1619,6 @@ export function Dashboard() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Habit Progress */}
-          <div>
-            <h2 className="text-2xl font-semibold text-neu-100 mb-4">
-              Habit Progress
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="p-6 bg-neu-800 rounded-lg">
-                <h3 className="text-lg font-semibold text-neu-100 mb-2">
-                  Morning Exercise
-                </h3>
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="flex-1 h-2 bg-neu-700 rounded-full">
-                    <div className="h-2 bg-pri-blue-500 rounded-full w-3/4"></div>
-                  </div>
-                  <span className="text-sm text-neu-400">75%</span>
-                </div>
-                <p className="text-neu-400">5/7 days this week</p>
-              </div>
-
-              <div className="p-6 bg-neu-800 rounded-lg">
-                <h3 className="text-lg font-semibold text-neu-100 mb-2">
-                  Meditation
-                </h3>
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="flex-1 h-2 bg-neu-700 rounded-full">
-                    <div className="h-2 bg-pri-blue-500 rounded-full w-[85%]"></div>
-                  </div>
-                  <span className="text-sm text-neu-400">85%</span>
-                </div>
-                <p className="text-neu-400">6/7 days this week</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
