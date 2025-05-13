@@ -16,6 +16,7 @@ import {
   AlignBottom,
   AlignTop,
   AlignVerticalCenter,
+  Settings,
 } from "solar-icon-set";
 import confetti from "canvas-confetti";
 
@@ -48,7 +49,8 @@ export function Dashboard() {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
-  const [newTitleText, setNewTitleText] = useState("");
+  const [newSectionTitle, setNewSectionTitle] = useState("");
+  const [newSectionTime, setNewSectionTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
@@ -82,6 +84,12 @@ export function Dashboard() {
 
   // Add state to track items that are being hidden
   const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
+
+  // Add new state for highlight setting
+  const [highlightNextTask, setHighlightNextTask] = useState(() => {
+    const savedState = localStorage.getItem("highlightNextTask");
+    return savedState ? JSON.parse(savedState) : true;
+  });
 
   const isTask = (item: ListItem): item is Task => {
     return item.type === "task";
@@ -295,12 +303,35 @@ export function Dashboard() {
       const x = event.clientX / window.innerWidth;
       const y = event.clientY / window.innerHeight;
 
+      // Only add completing class if we're completing the task (not uncompleting)
+      if (completed) {
+        const taskElement = event.currentTarget.closest(".task-item");
+        if (taskElement) {
+          taskElement.classList.add("task-completing");
+        }
+        // Wait for the completion animation to finish
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
       await taskService.toggleTaskCompletion(taskId, completed);
       setItems(
         items.map((item) =>
           isTask(item) && item.id === taskId ? { ...item, completed } : item
         )
       );
+
+      // If hide completed is enabled, add the hiding class after completion animation
+      if (hideCompleted && completed) {
+        setHidingItems((prev) => new Set([...prev, taskId]));
+        // Wait for the hiding animation to finish before updating state
+        setTimeout(() => {
+          setHidingItems((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(taskId);
+            return newSet;
+          });
+        }, 300);
+      }
 
       // Add subtle confetti effect when completing a task
       if (completed) {
@@ -443,6 +474,14 @@ export function Dashboard() {
     }
 
     try {
+      // Add deleting class to the task
+      const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+      if (taskElement) {
+        taskElement.classList.add("task-deleting");
+        // Wait for the animation to finish
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+
       await taskService.deleteTask(taskId);
       setItems(items.filter((item) => !isTask(item) || item.id !== taskId));
     } catch (error) {
@@ -599,8 +638,8 @@ export function Dashboard() {
       return;
     }
 
-    const title = newTitleText.trim();
-    const time = formatTimeFromInput(newTitleText.trim());
+    const title = newSectionTitle.trim();
+    const time = formatTimeFromInput(newSectionTime.trim());
 
     if (!title || !time) {
       console.error("Missing required fields:", { title, time });
@@ -614,7 +653,8 @@ export function Dashboard() {
       });
 
       setItems((prevItems) => [newSection, ...prevItems]);
-      setNewTitleText("");
+      setNewSectionTitle("");
+      setNewSectionTime("");
 
       // Keep focus on the title input field
       if (sectionInputRef.current) {
@@ -631,7 +671,8 @@ export function Dashboard() {
       handleAddSection();
     } else if (e.key === "Escape") {
       setIsCreatingTask(false);
-      setNewTitleText("");
+      setNewSectionTitle("");
+      setNewSectionTime("");
     }
   };
 
@@ -761,16 +802,11 @@ export function Dashboard() {
         {editingTime === item.id ? (
           <input
             type="text"
-            value={item.time}
+            defaultValue={item.time}
             onChange={(e) => {
               const cleaned = e.target.value.replace(/[^0-9.,:;-]/g, "");
-              setItems(
-                items.map((item) =>
-                  isSection(item) && item.id === item.id
-                    ? { ...item, time: cleaned }
-                    : item
-                )
-              );
+              // Only update the current section's time
+              handleEditSection(item.id, { time: cleaned });
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -785,7 +821,7 @@ export function Dashboard() {
               }
             }}
             onBlur={(e) => {
-              const formattedTime = formatTimeFromInput(e.currentTarget.value);
+              const formattedTime = formatTimeFromInput(e.target.value);
               handleEditSection(item.id, { time: formattedTime });
               setEditingTime(null);
             }}
@@ -824,78 +860,138 @@ export function Dashboard() {
     </div>
   );
 
-  // Update the task input
-  const renderTask = (item: Task) => (
-    <div
-      key={item.id}
-      className={`p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
-        item.completed ? "bg-sup-suc-400 bg-opacity-50" : "bg-neu-800"
-      }`}
-    >
-      <div className="flex items-center space-x-4 flex-1">
-        <div className="flex items-center justify-center h-full">
-          <button
-            onClick={(e) => handleTaskCompletion(item.id, !item.completed, e)}
-            className={`transition-all duration-300 flex items-center justify-center ${
-              item.completed
-                ? "text-neu-100 hover:text-neu-100 scale-95"
-                : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
-            }`}
-          >
-            {item.completed ? (
-              <CheckSquare size={32} color="currentColor" autoSize={false} />
-            ) : (
-              <Record
-                size={32}
-                color="currentColor"
-                autoSize={false}
-                className="hover:scale-95 transition-transform animate-bounce-subtle"
-              />
-            )}
-          </button>
-        </div>
-        {editingTask?.id === item.id ? (
-          <div className="flex-1 flex items-center justify-between">
-            <div className="flex-1">
-              <input
-                ref={taskInputRef}
-                type="text"
-                value={editingTask.title}
-                onChange={(e) =>
-                  setEditingTask({
-                    ...editingTask,
-                    title: e.target.value,
-                  })
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+  // Modify the renderTask function
+  const renderTask = (item: Task) => {
+    const isNextTask =
+      highlightNextTask &&
+      !item.completed &&
+      items.filter((i) => isTask(i) && !i.completed).indexOf(item) === 0;
+
+    return (
+      <div
+        key={item.id}
+        data-task-id={item.id}
+        className={`task-item p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
+          item.completed ? "bg-sup-suc-400 bg-opacity-50" : "bg-neu-800"
+        } ${
+          isNextTask
+            ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
+            : ""
+        }`}
+      >
+        <div className="flex items-center space-x-4 flex-1">
+          <div className="flex items-center justify-center h-full">
+            <button
+              onClick={(e) => handleTaskCompletion(item.id, !item.completed, e)}
+              className={`transition-all duration-300 flex items-center justify-center ${
+                item.completed
+                  ? "text-neu-100 hover:text-neu-100 scale-95"
+                  : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
+              }`}
+            >
+              {item.completed ? (
+                <CheckSquare size={32} color="currentColor" autoSize={false} />
+              ) : (
+                <Record
+                  size={32}
+                  color="currentColor"
+                  autoSize={false}
+                  className={isNextTask ? "animate-bounce-subtle" : ""}
+                />
+              )}
+            </button>
+          </div>
+          {editingTask?.id === item.id ? (
+            <div className="flex-1 flex items-center justify-between">
+              <div className="flex-1">
+                <input
+                  ref={taskInputRef}
+                  type="text"
+                  value={editingTask.title}
+                  onChange={(e) =>
+                    setEditingTask({
+                      ...editingTask,
+                      title: e.target.value,
+                    })
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleEditTask(item.id, {
+                        title: editingTask.title,
+                      });
+                    } else if (e.key === "Escape") {
+                      setEditingTask(null);
+                    }
+                  }}
+                  onBlur={() => {
                     handleEditTask(item.id, {
                       title: editingTask.title,
                     });
-                  } else if (e.key === "Escape") {
-                    setEditingTask(null);
+                  }}
+                  onClick={handleInputClick}
+                  style={inputStyles}
+                  className="w-full bg-transparent text-base font-outfit font-semibold text-pri-blue-500 focus:outline-none cursor-text"
+                  autoFocus
+                  tabIndex={0}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() =>
+                    handleEditTask(item.id, {
+                      title: editingTask.title,
+                    })
                   }
-                }}
-                onBlur={() => {
-                  handleEditTask(item.id, {
-                    title: editingTask.title,
-                  });
-                }}
-                onClick={handleInputClick}
-                style={inputStyles}
-                className="w-full bg-transparent text-base font-outfit font-semibold text-pri-blue-500 focus:outline-none cursor-text"
-                autoFocus
-                tabIndex={0}
-              />
+                  className={`p-2 ${
+                    item.completed
+                      ? "text-neu-100 hover:text-neu-100"
+                      : "text-neu-400 hover:text-neu-100"
+                  }`}
+                >
+                  <Pen size={24} color="currentColor" autoSize={false} />
+                </button>
+                <button
+                  onClick={() => handleDeleteTask(item.id)}
+                  className={`p-2 ${
+                    item.completed
+                      ? "text-neu-100 hover:text-neu-100"
+                      : "text-neu-400 hover:text-red-500"
+                  }`}
+                >
+                  <TrashBinTrash
+                    size={24}
+                    color="currentColor"
+                    autoSize={false}
+                  />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
+          ) : (
+            <div
+              className="flex-1 cursor-pointer"
+              onDoubleClick={() => setEditingTask(item)}
+            >
+              <h3
+                className={`text-base font-outfit font-semibold transition-all duration-300 ${
+                  item.completed ? "text-neu-100 scale-95" : "text-neu-100"
+                }`}
+              >
+                {item.title}
+              </h3>
+              {item.description && (
+                <p className="text-xs font-outfit text-neu-400">
+                  {item.description}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          {editingTask?.id !== item.id && (
+            <>
               <button
-                onClick={() =>
-                  handleEditTask(item.id, {
-                    title: editingTask.title,
-                  })
-                }
-                className={`p-2 ${
+                onClick={() => setEditingTask(item)}
+                className={`p-2 flex items-center justify-center ${
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-neu-100"
@@ -905,7 +1001,7 @@ export function Dashboard() {
               </button>
               <button
                 onClick={() => handleDeleteTask(item.id)}
-                className={`p-2 ${
+                className={`p-2 flex items-center justify-center ${
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-red-500"
@@ -917,58 +1013,14 @@ export function Dashboard() {
                   autoSize={false}
                 />
               </button>
-            </div>
-          </div>
-        ) : (
-          <div
-            className="flex-1 cursor-pointer"
-            onDoubleClick={() => setEditingTask(item)}
-          >
-            <h3
-              className={`text-base font-outfit font-semibold transition-all duration-300 ${
-                item.completed ? "text-neu-100 scale-95" : "text-neu-100"
-              }`}
-            >
-              {item.title}
-            </h3>
-            {item.description && (
-              <p className="text-xs font-outfit text-neu-400">
-                {item.description}
-              </p>
-            )}
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
-      <div className="flex items-center space-x-2">
-        {editingTask?.id !== item.id && (
-          <>
-            <button
-              onClick={() => setEditingTask(item)}
-              className={`p-2 flex items-center justify-center ${
-                item.completed
-                  ? "text-neu-100 hover:text-neu-100"
-                  : "text-neu-400 hover:text-neu-100"
-              }`}
-            >
-              <Pen size={24} color="currentColor" autoSize={false} />
-            </button>
-            <button
-              onClick={() => handleDeleteTask(item.id)}
-              className={`p-2 flex items-center justify-center ${
-                item.completed
-                  ? "text-neu-100 hover:text-neu-100"
-                  : "text-neu-400 hover:text-red-500"
-              }`}
-            >
-              <TrashBinTrash size={24} color="currentColor" autoSize={false} />
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
-  // Update the bounce animation to be more subtle
+  // Update the globalStyles
   const globalStyles = `
     @keyframes bounce-subtle {
       0%, 100% {
@@ -1061,6 +1113,71 @@ export function Dashboard() {
     input:checked + .toggle-slider:before {
       transform: translateX(20px);
     }
+
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2);
+      }
+      70% {
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+      }
+    }
+
+    .highlighted-task {
+      animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
+    }
+
+    @keyframes completeTask {
+      0% {
+        clip-path: inset(0 100% 0 0);
+      }
+      100% {
+        clip-path: inset(0 0 0 0);
+      }
+    }
+
+    .task-completing {
+      position: relative;
+    }
+
+    .task-completing::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(34, 197, 94, 0.5);
+      border-radius: 0.5rem;
+      animation: completeTask 0.5s ease-out forwards;
+      z-index: 0;
+    }
+
+    .task-completing > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes deleteTask {
+      0% {
+        border-color: transparent;
+      }
+      50% {
+        border-color: rgb(248, 113, 113);
+      }
+      100% {
+        border-color: transparent;
+      }
+    }
+
+    .task-deleting {
+      animation: deleteTask 0.3s ease-out forwards;
+      border: 2px solid transparent;
+    }
   `;
 
   // Modify the hide completed handler
@@ -1086,6 +1203,36 @@ export function Dashboard() {
     height: "auto",
     minHeight: "24px",
   };
+
+  // Add function to handle highlight setting change
+  const handleHighlightNextTask = (value: boolean) => {
+    setHighlightNextTask(value);
+    localStorage.setItem("highlightNextTask", JSON.stringify(value));
+  };
+
+  // Add effect to listen for changes to the highlight setting
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedState = localStorage.getItem("highlightNextTask");
+      setHighlightNextTask(savedState ? JSON.parse(savedState) : true);
+    };
+
+    const handleHighlightChange = () => {
+      const savedState = localStorage.getItem("highlightNextTask");
+      setHighlightNextTask(savedState ? JSON.parse(savedState) : true);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("highlightNextTaskChanged", handleHighlightChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener(
+        "highlightNextTaskChanged",
+        handleHighlightChange
+      );
+    };
+  }, []);
 
   return (
     <>
@@ -1166,21 +1313,12 @@ export function Dashboard() {
                     <input
                       ref={sectionInputRef}
                       type="text"
-                      value={newTitleText}
-                      onChange={(e) => setNewTitleText(e.target.value)}
+                      value={newSectionTitle}
+                      onChange={(e) => setNewSectionTitle(e.target.value)}
                       onKeyDown={handleSectionKeyPress}
                       onFocus={() => setFocusedInput("section")}
                       onBlur={() => setFocusedInput(null)}
                       onClick={(e) => {
-                        const target = e.target as HTMLElement;
-                        console.log("Section input click:", {
-                          target: target.tagName,
-                          className: target.className,
-                          isInput: target.tagName === "INPUT",
-                          eventPhase: e.eventPhase,
-                          currentTarget: (e.currentTarget as HTMLElement)
-                            ?.tagName,
-                        });
                         e.stopPropagation();
                       }}
                       placeholder="Add a section..."
@@ -1188,14 +1326,13 @@ export function Dashboard() {
                     />
                     <input
                       type="text"
-                      value={newTitleText}
+                      value={newSectionTime}
                       onChange={(e) => {
-                        // Allow any input while typing, just clean invalid characters
                         const cleaned = e.target.value.replace(
                           /[^0-9.,:;-]/g,
                           ""
                         );
-                        setNewTitleText(cleaned);
+                        setNewSectionTime(cleaned);
                       }}
                       onKeyDown={handleSectionKeyPress}
                       placeholder="09.00"
@@ -1235,7 +1372,7 @@ export function Dashboard() {
                 <div className="relative" ref={sortMenuRef}>
                   <button
                     onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                    className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                    className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
                   >
                     <Sort
                       size={20}
@@ -1257,7 +1394,7 @@ export function Dashboard() {
                           className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
                             completedPosition === "top"
                               ? "text-pri-blue-500"
-                              : "text-neu-100 hover:bg-neu-700"
+                              : "text-neu-400 hover:bg-neu-700"
                           }`}
                         >
                           <AlignTop
@@ -1277,7 +1414,7 @@ export function Dashboard() {
                           className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
                             completedPosition === "bottom"
                               ? "text-pri-blue-500"
-                              : "text-neu-100 hover:bg-neu-700"
+                              : "text-neu-400 hover:bg-neu-700"
                           }`}
                         >
                           <AlignBottom
@@ -1297,7 +1434,7 @@ export function Dashboard() {
                           className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
                             completedPosition === "mixed"
                               ? "text-pri-blue-500"
-                              : "text-neu-100 hover:bg-neu-700"
+                              : "text-neu-400 hover:bg-neu-700"
                           }`}
                         >
                           <AlignVerticalCenter
@@ -1314,18 +1451,18 @@ export function Dashboard() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
-                    <div className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500">
+                    <div
+                      onClick={handleHideCompleted}
+                      className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
+                    >
                       {hideCompleted ? (
                         <Eye size={20} color="currentColor" />
                       ) : (
                         <EyeClosed size={20} color="currentColor" />
                       )}
-                      <label
-                        htmlFor="hide-completed-toggle"
-                        className="text-base font-outfit cursor-pointer"
-                      >
+                      <span className="text-base font-outfit">
                         Hide completed
-                      </label>
+                      </span>
                       <div className="toggle-switch ml-2">
                         <input
                           id="hide-completed-toggle"

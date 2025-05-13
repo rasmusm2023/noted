@@ -16,12 +16,14 @@ import { Habits } from "./pages/Habits";
 import { Goals } from "./pages/Goals";
 import { Settings } from "./pages/Settings";
 import { Account } from "./pages/Account";
+import { MidnightTaskMover } from "./components/MidnightTaskMover";
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <ListProvider>
+          <MidnightTaskMover />
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route

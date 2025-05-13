@@ -16,6 +16,10 @@ import {
   Logout,
   Sun,
   Moon,
+  CheckCircle,
+  Unread,
+  StarShine,
+  AltArrowRight,
 } from "solar-icon-set";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
@@ -115,6 +119,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   });
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const settingsMenuRef = useRef<HTMLDivElement>(null);
+  const [highlightNextTask, setHighlightNextTask] = useState(() => {
+    const savedState = localStorage.getItem("highlightNextTask");
+    return savedState ? JSON.parse(savedState) : true;
+  });
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -230,6 +238,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     } catch (error) {
       console.error("Error creating list:", error);
     }
+  };
+
+  const handleHighlightNextTask = (value: boolean) => {
+    setHighlightNextTask(value);
+    localStorage.setItem("highlightNextTask", JSON.stringify(value));
   };
 
   return (
@@ -429,7 +442,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       setIsDarkMode(!isDarkMode);
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-100 hover:bg-neu-700 font-outfit"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-100 hover:bg-neu-700 hover:rounded-lg font-outfit"
                   >
                     {isDarkMode ? (
                       <>
@@ -443,6 +456,67 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       </>
                     )}
                   </button>
+
+                  {/* Highlight Next Task Option */}
+                  <div className="relative group">
+                    <button className="w-full flex items-center justify-between px-4 py-2 text-sm text-neu-100 hover:bg-neu-700 hover:rounded-lg font-outfit">
+                      <div className="flex items-center space-x-2">
+                        <StarShine size={20} color="currentColor" />
+                        <span>Highlight next task</span>
+                      </div>
+                      <AltArrowRight size={15} color="currentColor" />
+                    </button>
+
+                    {/* Submenu */}
+                    <div className="absolute left-full top-0 ml-1 w-24 bg-neu-800 rounded-lg shadow-lg border border-neu-700 hidden group-hover:block">
+                      <button
+                        onClick={() => {
+                          handleHighlightNextTask(true);
+                          setIsSettingsMenuOpen(false);
+                          window.dispatchEvent(
+                            new Event("highlightNextTaskChanged")
+                          );
+                        }}
+                        className="w-full flex items-center px-2 py-2 text-sm hover:bg-neu-700 hover:rounded-t-lg font-outfit"
+                      >
+                        <span
+                          className={
+                            highlightNextTask
+                              ? "text-pri-blue-500"
+                              : "text-neu-100"
+                          }
+                        >
+                          Yes
+                        </span>
+                        {highlightNextTask && (
+                          <Unread size={16} color="#3b82f6" className="ml-1" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleHighlightNextTask(false);
+                          setIsSettingsMenuOpen(false);
+                          window.dispatchEvent(
+                            new Event("highlightNextTaskChanged")
+                          );
+                        }}
+                        className="w-full flex items-center px-2 py-2 text-sm hover:bg-neu-700 hover:rounded-b-lg font-outfit"
+                      >
+                        <span
+                          className={
+                            !highlightNextTask
+                              ? "text-pri-blue-500"
+                              : "text-neu-100"
+                          }
+                        >
+                          No
+                        </span>
+                        {!highlightNextTask && (
+                          <Unread size={16} color="#3b82f6" className="ml-1" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

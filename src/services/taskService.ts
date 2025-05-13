@@ -35,7 +35,18 @@ export const taskService = {
 
     // Get current tasks to determine the next order
     const currentTasks = await this.getUserTasks(userId);
-    const nextOrder = currentTasks.length;
+
+    // Create a batch to update all existing tasks
+    const batch = writeBatch(db);
+
+    // Update all existing tasks to shift them down by 1
+    currentTasks.forEach((task) => {
+      const taskRef = doc(db, tasksCollection, task.id);
+      batch.update(taskRef, {
+        order: (task.order || 0) + 1,
+        updatedAt: new Date().toISOString(),
+      });
+    });
 
     const now = new Date().toISOString();
     const task: Omit<Task, "id"> = {
@@ -44,13 +55,19 @@ export const taskService = {
       completed: false,
       createdAt: now,
       updatedAt: now,
-      order: nextOrder, // Set order to the next available position
+      order: 0, // New task gets order 0 (top of the list)
     };
 
     console.log("Full task object to be saved:", task);
 
-    const docRef = await addDoc(collection(db, tasksCollection), task);
-    const createdTask = { ...task, id: docRef.id };
+    // Add the new task to the batch
+    const newTaskRef = doc(collection(db, tasksCollection));
+    batch.set(newTaskRef, task);
+
+    // Commit all changes
+    await batch.commit();
+
+    const createdTask = { ...task, id: newTaskRef.id };
     console.log("Task created successfully:", createdTask);
     return createdTask;
   },
@@ -465,5 +482,46 @@ export const taskService = {
     });
 
     await batch.commit();
+  },
+
+  // Add new function to move incomplete tasks to next day
+  async moveIncompleteTasksToNextDay(userId: string): Promise<void> {
+    console.log("Moving incomplete tasks to next day for user:", userId);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Get all tasks for the user
+    const tasks = await this.getUserTasks(userId);
+
+    // Filter tasks that are incomplete and from today
+    const incompleteTasks = tasks.filter((task) => {
+      const taskDate = new Date(task.date);
+      taskDate.setHours(0, 0, 0, 0);
+      return !task.completed && taskDate.getTime() === today.getTime();
+    });
+
+    if (incompleteTasks.length === 0) {
+      console.log("No incomplete tasks to move");
+      return;
+    }
+
+    // Create a batch to update all tasks
+    const batch = writeBatch(db);
+
+    // Update each incomplete task to tomorrow's date
+    incompleteTasks.forEach((task) => {
+      const taskRef = doc(db, tasksCollection, task.id);
+      batch.update(taskRef, {
+        date: tomorrow.toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    });
+
+    // Commit all changes
+    await batch.commit();
+    console.log(`Moved ${incompleteTasks.length} incomplete tasks to next day`);
   },
 };
