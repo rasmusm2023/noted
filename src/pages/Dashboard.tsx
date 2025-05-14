@@ -20,6 +20,9 @@ import {
 } from "solar-icon-set";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import type { DropTargetMonitor } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 
 // Import weather icons
 import sunIcon from "../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -38,6 +41,176 @@ type DragState = {
   sourceIndex: number;
   currentIndex: number;
   position: "before" | "after";
+  isDraggingOverCompleted?: boolean;
+  originalOrder: number;
+};
+
+// Add new types for drag and drop
+type DragItem = {
+  id: string;
+  type: string;
+  index: number;
+  item: ListItem;
+};
+
+// Add new component for draggable item
+const DraggableItem = ({
+  item,
+  index,
+  moveItem,
+  isTaskItem,
+  renderTask,
+  renderSection,
+  hideCompleted,
+  isTask,
+}: {
+  item: ListItem;
+  index: number;
+  moveItem: (dragIndex: number, hoverIndex: number) => void;
+  isTaskItem: boolean;
+  renderTask: (task: Task) => JSX.Element;
+  renderSection: (section: SectionItem) => JSX.Element;
+  hideCompleted: boolean;
+  isTask: (item: ListItem) => item is Task;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [{ isDragging }, drag] = useDrag({
+    type: "ITEM",
+    item: { id: item.id, type: item.type, index, item },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+    canDrag: () => {
+      return !hideCompleted || !isTask(item) || !(item as Task).completed;
+    },
+  });
+
+  type DropResult = {
+    isOver: boolean;
+    canDrop: boolean;
+    dropPosition: "before" | "after" | null;
+  };
+
+  const [{ isOver, canDrop, dropPosition }, drop] = useDrop<
+    DragItem,
+    void,
+    DropResult
+  >({
+    accept: "ITEM",
+    collect: (monitor: DropTargetMonitor) => {
+      const isOver = monitor.isOver();
+      const canDrop = monitor.canDrop();
+      const clientOffset = monitor.getClientOffset();
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+
+      let dropPosition: "before" | "after" | null = null;
+      if (isOver && hoverBoundingRect && clientOffset) {
+        const hoverMiddleY =
+          (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+        // Make the top 40% of the item a "before" drop zone
+        dropPosition = hoverClientY < hoverMiddleY * 0.8 ? "before" : "after";
+      }
+
+      return {
+        isOver,
+        canDrop,
+        dropPosition,
+      };
+    },
+    canDrop: (draggedItem: DragItem) => {
+      if (hideCompleted && isTask(item) && (item as Task).completed) {
+        return false;
+      }
+      return true;
+    },
+    hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
+      if (!ref.current) return;
+
+      const dragIndex = draggedItem.index;
+      const hoverIndex = index;
+
+      // Don't replace items with themselves
+      if (dragIndex === hoverIndex) return;
+
+      // Determine rectangle on screen
+      const hoverBoundingRect = ref.current.getBoundingClientRect();
+      const hoverMiddleY =
+        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
+
+      // Make the drop zones more forgiving by using 40% of the item height
+      const dropThreshold = hoverMiddleY * 0.8;
+
+      // Only perform the move when the mouse has crossed the threshold
+      if (dragIndex < hoverIndex && hoverClientY < dropThreshold) return;
+      if (dragIndex > hoverIndex && hoverClientY > dropThreshold) return;
+
+      moveItem(dragIndex, hoverIndex);
+      draggedItem.index = hoverIndex;
+    },
+  });
+
+  // Combine drag and drop refs
+  drag(drop(ref));
+
+  const opacity = isDragging ? 0.4 : 1;
+
+  // Enhanced visual feedback for drop zones
+  const getDropZoneStyles = () => {
+    if (!isOver || !canDrop) return {};
+
+    const baseStyle = {
+      position: "relative" as const,
+      transition: "all 0.2s ease-in-out",
+    };
+
+    if (dropPosition === "before") {
+      return {
+        ...baseStyle,
+        borderTop: "2px solid #3b82f6",
+        marginTop: "2px",
+      };
+    } else if (dropPosition === "after") {
+      return {
+        ...baseStyle,
+        borderBottom: "2px solid #3b82f6",
+        marginBottom: "2px",
+      };
+    }
+
+    return baseStyle;
+  };
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity,
+        ...getDropZoneStyles(),
+      }}
+      className={`transition-all duration-200 ${
+        isDragging ? "cursor-grabbing" : "cursor-grab"
+      } ${isOver && canDrop ? "bg-blue-500/5" : ""}`}
+      role="button"
+      tabIndex={0}
+      aria-grabbed={isDragging}
+      aria-dropeffect="move"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          // Handle keyboard drag start
+        }
+      }}
+    >
+      {item.type === "section"
+        ? renderSection(item as SectionItem)
+        : isTaskItem
+        ? renderTask(item as Task)
+        : null}
+    </div>
+  );
 };
 
 export function Dashboard() {
@@ -95,6 +268,9 @@ export function Dashboard() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // Add a ref for the list container
+  const listContainerRef = useRef<HTMLDivElement>(null);
 
   const isTask = (item: ListItem): item is Task => {
     return item.type === "task";
@@ -503,25 +679,84 @@ export function Dashboard() {
     item: ListItem,
     index: number
   ) => {
+    e.stopPropagation();
+    console.log("=== Drag Start ===");
+    console.log("Item:", { id: item.id, type: item.type, order: item.order });
+    console.log("Source Index:", index);
+
     setIsDragging(true);
     setDragState({
       item,
       sourceIndex: index,
       currentIndex: index,
       position: "after",
+      originalOrder: item.order || 0,
     });
+
+    // Set drag image
+    const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
+    dragImage.style.opacity = "0.8";
+    dragImage.style.transform = "scale(1.02)";
+    dragImage.style.boxShadow =
+      "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    setTimeout(() => document.body.removeChild(dragImage), 0);
 
     // Add a semi-transparent effect to the dragged item
     (e.target as HTMLElement).style.opacity = "0.4";
+
+    console.log("Drag State Set:", {
+      sourceIndex: index,
+      currentIndex: index,
+      position: "after",
+      originalOrder: item.order || 0,
+    });
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
-    if (!dragState) return;
+    e.stopPropagation();
+    if (!dragState || !listContainerRef.current) return;
 
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const listRect = listContainerRef.current.getBoundingClientRect();
     const mouseY = e.clientY;
-    const position = mouseY < rect.top + rect.height / 2 ? "before" : "after";
+    const relativeY = mouseY - listRect.top;
+    const itemHeight = listRect.height / filteredAndSortedItems.length;
+    const itemTop = index * itemHeight;
+    const itemBottom = (index + 1) * itemHeight;
+
+    // Calculate position based on mouse position relative to the item's center
+    const position =
+      relativeY < (itemTop + itemBottom) / 2 ? "before" : ("after" as const);
+
+    // Check if we're dragging over a completed item
+    const targetItem = filteredAndSortedItems[index];
+    const isDraggingOverCompleted = isTask(targetItem) && targetItem.completed;
+
+    console.log("=== Drag Over ===");
+    console.log("Current Index:", index);
+    console.log("Mouse Position:", {
+      y: mouseY,
+      relativeY,
+      itemTop,
+      itemBottom,
+      itemHeight,
+      center: (itemTop + itemBottom) / 2,
+    });
+    console.log("Drop Position:", position);
+    console.log("Target Item:", {
+      id: targetItem.id,
+      type: targetItem.type,
+      order: targetItem.order,
+      isCompleted: isTask(targetItem) ? targetItem.completed : false,
+    });
+
+    // Don't update if we're over the same position
+    if (dragState.currentIndex === index && dragState.position === position) {
+      console.log("Skipping update - same position");
+      return;
+    }
 
     // Update drag state
     setDragState((prev) => {
@@ -535,17 +770,26 @@ export function Dashboard() {
         // Determine animation direction
         const direction = newIndex > oldIndex ? "up" : "down";
         setPreviewAnimation({ index: newIndex, direction });
+        console.log("Animation:", { direction, newIndex });
       }
 
-      return {
+      const newState: DragState = {
         ...prev,
         currentIndex: index,
         position,
+        isDraggingOverCompleted,
       };
+
+      console.log("New Drag State:", newState);
+      return newState;
     });
   };
 
   const handleDragEnd = (e: React.DragEvent) => {
+    e.stopPropagation();
+    console.log("=== Drag End ===");
+    console.log("Final Drag State:", dragState);
+
     setIsDragging(false);
     setDragState(null);
     setPreviewAnimation(null);
@@ -554,10 +798,57 @@ export function Dashboard() {
 
   const handleDrop = async (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!dragState) return;
 
-    const { item, sourceIndex, position } = dragState;
-    const targetIndex = position === "before" ? index : index + 1;
+    console.log("=== Drop ===");
+    console.log("Drop Index:", index);
+    console.log("Current Drag State:", dragState);
+
+    const {
+      item,
+      sourceIndex,
+      position,
+      isDraggingOverCompleted,
+      originalOrder,
+    } = dragState;
+
+    // If hide completed is enabled and we're dropping over a completed item, ignore the drop
+    if (hideCompleted && isDraggingOverCompleted) {
+      console.log(
+        "Ignoring drop - over completed item with hide completed enabled"
+      );
+      setDragState(null);
+      setPreviewAnimation(null);
+      setIsDragging(false);
+      return;
+    }
+
+    // Calculate the target index
+    let targetIndex = position === "before" ? index : index + 1;
+
+    // Adjust target index if we're moving an item forward
+    if (sourceIndex < targetIndex) {
+      targetIndex--;
+    }
+
+    // Ensure target index is within bounds
+    targetIndex = Math.max(0, Math.min(targetIndex, items.length - 1));
+
+    // Don't do anything if we're dropping at the same position
+    if (sourceIndex === targetIndex) {
+      console.log("Skipping drop - same position");
+      setDragState(null);
+      setPreviewAnimation(null);
+      setIsDragging(false);
+      return;
+    }
+
+    console.log("Calculated Target Index:", targetIndex);
+    console.log(
+      "Original Items:",
+      items.map((item) => ({ id: item.id, order: item.order }))
+    );
 
     // Create new array with reordered items
     const newItems = [...items];
@@ -569,6 +860,11 @@ export function Dashboard() {
       ...item,
       order: index,
     }));
+
+    console.log(
+      "Updated Items:",
+      updatedItems.map((item) => ({ id: item.id, order: item.order }))
+    );
 
     // Update state immediately
     setItems(updatedItems);
@@ -590,10 +886,17 @@ export function Dashboard() {
             order: section.order,
           }));
 
+        console.log("Saving to database:", {
+          taskUpdates,
+          sectionUpdates,
+        });
+
         await Promise.all([
           taskService.updateTaskOrder(currentUser.uid, taskUpdates),
           taskService.updateSectionOrder(currentUser.uid, sectionUpdates),
         ]);
+
+        console.log("Database update successful");
       }
     } catch (error) {
       console.error("Error saving item order:", error);
@@ -861,14 +1164,14 @@ export function Dashboard() {
             setEditingTitle(item.id);
             setEditingTime(null);
           }}
-          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-lg"
+          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
           aria-label={`Edit section "${item.text}"`}
         >
           <Pen size={24} color="currentColor" autoSize={false} />
         </button>
         <button
           onClick={() => handleDeleteSection(item.id)}
-          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-lg"
+          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
           aria-label={`Delete section "${item.text}"`}
         >
           <TrashBinTrash size={24} color="currentColor" autoSize={false} />
@@ -949,7 +1252,7 @@ export function Dashboard() {
                 item.completed
                   ? "text-neu-100 hover:text-neu-100 scale-95"
                   : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
-              } focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-full p-1`}
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-full p-1`}
               aria-label={`Mark task "${item.title}" as ${
                 item.completed ? "incomplete" : "complete"
               }`}
@@ -1042,7 +1345,7 @@ export function Dashboard() {
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-neu-100"
-                } focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-lg`}
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
                 aria-label={`Edit task "${item.title}"`}
               >
                 <Pen size={24} color="currentColor" autoSize={false} />
@@ -1056,7 +1359,7 @@ export function Dashboard() {
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-red-500"
-                } focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-lg`}
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
                 aria-label={`Delete task "${item.title}"`}
               >
                 <TrashBinTrash
@@ -1222,6 +1525,7 @@ export function Dashboard() {
 
     .task-completing {
       position: relative;
+      overflow: hidden;
     }
 
     .task-completing::after {
@@ -1231,7 +1535,7 @@ export function Dashboard() {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgba(34, 197, 94, 0.5);
+      background-color: rgb(74, 222, 128, 0.5); /* Using the exact same color as bg-sup-suc-400 */
       border-radius: 0.5rem;
       animation: completeTask 0.5s ease-out forwards;
       z-index: 0;
@@ -1341,8 +1645,71 @@ export function Dashboard() {
     };
   }, [clickTimeout]);
 
+  // Add a debug effect to monitor items state
+  useEffect(() => {
+    console.log(
+      "Items State Updated:",
+      items.map((item) => ({
+        id: item.id,
+        type: item.type,
+        order: item.order,
+        completed: isTask(item) ? item.completed : undefined,
+      }))
+    );
+  }, [items]);
+
+  // Update the moveItem function
+  const moveItem = async (dragIndex: number, hoverIndex: number) => {
+    // Get the actual indices in the original items array
+    const draggedItem = filteredAndSortedItems[dragIndex];
+    const originalDragIndex = items.findIndex(
+      (item) => item.id === draggedItem.id
+    );
+    const targetItem = filteredAndSortedItems[hoverIndex];
+    const originalHoverIndex = items.findIndex(
+      (item) => item.id === targetItem.id
+    );
+
+    // Create new array with reordered items
+    const newItems = [...items];
+    const [movedItem] = newItems.splice(originalDragIndex, 1);
+    newItems.splice(originalHoverIndex, 0, movedItem);
+
+    // Update orders to ensure they are sequential
+    const updatedItems = newItems.map((item, index) => ({
+      ...item,
+      order: index,
+    }));
+
+    setItems(updatedItems);
+
+    // Save to database
+    try {
+      if (currentUser) {
+        const taskUpdates = updatedItems.filter(isTask).map((task) => ({
+          id: task.id,
+          order: task.order,
+        }));
+        const sectionUpdates = updatedItems
+          .filter(isSection)
+          .map((section) => ({
+            id: section.id,
+            order: section.order,
+          }));
+
+        await Promise.all([
+          taskService.updateTaskOrder(currentUser.uid, taskUpdates),
+          taskService.updateSectionOrder(currentUser.uid, sectionUpdates),
+        ]);
+      }
+    } catch (error) {
+      console.error("Error saving item order:", error);
+      setItems(items); // Revert on error
+    }
+  };
+
   return (
-    <>
+    <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
       <div className="p-8">
         <div className="max-w-4xl mx-auto space-y-8">
@@ -1467,7 +1834,7 @@ export function Dashboard() {
                 <div className="hidden 2xl:flex items-center gap-2">
                   <div className="w-[300px] h-2 bg-neu-700 rounded-full">
                     <div
-                      className="h-full bg-sup-suc-500 rounded-full"
+                      className="h-full bg-sup-suc-400 rounded-full"
                       style={{
                         width: `${completionPercentage}%`,
                       }}
@@ -1482,7 +1849,7 @@ export function Dashboard() {
                 <div className="relative" ref={sortMenuRef}>
                   <button
                     onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                    className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                    className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
                   >
                     <Sort
                       size={20}
@@ -1501,7 +1868,7 @@ export function Dashboard() {
                             localStorage.setItem("completedPosition", "top");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                             completedPosition === "top"
                               ? "text-pri-blue-500"
                               : "text-neu-400 hover:bg-neu-700"
@@ -1521,7 +1888,7 @@ export function Dashboard() {
                             localStorage.setItem("completedPosition", "bottom");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                             completedPosition === "bottom"
                               ? "text-pri-blue-500"
                               : "text-neu-400 hover:bg-neu-700"
@@ -1541,7 +1908,7 @@ export function Dashboard() {
                             localStorage.setItem("completedPosition", "mixed");
                             setIsSortMenuOpen(false);
                           }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 ${
+                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                             completedPosition === "mixed"
                               ? "text-pri-blue-500"
                               : "text-neu-400 hover:bg-neu-700"
@@ -1669,7 +2036,6 @@ export function Dashboard() {
                         hideCompleted && isTaskItem && item.completed;
                       const isHiding = hidingItems.has(item.id);
 
-                      // Don't return null, let the animation handle visibility
                       return (
                         <div
                           key={item.id}
@@ -1679,46 +2045,17 @@ export function Dashboard() {
                           style={{
                             display: isHidden && !isHiding ? "none" : "block",
                           }}
-                          onDragOver={(e) => handleDragOver(e, index)}
-                          onDrop={(e) => handleDrop(e, index)}
                         >
-                          {/* Drop indicator */}
-                          {dragState?.currentIndex === index && (
-                            <div
-                              className={`absolute left-0 right-0 h-1 bg-pri-blue-500 rounded-full transition-all duration-200 ${
-                                dragState.position === "before"
-                                  ? "-top-1"
-                                  : "-bottom-1"
-                              }`}
-                              style={{
-                                transform:
-                                  dragState.position === "before"
-                                    ? "translateY(-50%)"
-                                    : "translateY(50%)",
-                              }}
-                            />
-                          )}
-
-                          <div
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, item, index)}
-                            onDragEnd={handleDragEnd}
-                            className={`transition-all duration-200 ${
-                              isDragging ? "cursor-grabbing" : "cursor-grab"
-                            } ${
-                              previewAnimation?.index === index
-                                ? previewAnimation.direction === "up"
-                                  ? "translate-y-[-100%]"
-                                  : "translate-y-[100%]"
-                                : ""
-                            }`}
-                          >
-                            {isSection(item)
-                              ? renderSection(item)
-                              : isTaskItem
-                              ? renderTask(item)
-                              : null}
-                          </div>
+                          <DraggableItem
+                            item={item}
+                            index={index}
+                            moveItem={moveItem}
+                            isTaskItem={isTaskItem}
+                            renderTask={renderTask}
+                            renderSection={renderSection}
+                            hideCompleted={hideCompleted}
+                            isTask={isTask}
+                          />
                         </div>
                       );
                     })
@@ -1742,6 +2079,6 @@ export function Dashboard() {
           onDelete={handleDeleteTask}
         />
       )}
-    </>
+    </DndProvider>
   );
 }
