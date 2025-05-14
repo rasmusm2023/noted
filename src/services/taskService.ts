@@ -114,10 +114,22 @@ export const taskService = {
     const taskRef = doc(db, tasksCollection, taskId);
     const now = new Date().toISOString();
 
-    await updateDoc(taskRef, {
+    // If subtasks are being updated, ensure they have proper order
+    if (updates.subtasks) {
+      updates.subtasks = updates.subtasks.map((subtask, index) => ({
+        ...subtask,
+        order: index,
+      }));
+    }
+
+    // Create the update object with all fields
+    const updateData = {
       ...updates,
       updatedAt: now,
-    });
+    };
+
+    console.log("Updating task with data:", updateData);
+    await updateDoc(taskRef, updateData);
   },
 
   // Delete a task

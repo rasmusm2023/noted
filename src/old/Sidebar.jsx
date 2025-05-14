@@ -69,7 +69,6 @@ function Sidebar() {
     },
     { id: "habits", label: "Habits", icon: HeartShine, path: "/habits" },
     { id: "goals", label: "Goals", icon: StarsMinimalistic, path: "/goals" },
-    { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];
 
   return (

@@ -21,6 +21,7 @@ import {
   StarShine,
   AltArrowRight,
 } from "solar-icon-set";
+import { CalendarSeven } from "../../assets/icons";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 
@@ -57,7 +58,7 @@ const menuSections: MenuSection[] = [
       {
         id: "next7days",
         label: "Next 7 Days",
-        icon: CalendarDate,
+        icon: CalendarSeven,
         path: "/next7days",
       },
     ],
@@ -303,10 +304,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   }`}
                 >
                   <item.icon
-                    size={32}
+                    size={24}
                     color={
                       location.pathname === item.path
-                        ? "neu-100"
+                        ? "#f3f4f6"
                         : "currentColor"
                     }
                   />
@@ -357,10 +358,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       }`}
                     >
                       <Checklist
-                        size={32}
+                        size={24}
                         color={
                           location.pathname === `/list/${list.id}`
-                            ? "neu-100"
+                            ? "#f3f4f6"
                             : "currentColor"
                         }
                       />
@@ -375,7 +376,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     onClick={() => setIsAddingList(true)}
                     className="w-full flex items-center font-semibold space-x-3 p-3 rounded-lg text-neu-500 hover:bg-neu-700 hover:text-neu-100 border-2 border-dashed border-neu-600 hover:border-neu-500 transition-colors font-outfit"
                   >
-                    <AddSquare size={32} color="currentColor" />
+                    <AddSquare size={24} color="currentColor" />
                     <span>Add List</span>
                   </button>
                 )}
@@ -427,9 +428,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="relative" ref={settingsMenuRef}>
             <button
               onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
-              className="w-full flex items-center space-x-3 p-3 rounded-md text-neu-400 hover:bg-neu-700 hover:text-neu-100 font-outfit"
+              className="w-full flex items-center text-base font-medium space-x-3 p-3 rounded-md text-neu-400 hover:bg-neu-700 hover:text-neu-100 font-outfit"
             >
-              <Settings size={32} color="currentColor" />
+              <Settings size={24} color="currentColor" />
               {isOpen && <span>Settings</span>}
             </button>
 
@@ -541,7 +542,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User size={32} color="currentColor" />
+                  <User size={24} color="currentColor" />
                 )}
               </div>
               {isOpen && (

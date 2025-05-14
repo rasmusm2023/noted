@@ -19,6 +19,7 @@ import {
   Settings,
 } from "solar-icon-set";
 import confetti from "canvas-confetti";
+import { TaskModal } from "../components/TaskModal/TaskModal";
 
 // Import weather icons
 import sunIcon from "../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -90,6 +91,10 @@ export function Dashboard() {
     const savedState = localStorage.getItem("highlightNextTask");
     return savedState ? JSON.parse(savedState) : true;
   });
+
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const isTask = (item: ListItem): item is Task => {
     return item.type === "task";
@@ -867,22 +872,60 @@ export function Dashboard() {
       !item.completed &&
       items.filter((i) => isTask(i) && !i.completed).indexOf(item) === 0;
 
+    const handleTaskClick = (item: Task, e: React.MouseEvent) => {
+      // Don't open modal if clicking on buttons, inputs, or if we're editing
+      if (
+        e.target instanceof HTMLElement &&
+        (e.target.closest("button") ||
+          e.target.closest("input") ||
+          editingTask?.id === item.id)
+      ) {
+        e.stopPropagation();
+        return;
+      }
+
+      // Clear any existing timeout
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        setClickTimeout(null);
+        // If we had a timeout, this is a double click
+        setEditingTask(item);
+        return;
+      }
+
+      // Set a new timeout
+      const timeout = setTimeout(() => {
+        setSelectedTask(item);
+        setClickTimeout(null);
+      }, 200); // 200ms delay to allow for double click
+
+      setClickTimeout(timeout);
+    };
+
     return (
       <div
         key={item.id}
         data-task-id={item.id}
         className={`task-item p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
-          item.completed ? "bg-sup-suc-400 bg-opacity-50" : "bg-neu-800"
+          item.completed
+            ? "bg-sup-suc-400 bg-opacity-50"
+            : isTask(item) && item.backgroundColor
+            ? item.backgroundColor
+            : "bg-neu-800"
         } ${
           isNextTask
             ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
             : ""
         }`}
+        onClick={(e) => handleTaskClick(item, e)}
       >
         <div className="flex items-center space-x-4 flex-1">
           <div className="flex items-center justify-center h-full">
             <button
-              onClick={(e) => handleTaskCompletion(item.id, !item.completed, e)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTaskCompletion(item.id, !item.completed, e);
+              }}
               className={`transition-all duration-300 flex items-center justify-center ${
                 item.completed
                   ? "text-neu-100 hover:text-neu-100 scale-95"
@@ -901,96 +944,78 @@ export function Dashboard() {
               )}
             </button>
           </div>
-          {editingTask?.id === item.id ? (
-            <div className="flex-1 flex items-center justify-between">
-              <div className="flex-1">
-                <input
-                  ref={taskInputRef}
-                  type="text"
-                  value={editingTask.title}
-                  onChange={(e) =>
-                    setEditingTask({
-                      ...editingTask,
-                      title: e.target.value,
-                    })
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleEditTask(item.id, {
-                        title: editingTask.title,
-                      });
-                    } else if (e.key === "Escape") {
-                      setEditingTask(null);
-                    }
-                  }}
-                  onBlur={() => {
-                    handleEditTask(item.id, {
-                      title: editingTask.title,
-                    });
-                  }}
-                  onClick={handleInputClick}
-                  style={inputStyles}
-                  className="w-full bg-transparent text-base font-outfit font-semibold text-pri-blue-500 focus:outline-none cursor-text"
-                  autoFocus
-                  tabIndex={0}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() =>
-                    handleEditTask(item.id, {
-                      title: editingTask.title,
-                    })
-                  }
-                  className={`p-2 ${
-                    item.completed
-                      ? "text-neu-100 hover:text-neu-100"
-                      : "text-neu-400 hover:text-neu-100"
-                  }`}
-                >
-                  <Pen size={24} color="currentColor" autoSize={false} />
-                </button>
-                <button
-                  onClick={() => handleDeleteTask(item.id)}
-                  className={`p-2 ${
-                    item.completed
-                      ? "text-neu-100 hover:text-neu-100"
-                      : "text-neu-400 hover:text-red-500"
-                  }`}
-                >
-                  <TrashBinTrash
-                    size={24}
-                    color="currentColor"
-                    autoSize={false}
-                  />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div
-              className="flex-1 cursor-pointer"
-              onDoubleClick={() => setEditingTask(item)}
-            >
+          <div className="flex-1 flex items-center">
+            <div className="flex-1">
               <h3
                 className={`text-base font-outfit font-semibold transition-all duration-300 ${
                   item.completed ? "text-neu-100 scale-95" : "text-neu-100"
                 }`}
               >
-                {item.title}
+                {editingTask?.id === item.id ? (
+                  <input
+                    ref={taskInputRef}
+                    type="text"
+                    value={editingTask.title}
+                    onChange={(e) =>
+                      setEditingTask({
+                        ...editingTask,
+                        title: e.target.value,
+                      })
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleEditTask(item.id, {
+                          title: editingTask.title,
+                        });
+                      } else if (e.key === "Escape") {
+                        setEditingTask(null);
+                      }
+                    }}
+                    onBlur={() => {
+                      handleEditTask(item.id, {
+                        title: editingTask.title,
+                      });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full bg-transparent text-base font-outfit font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
+                    autoFocus
+                  />
+                ) : (
+                  item.title
+                )}
               </h3>
-              {item.description && (
-                <p className="text-xs font-outfit text-neu-400">
-                  {item.description}
-                </p>
+              {item.subtasks && item.subtasks.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {item.subtasks.map((subtask) => (
+                    <div
+                      key={subtask.id}
+                      className="flex items-center space-x-2"
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          subtask.completed ? "bg-sup-suc-500" : "bg-neu-500"
+                        }`}
+                      />
+                      <span
+                        className={`font-outfit text-sm ${
+                          subtask.completed
+                            ? "line-through text-neu-400"
+                            : "text-neu-400"
+                        }`}
+                      >
+                        {subtask.title}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          {editingTask?.id !== item.id && (
-            <>
+            <div className="flex items-center space-x-2 ml-4">
               <button
-                onClick={() => setEditingTask(item)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedTask(item);
+                }}
                 className={`p-2 flex items-center justify-center ${
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
@@ -1000,7 +1025,10 @@ export function Dashboard() {
                 <Pen size={24} color="currentColor" autoSize={false} />
               </button>
               <button
-                onClick={() => handleDeleteTask(item.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteTask(item.id);
+                }}
                 className={`p-2 flex items-center justify-center ${
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
@@ -1013,8 +1041,8 @@ export function Dashboard() {
                   autoSize={false}
                 />
               </button>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1033,6 +1061,34 @@ export function Dashboard() {
 
     .animate-bounce-subtle {
       animation: bounce-subtle 1.5s ease-in-out infinite;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+
+    .animate-scaleIn {
+      animation: scaleIn 0.2s ease-out forwards;
     }
 
     @keyframes slideOut {
@@ -1233,6 +1289,33 @@ export function Dashboard() {
       );
     };
   }, []);
+
+  // Add handleUpdateTask function
+  const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
+    try {
+      await taskService.updateTask(taskId, updates);
+      setItems(
+        items.map((item) =>
+          isTask(item) && item.id === taskId ? { ...item, ...updates } : item
+        )
+      );
+      // Only close the modal if explicitly requested
+      if (updates.shouldClose) {
+        setSelectedTask(null);
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+      }
+    };
+  }, [clickTimeout]);
 
   return (
     <>
@@ -1622,6 +1705,19 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+      {selectedTask && (
+        <TaskModal
+          task={selectedTask}
+          isOpen={!!selectedTask}
+          onClose={(task) => {
+            if (task.shouldClose) {
+              setSelectedTask(null);
+            }
+          }}
+          onUpdate={handleUpdateTask}
+          onDelete={handleDeleteTask}
+        />
+      )}
     </>
   );
 }

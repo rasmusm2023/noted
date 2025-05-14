@@ -6,6 +6,13 @@ export interface BaseItem {
   order?: number;
 }
 
+export interface Subtask {
+  id: string;
+  title: string;
+  completed: boolean;
+  order: number;
+}
+
 export interface Task extends BaseItem {
   type: "task";
   title: string;
@@ -13,6 +20,9 @@ export interface Task extends BaseItem {
   scheduledTime: string;
   completed: boolean;
   date: string; // ISO string format
+  subtasks?: Subtask[];
+  shouldClose?: boolean; // Optional property to control modal closing
+  backgroundColor?: string; // Optional property for task background color
 }
 
 export interface SectionItem extends BaseItem {
