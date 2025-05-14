@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
 import type { Task, SectionItem } from "../types/task";
@@ -10,6 +10,11 @@ import {
   Eye,
   EyeClosed,
   AddSquare,
+  CheckSquare,
+  Sort,
+  AlignTop,
+  AlignBottom,
+  AlignVerticalCenter,
 } from "solar-icon-set";
 import confetti from "canvas-confetti";
 
@@ -41,13 +46,17 @@ export function Next7Days() {
   const [newTaskInputs, setNewTaskInputs] = useState<{
     [key: number]: { title: string; description: string };
   }>({});
-  const [newTimestampTime, setNewTimestampTime] = useState("");
-  const [newTitleText, setNewTitleText] = useState("");
   const [selectedDay, setSelectedDay] = useState<number>(0);
-  const [hideCompleted, setHideCompleted] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(() => {
+    const savedState = localStorage.getItem("hideCompleted");
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const [completedPosition, setCompletedPosition] = useState<
     "top" | "bottom" | "mixed"
-  >("bottom");
+  >(() => {
+    const savedPosition = localStorage.getItem("completedPosition");
+    return (savedPosition as "top" | "bottom" | "mixed") || "mixed";
+  });
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -66,6 +75,9 @@ export function Next7Days() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<SectionItem | null>(
+    null
+  );
+  const [focusedInput, setFocusedInput] = useState<"task" | "section" | null>(
     null
   );
 
@@ -211,7 +223,7 @@ export function Next7Days() {
       .sort((a, b) => {
         // If both items have order, use that for custom sorting
         if (
-          sortOption === "custom" &&
+          completedPosition === "mixed" &&
           a.order !== undefined &&
           b.order !== undefined
         ) {
@@ -230,20 +242,6 @@ export function Next7Days() {
           if (!aIsCompleted && bIsCompleted) return -1;
         }
 
-        // For time-based sorting
-        if (sortOption === "time") {
-          const aTime = isTask(a) ? a.scheduledTime : a.time;
-          const bTime = isTask(b) ? b.scheduledTime : b.time;
-          return aTime.localeCompare(bTime);
-        }
-
-        // For alphabetical sorting
-        if (sortOption === "alphabetical") {
-          const aTitle = isTask(a) ? a.title : a.text;
-          const bTitle = isTask(b) ? b.title : b.text;
-          return aTitle.localeCompare(bTitle);
-        }
-
         // If both items are in the same completion state, maintain their relative order
         if (a.order !== undefined && b.order !== undefined) {
           return a.order - b.order;
@@ -252,30 +250,31 @@ export function Next7Days() {
       });
   };
 
-  const handleAddTask = async (dayIndex: number) => {
+  // Update the useEffect to load saved sort position
+  useEffect(() => {
+    const savedPosition = localStorage.getItem("completedPosition");
+    if (savedPosition) {
+      setCompletedPosition(savedPosition as "top" | "bottom" | "mixed");
+    }
+  }, []);
+
+  const handleAddTask = async (dayIndex: number, title: string) => {
     if (!currentUser) {
       console.error("No user logged in");
       return;
     }
 
-    const dayInput = newTaskInputs[dayIndex] || { title: "", description: "" };
-    if (!dayInput.title.trim()) return;
+    if (!title.trim()) return;
 
     try {
       const taskDate = days[dayIndex].date;
       // Set the time to noon to avoid timezone issues
       taskDate.setHours(12, 0, 0, 0);
 
-      // Clear input immediately to prevent double submission
-      setNewTaskInputs((prev) => ({
-        ...prev,
-        [dayIndex]: { title: "", description: "" },
-      }));
-
       const newTask = await taskService.createTask(currentUser.uid, {
         type: "task",
-        title: dayInput.title.trim(),
-        description: dayInput.description.trim(),
+        title: title.trim(),
+        description: "",
         scheduledTime: taskDate.toLocaleString(),
         completed: false,
         date: taskDate.toISOString(),
@@ -311,104 +310,16 @@ export function Next7Days() {
     }));
   };
 
-  const handleAddSection = async (dayIndex: number) => {
-    if (!currentUser) {
-      console.error("No user logged in");
-      return;
-    }
-
-    const title = newTitleText.trim();
-    const time = formatTimeFromInput(newTimestampTime.trim());
-
-    if (!title || !time) {
-      console.error("Missing required fields:", { title, time });
-      return;
-    }
-
-    try {
-      const newSection = await taskService.createSection(currentUser.uid, {
-        text: title,
-        time: time,
-      });
-
-      setDays((prevDays) => {
-        const newDays = [...prevDays];
-        newDays[dayIndex].items = [newSection, ...newDays[dayIndex].items];
-        return newDays;
-      });
-
-      setNewTitleText("");
-      setNewTimestampTime("");
-      if (sectionInputRef.current) {
-        sectionInputRef.current.focus();
-      }
-    } catch (error) {
-      console.error("Error creating section:", error);
-    }
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent, dayIndex: number) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleAddTask(dayIndex);
+      handleAddTask(dayIndex, newTaskInputs[dayIndex]?.title || "");
     } else if (e.key === "Escape") {
       setIsCreatingTask(false);
       setNewTaskInputs((prev) => ({
         ...prev,
         [dayIndex]: { title: "", description: "" },
       }));
-    }
-  };
-
-  const handleSectionKeyPress = (e: React.KeyboardEvent, dayIndex: number) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const formattedTime = formatTimeFromInput(newTimestampTime);
-      setNewTimestampTime(formattedTime);
-      handleAddSection(dayIndex);
-    } else if (e.key === "Escape") {
-      setIsCreatingTimestamp(false);
-      setNewTitleText("");
-      setNewTimestampTime("");
-    }
-  };
-
-  const formatTimeFromInput = (input: string): string => {
-    // Allow only numbers and specific symbols
-    const cleaned = input.replace(/[^0-9.,:;-]/g, "");
-
-    if (cleaned.length === 0) return "";
-
-    // Split by any of the allowed separators
-    const parts = cleaned.split(/[.,:;-]/);
-    const numbers = parts.join("").replace(/\D/g, "");
-
-    if (numbers.length === 0) return "";
-
-    // Handle different input lengths
-    if (numbers.length <= 2) {
-      // Just hours
-      const hours = parseInt(numbers);
-      if (hours > 23) return "23:00";
-      return `${hours.toString().padStart(2, "0")}:00`;
-    } else if (numbers.length <= 4) {
-      // Hours and minutes
-      const hours = parseInt(numbers.slice(0, -2));
-      const minutes = parseInt(numbers.slice(-2));
-      if (hours > 23) return "23:00";
-      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-    } else {
-      // Too many digits, take first 4
-      const hours = parseInt(numbers.slice(0, 2));
-      const minutes = parseInt(numbers.slice(2, 4));
-      if (hours > 23) return "23:00";
-      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
     }
   };
 
@@ -470,16 +381,77 @@ export function Next7Days() {
     }
   };
 
+  const formatTimeFromInput = (input: string): string => {
+    // Allow only numbers and specific symbols
+    const cleaned = input.replace(/[^0-9.,:;-]/g, "");
+
+    if (cleaned.length === 0) return "";
+
+    // Split by any of the allowed separators
+    const parts = cleaned.split(/[.,:;-]/);
+    const numbers = parts.join("").replace(/\D/g, "");
+
+    if (numbers.length === 0) return "";
+
+    // Handle different input lengths
+    if (numbers.length <= 2) {
+      // Just hours
+      const hours = parseInt(numbers);
+      if (hours > 23) return "23:00";
+      return `${hours.toString().padStart(2, "0")}:00`;
+    } else if (numbers.length <= 4) {
+      // Hours and minutes
+      const hours = parseInt(numbers.slice(0, -2));
+      const minutes = parseInt(numbers.slice(-2));
+      if (hours > 23) return "23:00";
+      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    } else {
+      // Too many digits, take first 4
+      const hours = parseInt(numbers.slice(0, 2));
+      const minutes = parseInt(numbers.slice(2, 4));
+      if (hours > 23) return "23:00";
+      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}`;
+    }
+  };
+
   const handleDragStart = (
     e: React.DragEvent,
     item: ListItem,
     dayIndex: number
   ) => {
-    e.dataTransfer.setData(
-      "text/plain",
-      JSON.stringify({ item, sourceDayIndex: dayIndex })
-    );
-    e.dataTransfer.effectAllowed = "move";
+    e.stopPropagation();
+    console.log("=== Drag Start ===");
+    console.log("Item:", { id: item.id, type: item.type, order: item.order });
+    console.log("Source Day:", dayIndex);
+
+    setIsDragging(true);
+    setDragState({
+      item,
+      sourceIndex: dayIndex,
+      currentIndex: dayIndex,
+      position: "after",
+      sourceDay: dayIndex,
+      targetDay: dayIndex,
+    });
+
+    // Set drag image
+    const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
+    dragImage.style.opacity = "0.8";
+    dragImage.style.transform = "scale(1.02)";
+    dragImage.style.boxShadow =
+      "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    setTimeout(() => document.body.removeChild(dragImage), 0);
+
+    // Add a semi-transparent effect to the dragged item
+    (e.target as HTMLElement).style.opacity = "0.4";
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -489,13 +461,24 @@ export function Next7Days() {
 
   const handleDrop = async (e: React.DragEvent, targetDayIndex: number) => {
     e.preventDefault();
-    const data = e.dataTransfer.getData("text/plain");
-    if (!data) return;
+    e.stopPropagation();
+    if (!dragState) return;
+
+    console.log("=== Drop ===");
+    console.log("Target Day:", targetDayIndex);
+    console.log("Current Drag State:", dragState);
+
+    const { item, sourceDay } = dragState;
+
+    // If we're dropping in the same day, ignore
+    if (sourceDay === targetDayIndex) {
+      console.log("Skipping drop - same day");
+      setDragState(null);
+      setIsDragging(false);
+      return;
+    }
 
     try {
-      const { item, sourceDayIndex } = JSON.parse(data);
-      if (sourceDayIndex === targetDayIndex) return;
-
       // Update the task's date
       if (isTask(item)) {
         const newDate = days[targetDayIndex].date.toISOString();
@@ -513,7 +496,7 @@ export function Next7Days() {
         setDays((prevDays) => {
           // Create a new array of days
           const newDays = prevDays.map((day, index) => {
-            if (index === sourceDayIndex) {
+            if (index === sourceDay) {
               // Remove from source day
               return {
                 ...day,
@@ -534,6 +517,9 @@ export function Next7Days() {
       }
     } catch (error) {
       console.error("Error moving task:", error);
+    } finally {
+      setDragState(null);
+      setIsDragging(false);
     }
   };
 
@@ -765,101 +751,566 @@ export function Next7Days() {
     );
   };
 
+  const renderTask = (item: Task, dayIndex: number) => {
+    return (
+      <div
+        key={item.id}
+        data-task-id={item.id}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedTask(item);
+          }
+        }}
+        className={`task-item p-3 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
+          item.completed
+            ? "bg-sup-suc-400 bg-opacity-50"
+            : isTask(item) && item.backgroundColor
+            ? item.backgroundColor
+            : "bg-neu-800"
+        } focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
+        onClick={() => setSelectedTask(item)}
+      >
+        <div className="flex items-center space-x-3 flex-1">
+          <div className="flex items-center justify-center h-full">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTaskCompletion(item.id, !item.completed, dayIndex, e);
+              }}
+              className={`transition-all duration-300 flex items-center justify-center ${
+                item.completed
+                  ? "text-neu-100 hover:text-neu-100 scale-95"
+                  : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-full p-1`}
+              aria-label={`Mark task "${item.title}" as ${
+                item.completed ? "incomplete" : "complete"
+              }`}
+            >
+              {item.completed ? (
+                <CheckSquare size={24} color="currentColor" autoSize={false} />
+              ) : (
+                <Record size={24} color="currentColor" autoSize={false} />
+              )}
+            </button>
+          </div>
+          <div className="flex-1">
+            <h3
+              className={`text-sm font-outfit font-semibold transition-all duration-300 ${
+                item.completed ? "text-neu-100 scale-95" : "text-neu-100"
+              }`}
+            >
+              {item.title}
+            </h3>
+            {item.description && (
+              <p className="text-xs text-neu-400 mt-1">{item.description}</p>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedTask(item);
+              }}
+              className={`p-1.5 flex items-center justify-center ${
+                item.completed
+                  ? "text-neu-100 hover:text-neu-100"
+                  : "text-neu-400 hover:text-neu-100"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
+              aria-label={`Edit task "${item.title}"`}
+            >
+              <Pen size={20} color="currentColor" autoSize={false} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteTask(item.id);
+              }}
+              className={`p-1.5 flex items-center justify-center ${
+                item.completed
+                  ? "text-neu-100 hover:text-neu-100"
+                  : "text-neu-400 hover:text-red-500"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
+              aria-label={`Delete task "${item.title}"`}
+            >
+              <TrashBinTrash size={20} color="currentColor" autoSize={false} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSection = (item: SectionItem) => (
+    <div
+      className="p-3 bg-neu-900 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+      tabIndex={0}
+    >
+      <div className="flex-1">
+        <div className="flex items-center justify-between cursor-pointer">
+          <div>
+            <h3 className="text-sm font-outfit font-semibold text-neu-300">
+              {item.text}
+            </h3>
+            <p className="text-xs text-neu-400">{item.time}</p>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => {
+            setSelectedSection(item);
+            setIsSectionModalOpen(true);
+          }}
+          className="p-1.5 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
+          aria-label={`Edit section "${item.text}"`}
+        >
+          <Pen size={20} color="currentColor" autoSize={false} />
+        </button>
+        <button
+          onClick={() => handleDeleteSection(item.id)}
+          className="p-1.5 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
+          aria-label={`Delete section "${item.text}"`}
+        >
+          <TrashBinTrash size={20} color="currentColor" autoSize={false} />
+        </button>
+      </div>
+    </div>
+  );
+
+  const TaskCreationInput = ({ dayIndex }: { dayIndex: number }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [localInput, setLocalInput] = useState("");
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setLocalInput(e.target.value);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (localInput.trim()) {
+          handleAddTask(dayIndex, localInput);
+          setLocalInput("");
+        }
+      } else if (e.key === "Escape") {
+        setLocalInput("");
+      }
+    };
+
+    return (
+      <div className="flex flex-col space-y-2">
+        <div className="flex items-center space-x-2 bg-neu-900/50 rounded-md p-2">
+          <button
+            onClick={() => {
+              if (localInput.trim()) {
+                handleAddTask(dayIndex, localInput);
+                setLocalInput("");
+              }
+            }}
+            className="p-1 bg-pri-blue-500 rounded-sm hover:bg-pri-blue-600 transition-colors flex items-center justify-center"
+          >
+            <AddSquare
+              size={20}
+              color="#fff"
+              autoSize={false}
+              iconStyle="Broken"
+            />
+          </button>
+          <div className="flex-1">
+            <input
+              ref={inputRef}
+              type="text"
+              value={localInput}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Add new task..."
+              className="w-full bg-transparent text-sm font-outfit text-neu-100 placeholder-neu-400 placeholder:font-semibold focus:outline-none"
+            />
+            <p className="text-xs font-outfit text-neu-400 mt-0.5">
+              Press Enter to add
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const SectionCreationInput = ({ dayIndex }: { dayIndex: number }) => {
+    const titleInputRef = useRef<HTMLInputElement>(null);
+    const timeInputRef = useRef<HTMLInputElement>(null);
+    const [localTitle, setLocalTitle] = useState("");
+    const [localTime, setLocalTime] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    console.log("SectionCreationInput rendered:", {
+      dayIndex,
+      localTitle,
+      localTime,
+      isSubmitting,
+    });
+
+    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log("Title input changed:", e.target.value);
+      setLocalTitle(e.target.value);
+    };
+
+    const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const cleaned = e.target.value.replace(/[^0-9.,:;-]/g, "");
+      console.log("Time input changed:", { original: e.target.value, cleaned });
+      setLocalTime(cleaned);
+    };
+
+    const handleAddSection = async () => {
+      console.log("handleAddSection called:", {
+        isSubmitting,
+        localTitle,
+        localTime,
+      });
+
+      if (isSubmitting) {
+        console.log("Already submitting, returning early");
+        return;
+      }
+
+      if (!currentUser) {
+        console.error("No user logged in");
+        return;
+      }
+
+      const title = localTitle.trim();
+      const time = formatTimeFromInput(localTime.trim());
+
+      console.log("Processed inputs:", { title, time });
+
+      if (!title || !time) {
+        console.error("Missing required fields:", { title, time });
+        return;
+      }
+
+      try {
+        console.log("Creating section...");
+        setIsSubmitting(true);
+        const newSection = await taskService.createSection(currentUser.uid, {
+          text: title,
+          time: time,
+        });
+
+        console.log("Section created successfully:", newSection);
+
+        // Use a single state update with a callback to ensure we're working with the latest state
+        setDays((prevDays) => {
+          console.log("Updating days state:", {
+            prevDaysLength: prevDays.length,
+            dayIndex,
+            newSection,
+          });
+
+          // Create a new array to avoid mutating the previous state
+          const newDays = prevDays.map((day, idx) => {
+            if (idx === dayIndex) {
+              // Check if the section already exists in the items array
+              const sectionExists = day.items.some(
+                (item) => item.type === "section" && item.id === newSection.id
+              );
+
+              if (!sectionExists) {
+                return {
+                  ...day,
+                  items: [newSection, ...day.items],
+                };
+              }
+            }
+            return day;
+          });
+
+          return newDays;
+        });
+
+        // Clear inputs after successful creation
+        setLocalTitle("");
+        setLocalTime("");
+        if (titleInputRef.current) {
+          titleInputRef.current.focus();
+        }
+      } catch (error) {
+        console.error("Error creating section:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      console.log("Key pressed:", e.key);
+      if (e.key === "Enter") {
+        e.preventDefault();
+        console.log("Enter pressed, calling handleAddSection");
+        handleAddSection();
+      } else if (e.key === "Escape") {
+        console.log("Escape pressed, clearing inputs");
+        setLocalTitle("");
+        setLocalTime("");
+      }
+    };
+
+    return (
+      <div className="flex flex-col space-y-2">
+        <div className="flex items-center space-x-2 bg-neu-900/50 rounded-md p-2">
+          <button
+            onClick={() => {
+              console.log("Add button clicked");
+              handleAddSection();
+            }}
+            disabled={isSubmitting}
+            className="p-1 bg-sup-war-500 rounded-sm hover:bg-sup-war-600 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <AddSquare
+              size={20}
+              color="#fff"
+              autoSize={false}
+              iconStyle="Broken"
+            />
+          </button>
+          <div className="flex-1">
+            <div className="flex items-center space-x-2">
+              <input
+                ref={titleInputRef}
+                type="text"
+                value={localTitle}
+                onChange={handleTitleChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Add a section..."
+                className="w-[calc(100%-5rem)] bg-transparent text-sm font-outfit text-neu-100 placeholder-neu-400 placeholder:font-semibold focus:outline-none"
+              />
+              <input
+                ref={timeInputRef}
+                type="text"
+                value={localTime}
+                onChange={handleTimeChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Time"
+                className="w-20 bg-transparent text-sm font-outfit text-neu-100 placeholder-neu-400 placeholder:font-semibold focus:outline-none"
+              />
+            </div>
+            <p className="text-xs font-outfit text-neu-400 mt-0.5">
+              Press Enter to add
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Add handleClearCompleted function
+  const handleClearCompleted = async () => {
+    if (!currentUser) return;
+
+    try {
+      // Get all completed tasks
+      const completedTasks = days.flatMap((day) =>
+        day.items.filter((item) => isTask(item) && item.completed)
+      );
+
+      // Delete each completed task
+      await Promise.all(
+        completedTasks.map((task) => taskService.deleteTask(task.id))
+      );
+
+      // Update local state
+      setDays((prevDays) =>
+        prevDays.map((day) => ({
+          ...day,
+          items: day.items.filter((item) => !isTask(item) || !item.completed),
+        }))
+      );
+    } catch (error) {
+      console.error("Error clearing completed tasks:", error);
+    }
+  };
+
+  // Add handleHideCompleted function
+  const handleHideCompleted = () => {
+    const newState = !hideCompleted;
+    setHideCompleted(newState);
+    localStorage.setItem("hideCompleted", JSON.stringify(newState));
+  };
+
   return (
     <div className="p-4">
+      <style>
+        {`
+          .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+          }
+
+          .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+          }
+
+          .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #374151;
+            transition: .3s;
+            border-radius: 24px;
+          }
+
+          .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+          }
+
+          input:checked + .toggle-slider {
+            background-color: #22c55e;
+          }
+
+          input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+          }
+        `}
+      </style>
       <div className="max-w-[2000px] mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold text-neu-100">Next 7 Days</h1>
-          <div className="flex items-center space-x-2">
-            <div className="relative" ref={sortMenuRef}>
-              <button
-                onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-neu-100"
-                  width="20"
-                  height="20"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
-                  />
-                </svg>
-                <span>Sort</span>
-              </button>
-              {isSortMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-10">
-                  <div className="py-1">
-                    <button
-                      onClick={() => {
-                        setCompletedPosition("top");
-                        setIsSortMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm ${
-                        completedPosition === "top"
-                          ? "text-pri-blue-500"
-                          : "text-neu-100 hover:bg-neu-700"
-                      }`}
-                    >
-                      Completed on Top
-                    </button>
-                    <button
-                      onClick={() => {
-                        setCompletedPosition("bottom");
-                        setIsSortMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm ${
-                        completedPosition === "bottom"
-                          ? "text-pri-blue-500"
-                          : "text-neu-100 hover:bg-neu-700"
-                      }`}
-                    >
-                      Completed on Bottom
-                    </button>
-                    <button
-                      onClick={() => {
-                        setCompletedPosition("mixed");
-                        setIsSortMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm ${
-                        completedPosition === "mixed"
-                          ? "text-pri-blue-500"
-                          : "text-neu-100 hover:bg-neu-700"
-                      }`}
-                    >
-                      Custom Order
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+        <div className="flex items-center justify-between mb-8 pl-8">
+          <h1 className="text-4xl font-bold font-outfit text-neu-100">
+            Next 7 Days
+          </h1>
+          <div className="bg-neu-600 rounded-lg p-2">
             <div className="flex items-center space-x-2">
-              <div className="relative">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <div className="px-4 py-2 bg-neu-800 text-neu-100 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2">
+              <div className="relative" ref={sortMenuRef}>
+                <button
+                  onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+                  className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+                >
+                  <Sort
+                    size={20}
+                    color="currentColor"
+                    autoSize={false}
+                    iconStyle="Broken"
+                  />
+                  <span className="text-base font-outfit">Sort</span>
+                </button>
+                {isSortMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-10">
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          setCompletedPosition("top");
+                          localStorage.setItem("completedPosition", "top");
+                          setIsSortMenuOpen(false);
+                        }}
+                        className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                          completedPosition === "top"
+                            ? "text-pri-blue-500"
+                            : "text-neu-400 hover:bg-neu-700"
+                        }`}
+                      >
+                        <AlignTop
+                          size={20}
+                          color="currentColor"
+                          autoSize={false}
+                          iconStyle="Broken"
+                        />
+                        <span>Completed on Top</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setCompletedPosition("bottom");
+                          localStorage.setItem("completedPosition", "bottom");
+                          setIsSortMenuOpen(false);
+                        }}
+                        className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                          completedPosition === "bottom"
+                            ? "text-pri-blue-500"
+                            : "text-neu-400 hover:bg-neu-700"
+                        }`}
+                      >
+                        <AlignBottom
+                          size={20}
+                          color="currentColor"
+                          autoSize={false}
+                          iconStyle="Broken"
+                        />
+                        <span>Completed on Bottom</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setCompletedPosition("mixed");
+                          localStorage.setItem("completedPosition", "mixed");
+                          setIsSortMenuOpen(false);
+                        }}
+                        className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                          completedPosition === "mixed"
+                            ? "text-pri-blue-500"
+                            : "text-neu-400 hover:bg-neu-700"
+                        }`}
+                      >
+                        <AlignVerticalCenter
+                          size={20}
+                          color="currentColor"
+                          autoSize={false}
+                          iconStyle="Broken"
+                        />
+                        <span>Custom Order</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <div
+                    onClick={handleHideCompleted}
+                    className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
+                  >
                     {hideCompleted ? (
                       <Eye size={20} color="currentColor" />
                     ) : (
                       <EyeClosed size={20} color="currentColor" />
                     )}
-                    <span>Hide completed</span>
+                    <span className="text-base font-outfit">
+                      Hide completed
+                    </span>
                     <div className="toggle-switch ml-2">
                       <input
+                        id="hide-completed-toggle"
                         type="checkbox"
                         checked={hideCompleted}
-                        onChange={() => setHideCompleted(!hideCompleted)}
+                        onChange={handleHideCompleted}
+                        className="sr-only focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                        aria-label="Toggle hide completed tasks"
                       />
                       <span className="toggle-slider"></span>
                     </div>
                   </div>
-                </label>
+                </div>
+                <button
+                  onClick={handleClearCompleted}
+                  className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+                >
+                  <TrashBinTrash
+                    size={20}
+                    color="currentColor"
+                    autoSize={false}
+                  />
+                  <span className="text-base font-outfit">Clear completed</span>
+                </button>
               </div>
             </div>
           </div>
@@ -870,16 +1321,16 @@ export function Next7Days() {
           {days.map((day, dayIndex) => (
             <div
               key={day.date.toISOString()}
-              className="flex-shrink-0 w-[280px] bg-neu-800/90 rounded-lg p-4"
+              className="flex-shrink-0 w-[280px] bg-neu-800/90 rounded-lg p-4 h-fit"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, dayIndex)}
             >
-              <div className="mb-4">
+              <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-xl font-semibold text-neu-100">
+                  <h2 className="text-2xl font-outfit font-semibold text-neu-100">
                     {day.date.toLocaleDateString("en-US", { weekday: "long" })}
                   </h2>
-                  <p className="text-neu-400">
+                  <p className="text-base font-outfit text-neu-400">
                     {day.date.toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -889,114 +1340,22 @@ export function Next7Days() {
 
                 {/* Task creation */}
                 <div className="mb-4">
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex items-center space-x-2 bg-neu-900/50 rounded-lg p-2">
-                      <button
-                        onClick={() => handleAddTask(dayIndex)}
-                        className="p-1 bg-pri-blue-500 rounded-md hover:bg-pri-blue-600 transition-colors"
-                      >
-                        <AddSquare
-                          size={20}
-                          color="#fff"
-                          autoSize={false}
-                          iconStyle="Broken"
-                        />
-                      </button>
-                      <div className="flex-1">
-                        <input
-                          ref={taskInputRef}
-                          type="text"
-                          value={newTaskInputs[dayIndex]?.title || ""}
-                          onChange={(e) =>
-                            handleTaskInputChange(
-                              dayIndex,
-                              "title",
-                              e.target.value
-                            )
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddTask(dayIndex);
-                            } else if (e.key === "Escape") {
-                              setNewTaskInputs((prev) => ({
-                                ...prev,
-                                [dayIndex]: { title: "", description: "" },
-                              }));
-                            }
-                          }}
-                          placeholder="Add new task..."
-                          className="w-full bg-transparent text-sm font-outfit text-neu-100 placeholder-neu-400 focus:outline-none"
-                        />
-                        <p className="text-xs font-outfit text-neu-400 mt-0.5">
-                          Press Enter to add
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <TaskCreationInput dayIndex={dayIndex} />
                 </div>
 
                 {/* Section creation */}
                 <div className="mb-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="text"
-                      value={newTitleText}
-                      onChange={(e) => setNewTitleText(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddSection(dayIndex);
-                        } else if (e.key === "Escape") {
-                          setIsCreatingTimestamp(false);
-                          setNewTitleText("");
-                          setNewTimestampTime("");
-                        }
-                      }}
-                      placeholder="Add a section..."
-                      className="flex-1 bg-neu-900/50 text-neu-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
-                    />
-                    <input
-                      type="text"
-                      value={newTimestampTime}
-                      onChange={(e) => {
-                        const cleaned = e.target.value.replace(
-                          /[^0-9.,:;-]/g,
-                          ""
-                        );
-                        setNewTimestampTime(cleaned);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddSection(dayIndex);
-                        } else if (e.key === "Escape") {
-                          setIsCreatingTimestamp(false);
-                          setNewTitleText("");
-                          setNewTimestampTime("");
-                        }
-                      }}
-                      placeholder="Time"
-                      className="w-24 bg-neu-900/50 text-neu-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
-                    />
-                    <button
-                      onClick={() => handleAddSection(dayIndex)}
-                      className="p-2 text-neu-400 hover:text-neu-100 transition-colors"
-                    >
-                      <AddSquare
-                        size={24}
-                        color="currentColor"
-                        autoSize={false}
-                        iconStyle="Broken"
-                      />
-                    </button>
-                  </div>
+                  <SectionCreationInput dayIndex={dayIndex} />
                 </div>
 
                 {/* Tasks and Sections */}
                 <div className="space-y-4">
                   {loading ? (
                     <div className="text-neu-400">Loading tasks...</div>
+                  ) : day.items.length === 0 ? (
+                    <div className="text-center text-neu-400 py-4">
+                      <p className="text-sm">No tasks for this day</p>
+                    </div>
                   ) : (
                     sortItems(day.items).map((item, index) => (
                       <div
@@ -1011,85 +1370,9 @@ export function Next7Days() {
                             : ""
                         }`}
                       >
-                        {isSection(item) ? (
-                          <div className="flex-1">
-                            <div
-                              className="flex items-center justify-between cursor-pointer"
-                              onClick={() => {
-                                setSelectedSection(item);
-                                setIsSectionModalOpen(true);
-                              }}
-                            >
-                              <div>
-                                <h3 className="text-base font-semibold text-neu-100">
-                                  {item.text}
-                                </h3>
-                                <p className="text-xs text-neu-400">
-                                  {item.time}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center space-x-4 flex-1">
-                            <button
-                              onClick={(e) =>
-                                handleTaskCompletion(
-                                  item.id,
-                                  !item.completed,
-                                  dayIndex,
-                                  e
-                                )
-                              }
-                              className={`transition-all duration-300 flex items-center justify-center ${
-                                item.completed
-                                  ? "text-neu-100 hover:text-neu-100 scale-95"
-                                  : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
-                              }`}
-                            >
-                              {item.completed ? (
-                                <CheckCircle
-                                  size={24}
-                                  color="currentColor"
-                                  autoSize={false}
-                                />
-                              ) : (
-                                <Record
-                                  size={24}
-                                  color="currentColor"
-                                  autoSize={false}
-                                  className="hover:scale-95 transition-transform animate-bounce-subtle"
-                                />
-                              )}
-                            </button>
-                            <div className="flex-1">
-                              <div
-                                className="flex items-center justify-between cursor-pointer"
-                                onMouseUp={() => {
-                                  setSelectedTask(item);
-                                  setIsModalOpen(true);
-                                }}
-                              >
-                                <div>
-                                  <h3
-                                    className={`text-base font-semibold ${
-                                      item.completed
-                                        ? "text-neu-100"
-                                        : "text-neu-100"
-                                    }`}
-                                  >
-                                    {item.title}
-                                  </h3>
-                                  {item.description && (
-                                    <p className="text-xs text-neu-400">
-                                      {item.description}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                        {isSection(item)
+                          ? renderSection(item)
+                          : renderTask(item, dayIndex)}
                       </div>
                     ))
                   )}

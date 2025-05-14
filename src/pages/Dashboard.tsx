@@ -21,8 +21,10 @@ import {
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
-import type { DropTargetMonitor } from "react-dnd";
+import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { PageTransition } from "../components/PageTransition";
+import { LoadingScreen } from "../components/LoadingScreen";
 
 // Import weather icons
 import sunIcon from "../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -77,7 +79,7 @@ const DraggableItem = ({
   const [{ isDragging }, drag] = useDrag({
     type: "ITEM",
     item: { id: item.id, type: item.type, index, item },
-    collect: (monitor) => ({
+    collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),
     canDrag: () => {
@@ -216,7 +218,7 @@ const DraggableItem = ({
 export function Dashboard() {
   const { currentUser } = useAuth();
   const [items, setItems] = useState<ListItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [editingTime, setEditingTime] = useState<string | null>(null);
@@ -332,7 +334,7 @@ export function Dashboard() {
       const now = new Date();
       const day = now.getDate().toString().padStart(2, "0");
       const month = now.toLocaleString("default", { month: "short" });
-      setCurrentDate(`${day} ${month}`);
+      setCurrentDate(`${month} ${day}`);
       setDayOfWeek(now.toLocaleString("default", { weekday: "long" }));
     };
 
@@ -436,12 +438,12 @@ export function Dashboard() {
   useEffect(() => {
     const loadData = async () => {
       if (!currentUser) {
-        setLoading(false);
+        setIsLoading(false);
         return;
       }
 
       try {
-        setLoading(true);
+        setIsLoading(true);
         const [userTasks, userSections] = await Promise.all([
           taskService.getUserTasks(currentUser.uid),
           taskService.getUserSections(currentUser.uid),
@@ -467,7 +469,7 @@ export function Dashboard() {
       } catch (error) {
         console.error("Error loading data:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -1711,361 +1713,369 @@ export function Dashboard() {
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Header Box */}
-          <div className="bg-neu-600 rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h1 className="text-4xl font-bold font-outfit text-neu-100">
-                  {dayOfWeek}
-                </h1>
-                <span className="text-2xl font-outfit text-neu-400 uppercase">
-                  {currentDate}
-                </span>
-              </div>
-              {temperature !== null && (
-                <div className="flex items-center gap-2">
-                  {getWeatherIcon(weatherCondition)}
-                  <span className="text-2xl font-outfit text-neu-100">
-                    {temperature}°C
+      <PageTransition>
+        <div className="p-8">
+          <div className="max-w-4xl mx-auto space-y-8">
+            {/* Header Box */}
+            <div className="bg-neu-600 rounded-xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <h1 className="text-4xl font-bold font-outfit text-neu-100">
+                    {dayOfWeek}
+                  </h1>
+                  <span className="text-2xl font-outfit text-neu-400 uppercase">
+                    {currentDate}
                   </span>
+                </div>
+                {temperature !== null && (
+                  <div className="flex items-center gap-2">
+                    {getWeatherIcon(weatherCondition)}
+                    <span className="text-2xl font-outfit text-neu-100">
+                      {temperature}°C
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div
+                  className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+                    focusedInput === "task" ? "ring-2 ring-pri-blue-500" : ""
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-pri-blue-500 rounded-lg flex items-center justify-center">
+                      <AddSquare
+                        size={32}
+                        color="#fff"
+                        autoSize={false}
+                        iconStyle="Broken"
+                      />
+                    </div>
+                    <div className="text-left font-outfit text-md flex-1">
+                      <input
+                        ref={taskInputRef}
+                        type="text"
+                        value={newTaskTitle}
+                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        onFocus={() => setFocusedInput("task")}
+                        onBlur={() => setFocusedInput(null)}
+                        placeholder="Add new task..."
+                        className="w-full bg-transparent font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                        autoFocus
+                      />
+                      <p className="text-neu-400 text-sm font-outfit mt-2">
+                        Press Enter to add
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+                    focusedInput === "section" ? "ring-2 ring-pri-blue-500" : ""
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-sup-war-500 rounded-lg flex items-center justify-center">
+                      <ClockSquare
+                        size={32}
+                        color="#fff"
+                        autoSize={false}
+                        iconStyle="Broken"
+                      />
+                    </div>
+                    <div className="text-left flex-1">
+                      <div className="flex items-center text-md font-outfit gap-4">
+                        <input
+                          ref={sectionInputRef}
+                          type="text"
+                          value={newSectionTitle}
+                          onChange={(e) => setNewSectionTitle(e.target.value)}
+                          onKeyDown={handleSectionKeyPress}
+                          onFocus={() => setFocusedInput("section")}
+                          onBlur={() => setFocusedInput(null)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          placeholder="Add a section..."
+                          className="flex-1 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                        />
+                        <input
+                          type="text"
+                          value={newSectionTime}
+                          onChange={(e) => {
+                            const cleaned = e.target.value.replace(
+                              /[^0-9.,:;-]/g,
+                              ""
+                            );
+                            setNewSectionTime(cleaned);
+                          }}
+                          onKeyDown={handleSectionKeyPress}
+                          placeholder="09.00"
+                          className="w-32 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                        />
+                      </div>
+                      <p className="text-neu-400 font-outfit text-sm mt-2">
+                        Press Enter to add
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tasks Box */}
+            <div className="bg-neu-600 rounded-xl p-6 shadow-lg">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-8">
+                  <h2 className="text-2xl font-outfit font-semibold text-neu-100">
+                    Today
+                  </h2>
+                  <div className="hidden 2xl:flex items-center gap-2">
+                    <div className="w-[300px] h-2 bg-neu-700 rounded-full">
+                      <div
+                        className="h-full bg-sup-suc-400 rounded-full"
+                        style={{
+                          width: `${completionPercentage}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <span className="text-base font-outfit text-neu-400">
+                      {completionPercentage}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="relative" ref={sortMenuRef}>
+                    <button
+                      onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+                      className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+                    >
+                      <Sort
+                        size={20}
+                        color="currentColor"
+                        autoSize={false}
+                        iconStyle="Broken"
+                      />
+                      <span className="text-base font-outfit">Sort</span>
+                    </button>
+                    {isSortMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-10">
+                        <div className="py-1">
+                          <button
+                            onClick={() => {
+                              setCompletedPosition("top");
+                              localStorage.setItem("completedPosition", "top");
+                              setIsSortMenuOpen(false);
+                            }}
+                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                              completedPosition === "top"
+                                ? "text-pri-blue-500"
+                                : "text-neu-400 hover:bg-neu-700"
+                            }`}
+                          >
+                            <AlignTop
+                              size={20}
+                              color="currentColor"
+                              autoSize={false}
+                              iconStyle="Broken"
+                            />
+                            <span>Completed on Top</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCompletedPosition("bottom");
+                              localStorage.setItem(
+                                "completedPosition",
+                                "bottom"
+                              );
+                              setIsSortMenuOpen(false);
+                            }}
+                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                              completedPosition === "bottom"
+                                ? "text-pri-blue-500"
+                                : "text-neu-400 hover:bg-neu-700"
+                            }`}
+                          >
+                            <AlignBottom
+                              size={20}
+                              color="currentColor"
+                              autoSize={false}
+                              iconStyle="Broken"
+                            />
+                            <span>Completed on Bottom</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCompletedPosition("mixed");
+                              localStorage.setItem(
+                                "completedPosition",
+                                "mixed"
+                              );
+                              setIsSortMenuOpen(false);
+                            }}
+                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                              completedPosition === "mixed"
+                                ? "text-pri-blue-500"
+                                : "text-neu-400 hover:bg-neu-700"
+                            }`}
+                          >
+                            <AlignVerticalCenter
+                              size={20}
+                              color="currentColor"
+                              autoSize={false}
+                              iconStyle="Broken"
+                            />
+                            <span>Custom Order</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="relative">
+                      <div
+                        onClick={handleHideCompleted}
+                        className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
+                      >
+                        {hideCompleted ? (
+                          <Eye size={20} color="currentColor" />
+                        ) : (
+                          <EyeClosed size={20} color="currentColor" />
+                        )}
+                        <span className="text-base font-outfit">
+                          Hide completed
+                        </span>
+                        <div className="toggle-switch ml-2">
+                          <input
+                            id="hide-completed-toggle"
+                            type="checkbox"
+                            checked={hideCompleted}
+                            onChange={handleHideCompleted}
+                            className="sr-only focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                            aria-label="Toggle hide completed tasks"
+                          />
+                          <span className="toggle-slider"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tasks List */}
+              {isLoading ? (
+                <div className="text-neu-400 text-md">Loading tasks...</div>
+              ) : (
+                <div className="space-y-4">
+                  {/* New Task Input */}
+                  {isCreatingTask && (
+                    <div className="p-4 bg-neu-800 rounded-lg flex flex-col space-y-4">
+                      <input
+                        ref={taskInputRef}
+                        type="text"
+                        value={newTaskTitle}
+                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder="Enter task title"
+                        className="w-full p-2 bg-neu-700 rounded text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                        autoFocus
+                      />
+                      <textarea
+                        value={newTaskDescription}
+                        onChange={(e) => setNewTaskDescription(e.target.value)}
+                        onKeyDown={handleKeyPress}
+                        placeholder="Enter task description (optional)"
+                        className="w-full p-2 bg-neu-700 rounded text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 resize-none"
+                        rows={3}
+                      />
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={handleAddTask}
+                          className="px-4 py-2 bg-pri-blue-500 text-neu-100 rounded hover:bg-pri-blue-600"
+                        >
+                          Add
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsCreatingTask(false);
+                            setNewTaskTitle("");
+                            setNewTaskDescription("");
+                          }}
+                          className="px-4 py-2 bg-neu-700 text-neu-100 rounded hover:bg-neu-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* List of items */}
+                  <div className="space-y-4">
+                    {filteredAndSortedItems.length === 0 ? (
+                      <div className="space-y-6">
+                        <div className="text-center text-neu-400 py-8">
+                          <p className="text-lg mb-2">
+                            There are no tasks for today
+                          </p>
+                          <p className="text-sm">Add a task to get started</p>
+                        </div>
+                        <div className="p-4 rounded-lg border-2 border-dashed border-neu-700 flex items-center justify-between">
+                          <div className="flex items-center space-x-4 flex-1">
+                            <div className="flex items-center justify-center h-full">
+                              <div className="w-8 h-8 rounded-full border-2 border-dashed border-neu-600"></div>
+                            </div>
+                            <div className="flex-1">
+                              <div className="h-6 w-48 bg-neu-700 rounded animate-pulse"></div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 rounded bg-neu-700"></div>
+                            <div className="w-8 h-8 rounded bg-neu-700"></div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      filteredAndSortedItems.map((item, index) => {
+                        const isTaskItem = isTask(item);
+                        const isHidden =
+                          hideCompleted && isTaskItem && item.completed;
+                        const isHiding = hidingItems.has(item.id);
+
+                        return (
+                          <div
+                            key={item.id}
+                            className={`relative task-item ${
+                              isHiding ? "hiding" : "showing"
+                            }`}
+                            style={{
+                              display: isHidden && !isHiding ? "none" : "block",
+                            }}
+                          >
+                            <DraggableItem
+                              item={item}
+                              index={index}
+                              moveItem={moveItem}
+                              isTaskItem={isTaskItem}
+                              renderTask={renderTask}
+                              renderSection={renderSection}
+                              hideCompleted={hideCompleted}
+                              isTask={isTask}
+                            />
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div
-                className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
-                  focusedInput === "task" ? "ring-2 ring-pri-blue-500" : ""
-                }`}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-pri-blue-500 rounded-lg flex items-center justify-center">
-                    <AddSquare
-                      size={32}
-                      color="#fff"
-                      autoSize={false}
-                      iconStyle="Broken"
-                    />
-                  </div>
-                  <div className="text-left font-outfit text-md flex-1">
-                    <input
-                      ref={taskInputRef}
-                      type="text"
-                      value={newTaskTitle}
-                      onChange={(e) => setNewTaskTitle(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      onFocus={() => setFocusedInput("task")}
-                      onBlur={() => setFocusedInput(null)}
-                      placeholder="Add new task..."
-                      className="w-full bg-transparent font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                      autoFocus
-                    />
-                    <p className="text-neu-400 text-sm font-outfit mt-2">
-                      Press Enter to add
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
-                  focusedInput === "section" ? "ring-2 ring-pri-blue-500" : ""
-                }`}
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-sup-war-500 rounded-lg flex items-center justify-center">
-                    <ClockSquare
-                      size={32}
-                      color="#fff"
-                      autoSize={false}
-                      iconStyle="Broken"
-                    />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="flex items-center text-md font-outfit gap-4">
-                      <input
-                        ref={sectionInputRef}
-                        type="text"
-                        value={newSectionTitle}
-                        onChange={(e) => setNewSectionTitle(e.target.value)}
-                        onKeyDown={handleSectionKeyPress}
-                        onFocus={() => setFocusedInput("section")}
-                        onBlur={() => setFocusedInput(null)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                        placeholder="Add a section..."
-                        className="flex-1 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                      />
-                      <input
-                        type="text"
-                        value={newSectionTime}
-                        onChange={(e) => {
-                          const cleaned = e.target.value.replace(
-                            /[^0-9.,:;-]/g,
-                            ""
-                          );
-                          setNewSectionTime(cleaned);
-                        }}
-                        onKeyDown={handleSectionKeyPress}
-                        placeholder="09.00"
-                        className="w-32 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                      />
-                    </div>
-                    <p className="text-neu-400 font-outfit text-sm mt-2">
-                      Press Enter to add
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tasks Box */}
-          <div className="bg-neu-600 rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-8">
-                <h2 className="text-2xl font-outfit font-semibold text-neu-100">
-                  Today
-                </h2>
-                <div className="hidden 2xl:flex items-center gap-2">
-                  <div className="w-[300px] h-2 bg-neu-700 rounded-full">
-                    <div
-                      className="h-full bg-sup-suc-400 rounded-full"
-                      style={{
-                        width: `${completionPercentage}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <span className="text-base font-outfit text-neu-400">
-                    {completionPercentage}%
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="relative" ref={sortMenuRef}>
-                  <button
-                    onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                    className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
-                  >
-                    <Sort
-                      size={20}
-                      color="currentColor"
-                      autoSize={false}
-                      iconStyle="Broken"
-                    />
-                    <span className="text-base font-outfit">Sort</span>
-                  </button>
-                  {isSortMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-10">
-                      <div className="py-1">
-                        <button
-                          onClick={() => {
-                            setCompletedPosition("top");
-                            localStorage.setItem("completedPosition", "top");
-                            setIsSortMenuOpen(false);
-                          }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                            completedPosition === "top"
-                              ? "text-pri-blue-500"
-                              : "text-neu-400 hover:bg-neu-700"
-                          }`}
-                        >
-                          <AlignTop
-                            size={20}
-                            color="currentColor"
-                            autoSize={false}
-                            iconStyle="Broken"
-                          />
-                          <span>Completed on Top</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setCompletedPosition("bottom");
-                            localStorage.setItem("completedPosition", "bottom");
-                            setIsSortMenuOpen(false);
-                          }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                            completedPosition === "bottom"
-                              ? "text-pri-blue-500"
-                              : "text-neu-400 hover:bg-neu-700"
-                          }`}
-                        >
-                          <AlignBottom
-                            size={20}
-                            color="currentColor"
-                            autoSize={false}
-                            iconStyle="Broken"
-                          />
-                          <span>Completed on Bottom</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setCompletedPosition("mixed");
-                            localStorage.setItem("completedPosition", "mixed");
-                            setIsSortMenuOpen(false);
-                          }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                            completedPosition === "mixed"
-                              ? "text-pri-blue-500"
-                              : "text-neu-400 hover:bg-neu-700"
-                          }`}
-                        >
-                          <AlignVerticalCenter
-                            size={20}
-                            color="currentColor"
-                            autoSize={false}
-                            iconStyle="Broken"
-                          />
-                          <span>Custom Order</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <div
-                      onClick={handleHideCompleted}
-                      className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
-                    >
-                      {hideCompleted ? (
-                        <Eye size={20} color="currentColor" />
-                      ) : (
-                        <EyeClosed size={20} color="currentColor" />
-                      )}
-                      <span className="text-base font-outfit">
-                        Hide completed
-                      </span>
-                      <div className="toggle-switch ml-2">
-                        <input
-                          id="hide-completed-toggle"
-                          type="checkbox"
-                          checked={hideCompleted}
-                          onChange={handleHideCompleted}
-                          className="sr-only focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
-                          aria-label="Toggle hide completed tasks"
-                        />
-                        <span className="toggle-slider"></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Tasks List */}
-            {loading ? (
-              <div className="text-neu-400 text-md">Loading tasks...</div>
-            ) : (
-              <div className="space-y-4">
-                {/* New Task Input */}
-                {isCreatingTask && (
-                  <div className="p-4 bg-neu-800 rounded-lg flex flex-col space-y-4">
-                    <input
-                      ref={taskInputRef}
-                      type="text"
-                      value={newTaskTitle}
-                      onChange={(e) => setNewTaskTitle(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      placeholder="Enter task title"
-                      className="w-full p-2 bg-neu-700 rounded text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
-                      autoFocus
-                    />
-                    <textarea
-                      value={newTaskDescription}
-                      onChange={(e) => setNewTaskDescription(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      placeholder="Enter task description (optional)"
-                      className="w-full p-2 bg-neu-700 rounded text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 resize-none"
-                      rows={3}
-                    />
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={handleAddTask}
-                        className="px-4 py-2 bg-pri-blue-500 text-neu-100 rounded hover:bg-pri-blue-600"
-                      >
-                        Add
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsCreatingTask(false);
-                          setNewTaskTitle("");
-                          setNewTaskDescription("");
-                        }}
-                        className="px-4 py-2 bg-neu-700 text-neu-100 rounded hover:bg-neu-600"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* List of items */}
-                <div className="space-y-4">
-                  {filteredAndSortedItems.length === 0 ? (
-                    <div className="space-y-6">
-                      <div className="text-center text-neu-400 py-8">
-                        <p className="text-lg mb-2">
-                          There are no tasks for today
-                        </p>
-                        <p className="text-sm">Add a task to get started</p>
-                      </div>
-                      <div className="p-4 rounded-lg border-2 border-dashed border-neu-700 flex items-center justify-between">
-                        <div className="flex items-center space-x-4 flex-1">
-                          <div className="flex items-center justify-center h-full">
-                            <div className="w-8 h-8 rounded-full border-2 border-dashed border-neu-600"></div>
-                          </div>
-                          <div className="flex-1">
-                            <div className="h-6 w-48 bg-neu-700 rounded animate-pulse"></div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 rounded bg-neu-700"></div>
-                          <div className="w-8 h-8 rounded bg-neu-700"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    filteredAndSortedItems.map((item, index) => {
-                      const isTaskItem = isTask(item);
-                      const isHidden =
-                        hideCompleted && isTaskItem && item.completed;
-                      const isHiding = hidingItems.has(item.id);
-
-                      return (
-                        <div
-                          key={item.id}
-                          className={`relative task-item ${
-                            isHiding ? "hiding" : "showing"
-                          }`}
-                          style={{
-                            display: isHidden && !isHiding ? "none" : "block",
-                          }}
-                        >
-                          <DraggableItem
-                            item={item}
-                            index={index}
-                            moveItem={moveItem}
-                            isTaskItem={isTaskItem}
-                            renderTask={renderTask}
-                            renderSection={renderSection}
-                            hideCompleted={hideCompleted}
-                            isTask={isTask}
-                          />
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </div>
-      </div>
+      </PageTransition>
       {selectedTask && (
         <TaskModal
           task={selectedTask}

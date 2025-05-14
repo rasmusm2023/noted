@@ -3,7 +3,10 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ListProvider } from "./contexts/ListContext";
 import { Layout } from "./components/Layout/Layout";
@@ -17,14 +20,43 @@ import { Goals } from "./pages/Goals";
 import { Settings } from "./pages/Settings";
 import { Account } from "./pages/Account";
 import { MidnightTaskMover } from "./components/MidnightTaskMover";
+import { LoadingScreen } from "./components/LoadingScreen";
 
-function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
+  const [isLoading, setIsLoading] = useState(true);
+  const [minimumLoadingTime, setMinimumLoadingTime] = useState(true);
+  const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Start loading timer
+    loadingTimerRef.current = setTimeout(() => {
+      setMinimumLoadingTime(false);
+    }, 1500);
+
+    // Cleanup
+    return () => {
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Set loading to false when minimum time is up
+    if (!minimumLoadingTime) {
+      setIsLoading(false);
+    }
+  }, [minimumLoadingTime]);
+
   return (
-    <Router>
-      <AuthProvider>
-        <ListProvider>
-          <MidnightTaskMover />
-          <Routes>
+    <>
+      <AnimatePresence mode="wait">
+        {(isLoading || minimumLoadingTime) && <LoadingScreen />}
+      </AnimatePresence>
+      <AnimatePresence mode="wait">
+        {!isLoading && !minimumLoadingTime && (
+          <Routes location={location} key={location.pathname}>
             <Route path="/login" element={<Login />} />
             <Route
               path="/"
@@ -44,6 +76,19 @@ function App() {
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <ListProvider>
+          <MidnightTaskMover />
+          <AnimatedRoutes />
         </ListProvider>
       </AuthProvider>
     </Router>
