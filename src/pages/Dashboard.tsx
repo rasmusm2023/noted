@@ -757,7 +757,10 @@ export function Dashboard() {
 
   // Update the section input
   const renderSection = (item: SectionItem) => (
-    <div className="p-4 bg-neu-900 rounded-lg flex items-center justify-between">
+    <div
+      className="p-4 bg-neu-900 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+      tabIndex={0}
+    >
       <div className="flex-1">
         {editingTitle === item.id ? (
           <input
@@ -785,7 +788,7 @@ export function Dashboard() {
               console.log("Section edit input focused");
             }}
             style={inputStyles}
-            className="flex-1 bg-transparent text-lg font-semibold text-pri-blue-500 focus:outline-none cursor-text"
+            className="w-full bg-transparent text-lg font-outfit font-semibold text-neu-300 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
             autoFocus
             tabIndex={0}
           />
@@ -830,8 +833,13 @@ export function Dashboard() {
               handleEditSection(item.id, { time: formattedTime });
               setEditingTime(null);
             }}
-            className="flex-1 bg-transparent text-md text-neu-200 font-semibold focus:outline-none w-16 text-center"
+            onClick={handleInputClick}
+            onFocus={() => {
+              setFocusedInput("section");
+            }}
+            className="w-16 bg-transparent text-base font-outfit font-semibold text-neu-400 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 text-center"
             autoFocus
+            tabIndex={0}
           />
         ) : (
           <div
@@ -841,7 +849,9 @@ export function Dashboard() {
               setEditingTitle(null);
             }}
           >
-            <h3 className="text-md text-neu-400 font-semibold">{item.time}</h3>
+            <h3 className="text-base font-outfit font-semibold text-neu-400">
+              {item.time}
+            </h3>
           </div>
         )}
       </div>
@@ -851,13 +861,15 @@ export function Dashboard() {
             setEditingTitle(item.id);
             setEditingTime(null);
           }}
-          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center"
+          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-lg"
+          aria-label={`Edit section "${item.text}"`}
         >
           <Pen size={24} color="currentColor" autoSize={false} />
         </button>
         <button
           onClick={() => handleDeleteSection(item.id)}
-          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center"
+          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-lg"
+          aria-label={`Delete section "${item.text}"`}
         >
           <TrashBinTrash size={24} color="currentColor" autoSize={false} />
         </button>
@@ -906,6 +918,13 @@ export function Dashboard() {
       <div
         key={item.id}
         data-task-id={item.id}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSelectedTask(item);
+          }
+        }}
         className={`task-item p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
           item.completed
             ? "bg-sup-suc-400 bg-opacity-50"
@@ -916,7 +935,7 @@ export function Dashboard() {
           isNextTask
             ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
             : ""
-        }`}
+        } focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
         onClick={(e) => handleTaskClick(item, e)}
       >
         <div className="flex items-center space-x-4 flex-1">
@@ -930,6 +949,9 @@ export function Dashboard() {
                 item.completed
                   ? "text-neu-100 hover:text-neu-100 scale-95"
                   : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
+              } focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-full p-1`}
+              aria-label={`Mark task "${item.title}" as ${
+                item.completed ? "incomplete" : "complete"
               }`}
             >
               {item.completed ? (
@@ -1020,7 +1042,8 @@ export function Dashboard() {
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-neu-100"
-                }`}
+                } focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-lg`}
+                aria-label={`Edit task "${item.title}"`}
               >
                 <Pen size={24} color="currentColor" autoSize={false} />
               </button>
@@ -1033,7 +1056,8 @@ export function Dashboard() {
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-red-500"
-                }`}
+                } focus:outline-none focus:ring-2 focus:ring-pri-blue-500 rounded-lg`}
+                aria-label={`Delete task "${item.title}"`}
               >
                 <TrashBinTrash
                   size={24}

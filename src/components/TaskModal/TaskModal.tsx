@@ -47,6 +47,7 @@ export function TaskModal({
     task.backgroundColor || "bg-neu-800"
   );
   const colorPickerRef = useRef<HTMLDivElement>(null);
+  const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [dragState, setDragState] = useState<{
     item: Subtask;
     sourceIndex: number;
@@ -54,7 +55,6 @@ export function TaskModal({
   } | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
-  const titleInputRef = useRef<HTMLInputElement>(null);
   const subtaskInputRef = useRef<HTMLInputElement>(null);
   const colorPickerButtonRef = useRef<HTMLButtonElement>(null);
   const deleteTaskButtonRef = useRef<HTMLButtonElement>(null);
@@ -65,11 +65,22 @@ export function TaskModal({
   const lastColorRef = useRef<HTMLButtonElement>(null);
   const closeColorPickerRef = useRef<HTMLButtonElement>(null);
 
+  // Add auto-resize effect for title textarea
+  useEffect(() => {
+    const textarea = titleTextareaRef.current;
+    if (textarea) {
+      // Reset height to auto to get the correct scrollHeight
+      textarea.style.height = "auto";
+      // Set the height to scrollHeight to fit the content
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [editedTitle]);
+
   // Add focus trap effect for modal
   useEffect(() => {
     if (isOpen) {
       // Focus the title input when modal opens
-      titleInputRef.current?.focus();
+      titleTextareaRef.current?.focus();
 
       const handleModalKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Tab") {
@@ -336,7 +347,9 @@ export function TaskModal({
     }
   };
 
-  const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTitleChange = async (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     const newTitle = e.target.value;
     setEditedTitle(newTitle);
     try {
@@ -369,9 +382,8 @@ export function TaskModal({
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3 flex-1">
               <Pen size={24} color="currentColor" className="text-neu-400" />
-              <input
-                ref={titleInputRef}
-                type="text"
+              <textarea
+                ref={titleTextareaRef}
                 value={editedTitle}
                 onChange={handleTitleChange}
                 onKeyDown={(e) => {
@@ -380,7 +392,9 @@ export function TaskModal({
                   }
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 bg-transparent text-lg font-outfit font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
+                className="flex-1 bg-transparent text-lg font-outfit font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-1"
+                rows={1}
+                style={{ height: "auto" }}
               />
             </div>
             <div className="flex items-center space-x-2 ml-4">
@@ -480,7 +494,7 @@ export function TaskModal({
           {/* Subtasks Section */}
           <div className="mt-8" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-md font-semibold font-outfit text-neu-200">
+              <h3 className="text-md font-medium font-outfit text-neu-200">
                 Subtasks
               </h3>
               <div className="flex items-center justify-center">
