@@ -4,7 +4,6 @@ import { useLists } from "../../contexts/ListContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ClipboardCheck,
-  CalendarDate,
   HeartShine,
   StarsMinimalistic,
   Settings,
@@ -16,7 +15,6 @@ import {
   Logout,
   Sun,
   Moon,
-  CheckCircle,
   Unread,
   StarShine,
   AltArrowRight,
@@ -242,8 +240,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   };
 
   const handleHighlightNextTask = (value: boolean) => {
+    console.log("Sidebar: Setting highlight to:", value);
+    // Update local state immediately
     setHighlightNextTask(value);
+    // Save to localStorage
     localStorage.setItem("highlightNextTask", JSON.stringify(value));
+    // Dispatch custom event to notify other components
+    console.log("Sidebar: Dispatching highlightNextTaskChanged event");
+    window.dispatchEvent(new Event("highlightNextTaskChanged"));
   };
 
   return (
@@ -436,7 +440,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
             {/* Settings Dropdown Menu */}
             {isSettingsMenuOpen && (
-              <div className="absolute bottom-full left-full ml-2 w-48 bg-neu-800 rounded-lg shadow-lg border border-neu-700">
+              <div className="absolute bottom-full left-full ml-2 w-48 bg-neu-800 rounded-lg shadow-lg border border-neu-700 z-50">
                 <div className="py-1">
                   <button
                     onClick={() => {
@@ -474,21 +478,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         onClick={() => {
                           handleHighlightNextTask(true);
                           setIsSettingsMenuOpen(false);
-                          window.dispatchEvent(
-                            new Event("highlightNextTaskChanged")
-                          );
                         }}
-                        className="w-full flex items-center px-2 py-2 text-sm hover:bg-neu-700 hover:rounded-t-lg font-outfit"
+                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-700 hover:rounded-t-lg font-outfit ${
+                          highlightNextTask
+                            ? "text-pri-blue-500"
+                            : "text-neu-100"
+                        }`}
                       >
-                        <span
-                          className={
-                            highlightNextTask
-                              ? "text-pri-blue-500"
-                              : "text-neu-100"
-                          }
-                        >
-                          Yes
-                        </span>
+                        <span>Yes</span>
                         {highlightNextTask && (
                           <Unread size={16} color="#3b82f6" className="ml-1" />
                         )}
@@ -497,21 +494,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         onClick={() => {
                           handleHighlightNextTask(false);
                           setIsSettingsMenuOpen(false);
-                          window.dispatchEvent(
-                            new Event("highlightNextTaskChanged")
-                          );
                         }}
-                        className="w-full flex items-center px-2 py-2 text-sm hover:bg-neu-700 hover:rounded-b-lg font-outfit"
+                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-700 hover:rounded-b-lg font-outfit ${
+                          !highlightNextTask
+                            ? "text-pri-blue-500"
+                            : "text-neu-100"
+                        }`}
                       >
-                        <span
-                          className={
-                            !highlightNextTask
-                              ? "text-pri-blue-500"
-                              : "text-neu-100"
-                          }
-                        >
-                          No
-                        </span>
+                        <span>No</span>
                         {!highlightNextTask && (
                           <Unread size={16} color="#3b82f6" className="ml-1" />
                         )}

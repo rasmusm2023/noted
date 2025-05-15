@@ -4,11 +4,10 @@ import {
   Pen,
   TrashBinTrash,
   AddSquare,
-  Sort,
+  Hashtag,
   CloseCircle,
   CheckCircle,
   Record,
-  Palette,
 } from "solar-icon-set";
 
 interface TaskModalProps {
@@ -76,38 +75,49 @@ export function TaskModal({
     }
   }, [editedTitle]);
 
+  // Add focus effect for modal
+  useEffect(() => {
+    if (isOpen) {
+      // Focus the title input when modal opens
+      if (titleTextareaRef.current) {
+        titleTextareaRef.current.focus();
+        const length = titleTextareaRef.current.value.length;
+        titleTextareaRef.current.setSelectionRange(length, length);
+      }
+    }
+  }, [isOpen]);
+
   // Add focus trap effect for modal
   useEffect(() => {
     if (isOpen) {
       // Focus the title input when modal opens
-      titleTextareaRef.current?.focus();
+      if (titleTextareaRef.current) {
+        titleTextareaRef.current.focus();
+        const length = titleTextareaRef.current.value.length;
+        titleTextareaRef.current.setSelectionRange(length, length);
+      }
 
       const handleModalKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Tab") {
           // Get all focusable elements in the modal
           const focusableElements = modalRef.current?.querySelectorAll(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-          );
+          ) as NodeListOf<HTMLElement>;
 
-          if (!focusableElements) return;
+          if (!focusableElements?.length) return;
 
-          const firstElement = focusableElements[0] as HTMLElement;
-          const lastElement = focusableElements[
-            focusableElements.length - 1
-          ] as HTMLElement;
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
 
-          if (e.shiftKey) {
-            // If shift + tab and we're on the first focusable element, focus the last one
-            if (document.activeElement === firstElement) {
-              e.preventDefault();
-              lastElement.focus();
-            }
-          } else {
-            // If tab and we're on the last focusable element, focus the first one
-            if (document.activeElement === lastElement) {
-              e.preventDefault();
-              firstElement.focus();
-            }
+          // If shift + tab and we're on the first focusable element, focus the last one
+          if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+          // If tab and we're on the last focusable element, focus the first one
+          else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
           }
         }
       };
@@ -494,11 +504,15 @@ export function TaskModal({
           {/* Subtasks Section */}
           <div className="mt-8" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-md font-medium font-outfit text-neu-200">
-                Subtasks
-              </h3>
-              <div className="flex items-center justify-center">
-                <Sort size={20} color="currentColor" className="text-neu-400" />
+              <div className="flex items-center space-x-2">
+                <Hashtag
+                  size={20}
+                  color="currentColor"
+                  className="text-neu-400"
+                />
+                <h3 className="text-md font-medium font-outfit text-neu-200">
+                  Subtasks
+                </h3>
               </div>
             </div>
             <p className="text-sm font-outfit text-neu-400 mb-4">
@@ -525,7 +539,8 @@ export function TaskModal({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="Add a subtask..."
-                  className="flex-1 bg-transparent font-outfit text-base text-neu-100 placeholder-neu-400 focus:outline-none"
+                  className="flex-1 bg-transparent py-2 font-outfit text-base text-neu-100 placeholder-neu-400 focus:outline-none"
+                  tabIndex={0}
                 />
               </div>
             </div>

@@ -17,8 +17,13 @@ export function MidnightTaskMover() {
       const lastMoveTime = localStorage.getItem("lastTaskMoveTime");
       const lastMove = lastMoveTime ? new Date(lastMoveTime) : null;
 
-      // If we haven't moved tasks yet today, or if the last move was before midnight
-      if (!lastMove || lastMove < lastMidnight) {
+      // Only move tasks if:
+      // 1. We haven't moved tasks yet today (no lastMove)
+      // 2. OR if the last move was before midnight AND it's currently midnight (within 1 minute)
+      const isMidnight = now.getHours() === 0 && now.getMinutes() < 1;
+      const shouldMove = !lastMove || (lastMove < lastMidnight && isMidnight);
+
+      if (shouldMove) {
         console.log("Moving incomplete tasks to next day...");
         await taskService.moveIncompleteTasksToNextDay(currentUser.uid);
         localStorage.setItem("lastTaskMoveTime", now.toISOString());

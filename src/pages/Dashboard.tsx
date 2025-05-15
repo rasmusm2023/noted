@@ -20,6 +20,7 @@ import {
 } from "solar-icon-set";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
+import { SectionModal } from "../components/SectionModal/SectionModal";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -222,7 +223,6 @@ export function Dashboard() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [editingTime, setEditingTime] = useState<string | null>(null);
-  const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newSectionTitle, setNewSectionTitle] = useState("");
@@ -268,6 +268,9 @@ export function Dashboard() {
   });
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedSection, setSelectedSection] = useState<SectionItem | null>(
+    null
+  );
 
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
@@ -486,37 +489,7 @@ export function Dashboard() {
       const x = event.clientX / window.innerWidth;
       const y = event.clientY / window.innerHeight;
 
-      // Only add completing class if we're completing the task (not uncompleting)
-      if (completed) {
-        const taskElement = event.currentTarget.closest(".task-item");
-        if (taskElement) {
-          taskElement.classList.add("task-completing");
-        }
-        // Wait for the completion animation to finish
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-
-      await taskService.toggleTaskCompletion(taskId, completed);
-      setItems(
-        items.map((item) =>
-          isTask(item) && item.id === taskId ? { ...item, completed } : item
-        )
-      );
-
-      // If hide completed is enabled, add the hiding class after completion animation
-      if (hideCompleted && completed) {
-        setHidingItems((prev) => new Set([...prev, taskId]));
-        // Wait for the hiding animation to finish before updating state
-        setTimeout(() => {
-          setHidingItems((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(taskId);
-            return newSet;
-          });
-        }, 300);
-      }
-
-      // Add subtle confetti effect when completing a task
+      // Play confetti immediately if completing the task
       if (completed) {
         const duration = 1.5 * 1000;
         const animationEnd = Date.now() + duration;
@@ -547,6 +520,34 @@ export function Dashboard() {
             particleCount,
           });
         }, 250);
+
+        // Add completing class after confetti starts
+        const taskElement = event.currentTarget.closest(".task-item");
+        if (taskElement) {
+          taskElement.classList.add("task-completing");
+        }
+        // Wait for the completion animation to finish
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      await taskService.toggleTaskCompletion(taskId, completed);
+      setItems(
+        items.map((item) =>
+          isTask(item) && item.id === taskId ? { ...item, completed } : item
+        )
+      );
+
+      // If hide completed is enabled, add the hiding class after completion animation
+      if (hideCompleted && completed) {
+        setHidingItems((prev) => new Set([...prev, taskId]));
+        // Wait for the hiding animation to finish before updating state
+        setTimeout(() => {
+          setHidingItems((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(taskId);
+            return newSet;
+          });
+        }, 300);
       }
     } catch (error) {
       console.error("Error updating task:", error);
@@ -630,7 +631,6 @@ export function Dashboard() {
       e.preventDefault();
       handleAddTask();
     } else if (e.key === "Escape") {
-      setIsCreatingTask(false);
       setNewTaskTitle("");
       setNewTaskDescription("");
     }
@@ -980,7 +980,6 @@ export function Dashboard() {
       e.preventDefault();
       handleAddSection();
     } else if (e.key === "Escape") {
-      setIsCreatingTask(false);
       setNewSectionTitle("");
       setNewSectionTime("");
     }
@@ -1063,108 +1062,34 @@ export function Dashboard() {
   // Update the section input
   const renderSection = (item: SectionItem) => (
     <div
-      className="p-4 bg-neu-900 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+      className={`p-4 ${
+        item.backgroundColor || "bg-neu-900"
+      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
       tabIndex={0}
+      onClick={() => setSelectedSection(item)}
     >
       <div className="flex-1">
-        {editingTitle === item.id ? (
-          <input
-            ref={sectionInputRef}
-            type="text"
-            defaultValue={item.text}
-            onChange={(e) => {}}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleEditSection(item.id, { text: e.currentTarget.value });
-                setEditingTitle(null);
-              } else if (e.key === "Escape") {
-                setEditingTitle(null);
-              }
-            }}
-            onBlur={(e) => {
-              handleEditSection(item.id, { text: e.target.value });
-              setEditingTitle(null);
-              setFocusedInput(null);
-            }}
-            onClick={handleInputClick}
-            onFocus={() => {
-              setFocusedInput("section");
-              console.log("Section edit input focused");
-            }}
-            style={inputStyles}
-            className="w-full bg-transparent text-lg font-outfit font-semibold text-neu-300 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
-            autoFocus
-            tabIndex={0}
-          />
-        ) : (
-          <div
-            className="flex-1 cursor-pointer flex items-center"
-            onDoubleClick={() => {
-              setEditingTitle(item.id);
-              setEditingTime(null);
-            }}
-          >
-            <h3 className="text-lg font-outfit font-semibold text-neu-300">
-              {item.text}
-            </h3>
-          </div>
-        )}
+        <h3 className="text-lg font-outfit font-semibold text-neu-300">
+          {item.text}
+        </h3>
       </div>
       <div className="mx-4">
-        {editingTime === item.id ? (
-          <input
-            type="text"
-            defaultValue={item.time}
-            onChange={(e) => {
-              const cleaned = e.target.value.replace(/[^0-9.,:;-]/g, "");
-              // Only update the current section's time
-              handleEditSection(item.id, { time: cleaned });
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const formattedTime = formatTimeFromInput(
-                  e.currentTarget.value
-                );
-                handleEditSection(item.id, { time: formattedTime });
-                setEditingTime(null);
-              } else if (e.key === "Escape") {
-                setEditingTime(null);
-              }
-            }}
-            onBlur={(e) => {
-              const formattedTime = formatTimeFromInput(e.target.value);
-              handleEditSection(item.id, { time: formattedTime });
-              setEditingTime(null);
-            }}
-            onClick={handleInputClick}
-            onFocus={() => {
-              setFocusedInput("section");
-            }}
-            className="w-16 bg-transparent text-base font-outfit font-semibold text-neu-400 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 text-center"
-            autoFocus
-            tabIndex={0}
-          />
-        ) : (
-          <div
-            className="flex-1 cursor-pointer flex items-center"
-            onDoubleClick={() => {
-              setEditingTime(item.id);
-              setEditingTitle(null);
-            }}
-          >
-            <h3 className="text-base font-outfit font-semibold text-neu-400">
-              {item.time}
-            </h3>
-          </div>
-        )}
+        <h3 className="text-base font-outfit font-semibold text-neu-400">
+          {item.time.replace(":", ".")}
+        </h3>
       </div>
       <div className="flex items-center space-x-2">
         <button
-          onClick={() => {
-            setEditingTitle(item.id);
-            setEditingTime(null);
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedSection(item);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              e.stopPropagation();
+              setSelectedSection(item);
+            }
           }}
           className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
           aria-label={`Edit section "${item.text}"`}
@@ -1172,7 +1097,10 @@ export function Dashboard() {
           <Pen size={24} color="currentColor" autoSize={false} />
         </button>
         <button
-          onClick={() => handleDeleteSection(item.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteSection(item.id);
+          }}
           className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
           aria-label={`Delete section "${item.text}"`}
         >
@@ -1235,7 +1163,7 @@ export function Dashboard() {
             ? "bg-sup-suc-400 bg-opacity-50"
             : isTask(item) && item.backgroundColor
             ? item.backgroundColor
-            : "bg-neu-800"
+            : "bg-neu-700"
         } ${
           isNextTask
             ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
@@ -1274,9 +1202,11 @@ export function Dashboard() {
           <div className="flex-1 flex items-center">
             <div className="flex-1">
               <h3
-                className={`text-base font-outfit font-semibold transition-all duration-300 ${
-                  item.completed ? "text-neu-100 scale-95" : "text-neu-100"
-                }`}
+                className={`text-base font-outfit font-regular ${
+                  editingTask?.id === item.id
+                    ? ""
+                    : "transition-all duration-300"
+                } ${item.completed ? "text-neu-100 scale-95" : "text-neu-100"}`}
               >
                 {editingTask?.id === item.id ? (
                   <input
@@ -1304,7 +1234,7 @@ export function Dashboard() {
                       });
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-transparent text-base font-outfit font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
+                    className="w-full bg-transparent text-base font-outfit font-regular text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500"
                     autoFocus
                   />
                 ) : (
@@ -1431,27 +1361,12 @@ export function Dashboard() {
       }
     }
 
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
     .task-item {
       transition: all 0.3s ease-in-out;
     }
 
     .task-item.hiding {
       animation: slideOut 0.3s ease-in-out forwards;
-    }
-
-    .task-item.showing {
-      animation: slideIn 0.3s ease-in-out forwards;
     }
 
     .toggle-switch {
@@ -1710,6 +1625,29 @@ export function Dashboard() {
     }
   };
 
+  // Add handleUpdateSection function
+  const handleUpdateSection = async (
+    sectionId: string,
+    updates: Partial<SectionItem>
+  ) => {
+    try {
+      await taskService.updateSection(sectionId, updates);
+      setItems(
+        items.map((item) =>
+          isSection(item) && item.id === sectionId
+            ? { ...item, ...updates }
+            : item
+        )
+      );
+      // Only close the modal if explicitly requested
+      if (updates.shouldClose) {
+        setSelectedSection(null);
+      }
+    } catch (error) {
+      console.error("Error updating section:", error);
+    }
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
@@ -1717,7 +1655,7 @@ export function Dashboard() {
         <div className="p-8">
           <div className="max-w-4xl mx-auto space-y-8">
             {/* Header Box */}
-            <div className="bg-neu-600 rounded-xl p-6 shadow-lg">
+            <div className="bg-neu-800 rounded-xl p-6 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
                   <h1 className="text-4xl font-bold font-outfit text-neu-100">
@@ -1740,12 +1678,12 @@ export function Dashboard() {
               {/* Quick Actions */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div
-                  className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+                  className={`p-6 bg-neu-700 rounded-lg hover:bg-neu-600 transition-colors ${
                     focusedInput === "task" ? "ring-2 ring-pri-blue-500" : ""
                   }`}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-pri-blue-500 rounded-lg flex items-center justify-center">
+                    <div className="p-2 bg-pri-blue-700 rounded-lg flex items-center justify-center">
                       <AddSquare
                         size={32}
                         color="#fff"
@@ -1774,12 +1712,12 @@ export function Dashboard() {
                 </div>
 
                 <div
-                  className={`p-6 bg-neu-800 rounded-lg hover:bg-neu-700 transition-colors ${
+                  className={`p-6 bg-neu-700 rounded-lg hover:bg-neu-600 transition-colors ${
                     focusedInput === "section" ? "ring-2 ring-pri-blue-500" : ""
                   }`}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-sup-war-500 rounded-lg flex items-center justify-center">
+                    <div className="p-2 bg-pri-pur-500 rounded-lg flex items-center justify-center">
                       <ClockSquare
                         size={32}
                         color="#fff"
@@ -1815,7 +1753,7 @@ export function Dashboard() {
                           }}
                           onKeyDown={handleSectionKeyPress}
                           placeholder="09.00"
-                          className="w-32 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                          className="w-24 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
                         />
                       </div>
                       <p className="text-neu-400 font-outfit text-sm mt-2">
@@ -1828,16 +1766,16 @@ export function Dashboard() {
             </div>
 
             {/* Tasks Box */}
-            <div className="bg-neu-600 rounded-xl p-6 shadow-lg">
+            <div className="bg-neu-800 rounded-xl p-6 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-8">
                   <h2 className="text-2xl font-outfit font-semibold text-neu-100">
                     Today
                   </h2>
                   <div className="hidden 2xl:flex items-center gap-2">
-                    <div className="w-[300px] h-2 bg-neu-700 rounded-full">
+                    <div className="w-[300px] h-2 bg-sup-suc-900 rounded-full">
                       <div
-                        className="h-full bg-sup-suc-400 rounded-full"
+                        className="h-full bg-sup-suc-500 rounded-full"
                         style={{
                           width: `${completionPercentage}%`,
                         }}
@@ -1852,7 +1790,7 @@ export function Dashboard() {
                   <div className="relative" ref={sortMenuRef}>
                     <button
                       onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                      className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+                      className="px-4 py-2 bg-neu-700 text-neu-400 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
                     >
                       <Sort
                         size={20}
@@ -1863,7 +1801,7 @@ export function Dashboard() {
                       <span className="text-base font-outfit">Sort</span>
                     </button>
                     {isSortMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-10">
+                      <div className="absolute right-0 mt-2 w-48 bg-neu-700 rounded-lg shadow-lg z-50">
                         <div className="py-1">
                           <button
                             onClick={() => {
@@ -1874,7 +1812,7 @@ export function Dashboard() {
                             className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                               completedPosition === "top"
                                 ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-700"
+                                : "text-neu-400 hover:bg-neu-600"
                             }`}
                           >
                             <AlignTop
@@ -1897,7 +1835,7 @@ export function Dashboard() {
                             className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                               completedPosition === "bottom"
                                 ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-700"
+                                : "text-neu-400 hover:bg-neu-600"
                             }`}
                           >
                             <AlignBottom
@@ -1920,7 +1858,7 @@ export function Dashboard() {
                             className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                               completedPosition === "mixed"
                                 ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-700"
+                                : "text-neu-400 hover:bg-neu-600"
                             }`}
                           >
                             <AlignVerticalCenter
@@ -1939,7 +1877,7 @@ export function Dashboard() {
                     <div className="relative">
                       <div
                         onClick={handleHideCompleted}
-                        className="px-4 py-2 bg-neu-900 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
+                        className="px-4 py-2 bg-neu-700 text-neu-400 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
                       >
                         {hideCompleted ? (
                           <Eye size={20} color="currentColor" />
@@ -1971,48 +1909,6 @@ export function Dashboard() {
                 <div className="text-neu-400 text-md">Loading tasks...</div>
               ) : (
                 <div className="space-y-4">
-                  {/* New Task Input */}
-                  {isCreatingTask && (
-                    <div className="p-4 bg-neu-800 rounded-lg flex flex-col space-y-4">
-                      <input
-                        ref={taskInputRef}
-                        type="text"
-                        value={newTaskTitle}
-                        onChange={(e) => setNewTaskTitle(e.target.value)}
-                        onKeyDown={handleKeyPress}
-                        placeholder="Enter task title"
-                        className="w-full p-2 bg-neu-700 rounded text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
-                        autoFocus
-                      />
-                      <textarea
-                        value={newTaskDescription}
-                        onChange={(e) => setNewTaskDescription(e.target.value)}
-                        onKeyDown={handleKeyPress}
-                        placeholder="Enter task description (optional)"
-                        className="w-full p-2 bg-neu-700 rounded text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 resize-none"
-                        rows={3}
-                      />
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={handleAddTask}
-                          className="px-4 py-2 bg-pri-blue-500 text-neu-100 rounded hover:bg-pri-blue-600"
-                        >
-                          Add
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsCreatingTask(false);
-                            setNewTaskTitle("");
-                            setNewTaskDescription("");
-                          }}
-                          className="px-4 py-2 bg-neu-700 text-neu-100 rounded hover:bg-neu-600"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
                   {/* List of items */}
                   <div className="space-y-4">
                     {filteredAndSortedItems.length === 0 ? (
@@ -2087,6 +1983,19 @@ export function Dashboard() {
           }}
           onUpdate={handleUpdateTask}
           onDelete={handleDeleteTask}
+        />
+      )}
+      {selectedSection && (
+        <SectionModal
+          section={selectedSection}
+          isOpen={!!selectedSection}
+          onClose={(section) => {
+            if (section.shouldClose) {
+              setSelectedSection(null);
+            }
+          }}
+          onUpdate={handleUpdateSection}
+          onDelete={handleDeleteSection}
         />
       )}
     </DndProvider>

@@ -29,6 +29,8 @@ export interface SectionItem extends BaseItem {
   type: "section";
   text: string;
   time: string;
+  backgroundColor: string;
+  shouldClose?: boolean;
 }
 
 export type ListItem = Task | SectionItem;

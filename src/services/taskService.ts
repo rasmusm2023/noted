@@ -8,8 +8,6 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
-  Timestamp,
   writeBatch,
 } from "firebase/firestore";
 import type {
@@ -79,13 +77,10 @@ export const taskService = {
       return [];
     }
 
-    console.log("Querying tasks for user:", userId);
     try {
       const tasksRef = collection(db, tasksCollection);
-      console.log("Collection reference created");
 
       const q = query(tasksRef, where("userId", "==", userId));
-      console.log("Query created with filter:", { userId });
 
       const querySnapshot = await getDocs(q);
 
@@ -378,6 +373,7 @@ export const taskService = {
       createdAt: now,
       updatedAt: now,
       order: 0, // New sections always get order 0
+      backgroundColor: "bg-neu-800", // Add default background color
     };
 
     console.log("Full section object to be saved:", section);
@@ -418,26 +414,19 @@ export const taskService = {
       return [];
     }
 
-    console.log("Querying sections for user:", userId);
     try {
       const sectionsRef = collection(db, sectionsCollection);
-      console.log("Collection reference created for sections");
 
       const q = query(sectionsRef, where("userId", "==", userId));
-      console.log("Query created with filter:", { userId });
 
       const querySnapshot = await getDocs(q);
-      console.log("Query executed, empty?", querySnapshot.empty);
 
       if (querySnapshot.empty) {
-        console.log("No sections found for user:", userId);
         return [];
       }
 
-      console.log("Number of sections found:", querySnapshot.size);
       const sections = querySnapshot.docs.map((doc) => {
         const data = doc.data();
-        console.log("Raw section data:", data);
         return {
           id: doc.id,
           ...data,
@@ -447,7 +436,6 @@ export const taskService = {
       const sortedSections = sections.sort(
         (a, b) => (a.order || 0) - (b.order || 0)
       );
-      console.log("Sorted sections:", sortedSections);
       return sortedSections;
     } catch (error) {
       console.error("Error in getUserSections:", error);
@@ -505,25 +493,46 @@ export const taskService = {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Get all tasks for the user
-    const tasks = await this.getUserTasks(userId);
+    // Get all tasks and sections for the user
+    const [tasks, sections] = await Promise.all([
+      this.getUserTasks(userId),
+      this.getUserSections(userId),
+    ]);
 
-    // Filter tasks that are incomplete and from today
+    // Create a batch for all operations
+    const batch = writeBatch(db);
+
+    // 1. Delete completed tasks from today
+    const completedTasks = tasks.filter((task) => {
+      const taskDate = new Date(task.date);
+      taskDate.setHours(0, 0, 0, 0);
+      return task.completed && taskDate.getTime() === today.getTime();
+    });
+
+    completedTasks.forEach((task) => {
+      const taskRef = doc(db, tasksCollection, task.id);
+      batch.delete(taskRef);
+    });
+
+    // 2. Delete all sections from today
+    const todaySections = sections.filter((section) => {
+      const sectionDate = new Date(section.createdAt);
+      sectionDate.setHours(0, 0, 0, 0);
+      return sectionDate.getTime() === today.getTime();
+    });
+
+    todaySections.forEach((section) => {
+      const sectionRef = doc(db, sectionsCollection, section.id);
+      batch.delete(sectionRef);
+    });
+
+    // 3. Move incomplete tasks to tomorrow
     const incompleteTasks = tasks.filter((task) => {
       const taskDate = new Date(task.date);
       taskDate.setHours(0, 0, 0, 0);
       return !task.completed && taskDate.getTime() === today.getTime();
     });
 
-    if (incompleteTasks.length === 0) {
-      console.log("No incomplete tasks to move");
-      return;
-    }
-
-    // Create a batch to update all tasks
-    const batch = writeBatch(db);
-
-    // Update each incomplete task to tomorrow's date
     incompleteTasks.forEach((task) => {
       const taskRef = doc(db, tasksCollection, task.id);
       batch.update(taskRef, {
@@ -534,6 +543,8 @@ export const taskService = {
 
     // Commit all changes
     await batch.commit();
+    console.log(`Deleted ${completedTasks.length} completed tasks`);
+    console.log(`Deleted ${todaySections.length} sections`);
     console.log(`Moved ${incompleteTasks.length} incomplete tasks to next day`);
   },
 };
