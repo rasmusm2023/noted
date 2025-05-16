@@ -322,11 +322,12 @@ export function Dashboard() {
     });
 
   // Calculate completion percentage
+  const todaysTasks = items.filter(isTask);
   const completionPercentage =
-    items.length > 0
+    todaysTasks.length > 0
       ? Math.round(
-          (items.filter((item) => isTask(item) && item.completed).length /
-            items.filter(isTask).length) *
+          (todaysTasks.filter((task) => task.completed).length /
+            todaysTasks.length) *
             100
         )
       : 0;
@@ -452,8 +453,19 @@ export function Dashboard() {
           taskService.getUserSections(currentUser.uid),
         ]);
 
+        // Get today's date at midnight for comparison
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Filter tasks to only include today's tasks
+        const todaysTasks = userTasks.filter((task) => {
+          const taskDate = new Date(task.date);
+          taskDate.setHours(0, 0, 0, 0);
+          return taskDate.getTime() === today.getTime();
+        });
+
         // Convert tasks to the new format
-        const tasksWithType = userTasks.map((task) => ({
+        const tasksWithType = todaysTasks.map((task) => ({
           ...task,
           type: "task" as const,
         }));
