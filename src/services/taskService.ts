@@ -31,43 +31,51 @@ export const taskService = {
     console.log("Creating task for user:", userId);
     console.log("Task data:", taskData);
 
-    // Get current tasks to determine the next order
-    const currentTasks = await this.getUserTasks(userId);
+    try {
+      // Get current tasks for the same date to determine the next order
+      const currentTasks = await this.getUserTasks(userId);
+      const tasksForSameDate = currentTasks.filter(
+        (task) => task.date === taskData.date
+      );
 
-    // Create a batch to update all existing tasks
-    const batch = writeBatch(db);
+      // Create a batch for the new task and affected tasks
+      const batch = writeBatch(db);
 
-    // Update all existing tasks to shift them down by 1
-    currentTasks.forEach((task) => {
-      const taskRef = doc(db, tasksCollection, task.id);
-      batch.update(taskRef, {
-        order: (task.order || 0) + 1,
-        updatedAt: new Date().toISOString(),
+      // Only update orders of tasks for the same date
+      tasksForSameDate.forEach((task) => {
+        const taskRef = doc(db, tasksCollection, task.id);
+        batch.update(taskRef, {
+          order: (task.order || 0) + 1,
+          updatedAt: new Date().toISOString(),
+        });
       });
-    });
 
-    const now = new Date().toISOString();
-    const task: Omit<Task, "id"> = {
-      ...taskData,
-      userId,
-      completed: false,
-      createdAt: now,
-      updatedAt: now,
-      order: 0, // New task gets order 0 (top of the list)
-    };
+      const now = new Date().toISOString();
+      const task: Omit<Task, "id"> = {
+        ...taskData,
+        userId,
+        completed: false,
+        createdAt: now,
+        updatedAt: now,
+        order: 0, // New task gets order 0 (top of the list)
+      };
 
-    console.log("Full task object to be saved:", task);
+      console.log("Full task object to be saved:", task);
 
-    // Add the new task to the batch
-    const newTaskRef = doc(collection(db, tasksCollection));
-    batch.set(newTaskRef, task);
+      // Add the new task to the batch
+      const newTaskRef = doc(collection(db, tasksCollection));
+      batch.set(newTaskRef, task);
 
-    // Commit all changes
-    await batch.commit();
+      // Commit all changes
+      await batch.commit();
 
-    const createdTask = { ...task, id: newTaskRef.id };
-    console.log("Task created successfully:", createdTask);
-    return createdTask;
+      const createdTask = { ...task, id: newTaskRef.id };
+      console.log("Task created successfully:", createdTask);
+      return createdTask;
+    } catch (error) {
+      console.error("Error creating task:", error);
+      throw error;
+    }
   },
 
   // Get all tasks for a user
@@ -106,25 +114,38 @@ export const taskService = {
 
   // Update a task
   async updateTask(taskId: string, updates: Partial<Task>): Promise<void> {
-    const taskRef = doc(db, tasksCollection, taskId);
-    const now = new Date().toISOString();
+    try {
+      const taskRef = doc(db, tasksCollection, taskId);
+      const now = new Date().toISOString();
 
-    // If subtasks are being updated, ensure they have proper order
-    if (updates.subtasks) {
-      updates.subtasks = updates.subtasks.map((subtask, index) => ({
-        ...subtask,
-        order: index,
-      }));
+      // If subtasks are being updated, ensure they have proper order
+      if (updates.subtasks) {
+        updates.subtasks = updates.subtasks.map((subtask, index) => ({
+          ...subtask,
+          order: index,
+        }));
+      }
+
+      // Only include fields that are actually being updated
+      const updateData: Partial<Task> = {
+        ...updates,
+        updatedAt: now,
+      };
+
+      // Remove undefined values to avoid unnecessary updates
+      (Object.keys(updateData) as Array<keyof Task>).forEach((key) => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
+
+      console.log("Updating task with data:", updateData);
+      await updateDoc(taskRef, updateData);
+      console.log("Task updated successfully");
+    } catch (error) {
+      console.error("Error updating task:", error);
+      throw error;
     }
-
-    // Create the update object with all fields
-    const updateData = {
-      ...updates,
-      updatedAt: now,
-    };
-
-    console.log("Updating task with data:", updateData);
-    await updateDoc(taskRef, updateData);
   },
 
   // Delete a task

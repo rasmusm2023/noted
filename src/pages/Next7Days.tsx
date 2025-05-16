@@ -49,6 +49,19 @@ type DragItem = {
   item: ListItem;
 };
 
+// Add debounce utility at the top of the file
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
 export function Next7Days() {
   const { currentUser } = useAuth();
   const [days, setDays] = useState<DayData[]>([]);
@@ -252,18 +265,68 @@ export function Next7Days() {
   };
 
   const handleAddTask = async (dayIndex: number, title: string) => {
+    console.log("=== Creating New Task ===");
+    console.log("Input:", { dayIndex, title });
+
     if (!currentUser) {
       console.error("No user logged in");
       return;
     }
 
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      console.log("Empty title, skipping task creation");
+      return;
+    }
 
     try {
       const taskDate = days[dayIndex].date;
       // Set the time to noon to avoid timezone issues
       taskDate.setHours(12, 0, 0, 0);
 
+      console.log("Creating task with date:", taskDate.toISOString());
+
+      // Optimistically update the UI first
+      const optimisticTask = {
+        id: `temp_${Date.now()}`, // Temporary ID
+        type: "task" as const,
+        title: title.trim(),
+        description: "",
+        scheduledTime: taskDate.toLocaleString(),
+        completed: false,
+        date: taskDate.toISOString(),
+        order: 0,
+        createdAt: new Date().toISOString(),
+        userId: currentUser.uid,
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update local state immediately
+      setDays((prevDays) => {
+        const newDays = [...prevDays];
+        const day = newDays[dayIndex];
+
+        // Update orders of existing items
+        const updatedItems = day.items.map((item) => ({
+          ...item,
+          order: (item.order ?? 0) + 1,
+        }));
+
+        // Add new task at the beginning with order 0
+        newDays[dayIndex] = {
+          ...day,
+          items: [optimisticTask, ...updatedItems],
+        };
+
+        return newDays;
+      });
+
+      // Clear the input
+      setNewTaskInputs((prev) => ({
+        ...prev,
+        [dayIndex]: { title: "", description: "" },
+      }));
+
+      // Then create the task in the database
       const newTask = await taskService.createTask(currentUser.uid, {
         type: "task",
         title: title.trim(),
@@ -273,19 +336,42 @@ export function Next7Days() {
         date: taskDate.toISOString(),
       });
 
-      // Update local state with the new task
-      setDays((prevDays) =>
-        prevDays.map((day, idx) =>
-          idx === dayIndex
-            ? {
-                ...day,
-                items: [{ ...newTask, type: "task" as const }, ...day.items],
-              }
-            : day
-        )
-      );
+      // Update the temporary task with the real one
+      setDays((prevDays) => {
+        const newDays = [...prevDays];
+        const day = newDays[dayIndex];
+        const updatedItems = day.items.map((item) =>
+          item.id === optimisticTask.id
+            ? { ...newTask, type: "task" as const }
+            : item
+        );
+        newDays[dayIndex] = {
+          ...day,
+          items: updatedItems,
+        };
+        return newDays;
+      });
+
+      console.log("Task creation completed");
     } catch (error) {
       console.error("Error creating task:", error);
+
+      // Revert the optimistic update on error
+      setDays((prevDays) => {
+        const newDays = [...prevDays];
+        const day = newDays[dayIndex];
+        const updatedItems = day.items.filter(
+          (item) => !item.id.startsWith("temp_")
+        );
+        newDays[dayIndex] = {
+          ...day,
+          items: updatedItems,
+        };
+        return newDays;
+      });
+
+      // Show error to user (you might want to add a proper error notification system)
+      alert("Failed to create task. Please try again.");
     }
   };
 
@@ -294,6 +380,7 @@ export function Next7Days() {
     field: "title" | "description",
     value: string
   ) => {
+    console.log("Task input change:", { dayIndex, field, value });
     setNewTaskInputs((prev) => ({
       ...prev,
       [dayIndex]: {
@@ -304,9 +391,12 @@ export function Next7Days() {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent, dayIndex: number) => {
+    console.log("Key press:", { key: e.key, dayIndex });
     if (e.key === "Enter") {
       e.preventDefault();
-      handleAddTask(dayIndex, newTaskInputs[dayIndex]?.title || "");
+      const title = newTaskInputs[dayIndex]?.title || "";
+      console.log("Attempting to create task with title:", title);
+      handleAddTask(dayIndex, title);
     } else if (e.key === "Escape") {
       setIsCreatingTask(false);
       setNewTaskInputs((prev) => ({
@@ -735,7 +825,8 @@ export function Next7Days() {
     const [isFocused, setIsFocused] = useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setLocalInput(e.target.value);
+      const newValue = e.target.value;
+      setLocalInput(newValue);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -748,6 +839,12 @@ export function Next7Days() {
       } else if (e.key === "Escape") {
         setLocalInput("");
       }
+    };
+
+    // Update parent state only when the input loses focus
+    const handleBlur = () => {
+      setIsFocused(false);
+      handleTaskInputChange(dayIndex, "title", localInput);
     };
 
     return (
@@ -773,7 +870,7 @@ export function Next7Days() {
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onBlur={handleBlur}
               placeholder="Add new task..."
               className="w-full bg-transparent text-base font-outfit font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
             />
@@ -1262,11 +1359,6 @@ export function Next7Days() {
     const draggedItem = days[sourceDay].items[dragIndex];
     const targetItem = days[targetDay].items[hoverIndex];
 
-    console.log("Found Items:", {
-      draggedItem: { id: draggedItem.id, originalIndex: dragIndex },
-      targetItem: { id: targetItem.id, originalIndex: hoverIndex },
-    });
-
     // Create new arrays for both days
     const newSourceItems = [...days[sourceDay].items];
     const newTargetItems =
@@ -1278,118 +1370,156 @@ export function Next7Days() {
     // If moving to a different day, update the item's date
     if (sourceDay !== targetDay && isTask(movedItem)) {
       const newDate = new Date(days[targetDay].date);
-      newDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+      newDate.setHours(12, 0, 0, 0);
       movedItem.date = newDate.toISOString();
     }
 
     // Insert item into target day
     newTargetItems.splice(hoverIndex, 0, movedItem);
 
-    // Update orders for both days
-    const updatedSourceItems = newSourceItems.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
+    // Only update orders for items that actually changed position
+    const getAffectedItems = (
+      items: ListItem[],
+      startIdx: number,
+      endIdx: number
+    ) => {
+      const affectedItems = items.slice(
+        Math.min(startIdx, endIdx),
+        Math.max(startIdx, endIdx) + 1
+      );
+      return affectedItems.map((item, idx) => ({
+        ...item,
+        order: Math.min(startIdx, endIdx) + idx,
+      }));
+    };
 
-    const updatedTargetItems = newTargetItems.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
-
-    // Update state
+    // Update state immediately for smooth UI
     setDays((prevDays) => {
       const newDays = [...prevDays];
       if (sourceDay === targetDay) {
-        // If same day, only update that day
         newDays[sourceDay] = {
           ...newDays[sourceDay],
-          items: updatedTargetItems,
+          items: newTargetItems,
         };
       } else {
-        // If different days, update both
         newDays[sourceDay] = {
           ...newDays[sourceDay],
-          items: updatedSourceItems,
+          items: newSourceItems,
         };
         newDays[targetDay] = {
           ...newDays[targetDay],
-          items: updatedTargetItems,
+          items: newTargetItems,
         };
       }
       return newDays;
     });
 
-    // Save to database
-    try {
-      if (currentUser) {
-        // Update task date if moving between days
-        if (sourceDay !== targetDay && isTask(movedItem)) {
-          await taskService.updateTask(movedItem.id, {
-            date: movedItem.date,
-          });
+    // Debounce the database updates
+    const debouncedUpdate = debounce(async () => {
+      try {
+        if (currentUser) {
+          // Update task date if moving between days
+          if (sourceDay !== targetDay && isTask(movedItem)) {
+            await taskService.updateTask(movedItem.id, {
+              date: movedItem.date,
+            });
+          }
+
+          // Only update orders for affected items
+          const sourceUpdates = getAffectedItems(
+            newSourceItems,
+            dragIndex,
+            newSourceItems.length - 1
+          );
+          const targetUpdates =
+            sourceDay === targetDay
+              ? getAffectedItems(
+                  newTargetItems,
+                  hoverIndex,
+                  newTargetItems.length - 1
+                )
+              : getAffectedItems(newTargetItems, 0, newTargetItems.length - 1);
+
+          const sourceTaskUpdates = sourceUpdates
+            .filter(isTask)
+            .map((task) => ({
+              id: task.id,
+              order: task.order,
+            }));
+          const sourceSectionUpdates = sourceUpdates
+            .filter(isSection)
+            .map((section) => ({
+              id: section.id,
+              order: section.order,
+            }));
+
+          const targetTaskUpdates = targetUpdates
+            .filter(isTask)
+            .map((task) => ({
+              id: task.id,
+              order: task.order,
+            }));
+          const targetSectionUpdates = targetUpdates
+            .filter(isSection)
+            .map((section) => ({
+              id: section.id,
+              order: section.order,
+            }));
+
+          // Only make database calls if there are updates
+          const updates = [];
+          if (sourceTaskUpdates.length > 0) {
+            updates.push(
+              taskService.updateTaskOrder(currentUser.uid, sourceTaskUpdates)
+            );
+          }
+          if (sourceSectionUpdates.length > 0) {
+            updates.push(
+              taskService.updateSectionOrder(
+                currentUser.uid,
+                sourceSectionUpdates
+              )
+            );
+          }
+          if (targetTaskUpdates.length > 0) {
+            updates.push(
+              taskService.updateTaskOrder(currentUser.uid, targetTaskUpdates)
+            );
+          }
+          if (targetSectionUpdates.length > 0) {
+            updates.push(
+              taskService.updateSectionOrder(
+                currentUser.uid,
+                targetSectionUpdates
+              )
+            );
+          }
+
+          if (updates.length > 0) {
+            await Promise.all(updates);
+          }
         }
-
-        // Update orders for both days
-        const sourceTaskUpdates = updatedSourceItems
-          .filter(isTask)
-          .map((task) => ({
-            id: task.id,
-            order: task.order,
-          }));
-        const sourceSectionUpdates = updatedSourceItems
-          .filter(isSection)
-          .map((section) => ({
-            id: section.id,
-            order: section.order,
-          }));
-
-        const targetTaskUpdates = updatedTargetItems
-          .filter(isTask)
-          .map((task) => ({
-            id: task.id,
-            order: task.order,
-          }));
-        const targetSectionUpdates = updatedTargetItems
-          .filter(isSection)
-          .map((section) => ({
-            id: section.id,
-            order: section.order,
-          }));
-
-        console.log("Saving to database:", {
-          sourceTaskUpdates,
-          sourceSectionUpdates,
-          targetTaskUpdates,
-          targetSectionUpdates,
-        });
-
-        await Promise.all([
-          taskService.updateTaskOrder(currentUser.uid, sourceTaskUpdates),
-          taskService.updateSectionOrder(currentUser.uid, sourceSectionUpdates),
-          taskService.updateTaskOrder(currentUser.uid, targetTaskUpdates),
-          taskService.updateSectionOrder(currentUser.uid, targetSectionUpdates),
-        ]);
-
-        console.log("Database update successful");
-      }
-    } catch (error) {
-      console.error("Error saving item order:", error);
-      // Revert on error
-      setDays((prevDays) => {
-        const newDays = [...prevDays];
-        newDays[sourceDay] = {
-          ...newDays[sourceDay],
-          items: days[sourceDay].items,
-        };
-        if (sourceDay !== targetDay) {
-          newDays[targetDay] = {
-            ...newDays[targetDay],
-            items: days[targetDay].items,
+      } catch (error) {
+        console.error("Error saving item order:", error);
+        // Revert on error
+        setDays((prevDays) => {
+          const newDays = [...prevDays];
+          newDays[sourceDay] = {
+            ...newDays[sourceDay],
+            items: days[sourceDay].items,
           };
-        }
-        return newDays;
-      });
-    }
+          if (sourceDay !== targetDay) {
+            newDays[targetDay] = {
+              ...newDays[targetDay],
+              items: days[targetDay].items,
+            };
+          }
+          return newDays;
+        });
+      }
+    }, 500); // 500ms debounce
+
+    debouncedUpdate();
   };
 
   return (
