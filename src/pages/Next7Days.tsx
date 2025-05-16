@@ -4,8 +4,6 @@ import { taskService } from "../services/taskService";
 import type { Task, SectionItem } from "../types/task";
 import {
   TrashBinTrash,
-  Pen,
-  CheckCircle,
   Record,
   AddSquare,
   CheckSquare,
@@ -1526,13 +1524,13 @@ export function Next7Days() {
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
       <div className="h-screen flex flex-col">
-        <div className="flex-none p-4">
+        <div className="flex-none pt-8 pb-8 bg-neu-900/30 backdrop-blur-md sticky top-0 z-10">
           <div className="max-w-[2000px] mx-auto">
-            <div className="flex items-center justify-between mb-8 pl-8">
+            <div className="flex items-center justify-between pl-8 pr-8">
               <h1 className="text-4xl font-bold font-outfit text-neu-100">
                 Next 7 Days
               </h1>
-              <div className="bg-neu-600 rounded-lg p-2">
+              <div className="bg-neu-600/50 backdrop-blur-sm rounded-lg p-2">
                 <div className="flex items-center space-x-2">
                   <div className="relative" ref={sortMenuRef}>
                     <button
@@ -1640,9 +1638,9 @@ export function Next7Days() {
         </div>
 
         {/* Days Container - Now with dynamic height */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto relative">
           <div className="days-container h-full overflow-x-auto">
-            <div className="flex space-x-8 p-4 pl-8 h-fit">
+            <div className="flex space-x-8 p-4 pl-8 h-fit min-h-[calc(100vh-8rem)]">
               {days.map((day, dayIndex) => (
                 <div
                   key={day.date.toISOString()}

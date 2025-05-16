@@ -7,16 +7,12 @@ import {
   Pen,
   CheckSquare,
   Record,
-  Eye,
-  EyeClosed,
   AddSquare,
   ClockSquare,
-  CheckCircle,
   Sort,
   AlignBottom,
   AlignTop,
   AlignVerticalCenter,
-  Settings,
 } from "solar-icon-set";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
@@ -504,6 +500,51 @@ export function Dashboard() {
     event: React.MouseEvent
   ) => {
     try {
+      // Get the absolute position of the click relative to the viewport
+      const x = event.clientX / window.innerWidth;
+      const y = event.clientY / window.innerHeight;
+
+      // Play confetti immediately if completing the task
+      if (completed) {
+        const duration = 1.5 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = {
+          startVelocity: 15,
+          spread: 180,
+          ticks: 30,
+          zIndex: 0,
+          particleCount: 20,
+          colors: ["#4ade80", "#22c55e", "#16a34a"],
+          origin: {
+            x: x,
+            y: y,
+          },
+        };
+
+        const interval: any = setInterval(function () {
+          const timeLeft = animationEnd - Date.now();
+
+          if (timeLeft <= 0) {
+            return clearInterval(interval);
+          }
+
+          const particleCount = 10 * (timeLeft / duration);
+
+          confetti({
+            ...defaults,
+            particleCount,
+          });
+        }, 250);
+
+        // Add completing class after confetti starts
+        const taskElement = event.currentTarget.closest(".task-item");
+        if (taskElement) {
+          taskElement.classList.add("task-completing");
+        }
+        // Wait for the completion animation to finish
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
       await taskService.updateTask(taskId, { completed });
       setItems(
         items.map((item) =>
