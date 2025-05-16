@@ -64,7 +64,6 @@ const DraggableItem = ({
   isTaskItem,
   renderTask,
   renderSection,
-  hideCompleted,
   isTask,
 }: {
   item: ListItem;
@@ -73,7 +72,6 @@ const DraggableItem = ({
   isTaskItem: boolean;
   renderTask: (task: Task) => JSX.Element;
   renderSection: (section: SectionItem) => JSX.Element;
-  hideCompleted: boolean;
   isTask: (item: ListItem) => item is Task;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -83,21 +81,17 @@ const DraggableItem = ({
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: () => {
-      return !hideCompleted || !isTask(item) || !(item as Task).completed;
-    },
+    canDrag: () => true,
   });
-
-  type DropResult = {
-    isOver: boolean;
-    canDrop: boolean;
-    dropPosition: "before" | "after" | null;
-  };
 
   const [{ isOver, canDrop, dropPosition }, drop] = useDrop<
     DragItem,
     void,
-    DropResult
+    {
+      isOver: boolean;
+      canDrop: boolean;
+      dropPosition: "before" | "after" | null;
+    }
   >({
     accept: "ITEM",
     collect: (monitor: DropTargetMonitor) => {
@@ -115,17 +109,32 @@ const DraggableItem = ({
         dropPosition = hoverClientY < hoverMiddleY * 0.8 ? "before" : "after";
       }
 
-      return {
-        isOver,
-        canDrop,
-        dropPosition,
-      };
+      if (isOver) {
+        console.log("Drop Target State:", {
+          itemId: item.id,
+          index,
+          isOver,
+          canDrop,
+          dropPosition,
+          hoverMiddleY: hoverBoundingRect
+            ? (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
+            : null,
+          hoverClientY: clientOffset
+            ? clientOffset.y - (hoverBoundingRect?.top || 0)
+            : null,
+        });
+      }
+
+      return { isOver, canDrop, dropPosition };
     },
     canDrop: (draggedItem: DragItem) => {
-      if (hideCompleted && isTask(item) && (item as Task).completed) {
-        return false;
-      }
-      return true;
+      const canDrop = !(draggedItem.id === item.id);
+      console.log("Can Drop Check:", {
+        draggedItemId: draggedItem.id,
+        targetItemId: item.id,
+        canDrop,
+      });
+      return canDrop;
     },
     hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
       if (!ref.current) return;
@@ -134,7 +143,10 @@ const DraggableItem = ({
       const hoverIndex = index;
 
       // Don't replace items with themselves
-      if (dragIndex === hoverIndex) return;
+      if (dragIndex === hoverIndex) {
+        console.log("Skipping hover - same index");
+        return;
+      }
 
       // Determine rectangle on screen
       const hoverBoundingRect = ref.current.getBoundingClientRect();
@@ -145,6 +157,17 @@ const DraggableItem = ({
 
       // Make the drop zones more forgiving by using 40% of the item height
       const dropThreshold = hoverMiddleY * 0.8;
+
+      console.log("Hover State:", {
+        dragIndex,
+        hoverIndex,
+        hoverClientY,
+        dropThreshold,
+        hoverMiddleY,
+        shouldMove:
+          !(dragIndex < hoverIndex && hoverClientY < dropThreshold) &&
+          !(dragIndex > hoverIndex && hoverClientY > dropThreshold),
+      });
 
       // Only perform the move when the mouse has crossed the threshold
       if (dragIndex < hoverIndex && hoverClientY < dropThreshold) return;
@@ -200,12 +223,6 @@ const DraggableItem = ({
       tabIndex={0}
       aria-grabbed={isDragging}
       aria-dropeffect="move"
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          // Handle keyboard drag start
-        }
-      }}
     >
       {item.type === "section"
         ? renderSection(item as SectionItem)
@@ -234,10 +251,6 @@ export function Dashboard() {
   const taskInputRef = useRef<HTMLInputElement>(null);
   const sectionInputRef = useRef<HTMLInputElement>(null);
 
-  const [hideCompleted, setHideCompleted] = useState(() => {
-    const savedState = localStorage.getItem("hideCompleted");
-    return savedState ? JSON.parse(savedState) : false;
-  });
   const [completedPosition, setCompletedPosition] = useState<
     "top" | "bottom" | "mixed"
   >(() => {
@@ -285,41 +298,35 @@ export function Dashboard() {
     return item.type === "section";
   };
 
-  // Filter and sort items based on hideCompleted and completedPosition
-  const filteredAndSortedItems = items
-    .filter((item) => {
-      if (!hideCompleted) return true;
-      if (!isTask(item)) return true;
-      return !item.completed;
-    })
-    .sort((a, b) => {
-      // If both items have order, use that for custom sorting
-      if (
-        completedPosition === "mixed" &&
-        a.order !== undefined &&
-        b.order !== undefined
-      ) {
-        return a.order - b.order;
-      }
+  // Update filteredAndSortedItems to remove hideCompleted filter
+  const filteredAndSortedItems = items.sort((a, b) => {
+    // If both items have order, use that for custom sorting
+    if (
+      completedPosition === "mixed" &&
+      a.order !== undefined &&
+      b.order !== undefined
+    ) {
+      return a.order - b.order;
+    }
 
-      // For completed on top/bottom sorting
-      const aIsCompleted = isTask(a) && a.completed;
-      const bIsCompleted = isTask(b) && b.completed;
+    // For completed on top/bottom sorting
+    const aIsCompleted = isTask(a) && a.completed;
+    const bIsCompleted = isTask(b) && b.completed;
 
-      if (completedPosition === "top") {
-        if (aIsCompleted && !bIsCompleted) return -1;
-        if (!aIsCompleted && bIsCompleted) return 1;
-      } else if (completedPosition === "bottom") {
-        if (aIsCompleted && !bIsCompleted) return 1;
-        if (!aIsCompleted && bIsCompleted) return -1;
-      }
+    if (completedPosition === "top") {
+      if (aIsCompleted && !bIsCompleted) return -1;
+      if (!aIsCompleted && bIsCompleted) return 1;
+    } else if (completedPosition === "bottom") {
+      if (aIsCompleted && !bIsCompleted) return 1;
+      if (!aIsCompleted && bIsCompleted) return -1;
+    }
 
-      // If both items are in the same completion state, maintain their relative order
-      if (a.order !== undefined && b.order !== undefined) {
-        return a.order - b.order;
-      }
-      return 0;
-    });
+    // If both items are in the same completion state, maintain their relative order
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order;
+    }
+    return 0;
+  });
 
   // Calculate completion percentage
   const todaysTasks = items.filter(isTask);
@@ -497,70 +504,12 @@ export function Dashboard() {
     event: React.MouseEvent
   ) => {
     try {
-      // Get the absolute position of the click relative to the viewport
-      const x = event.clientX / window.innerWidth;
-      const y = event.clientY / window.innerHeight;
-
-      // Play confetti immediately if completing the task
-      if (completed) {
-        const duration = 1.5 * 1000;
-        const animationEnd = Date.now() + duration;
-        const defaults = {
-          startVelocity: 15,
-          spread: 180,
-          ticks: 30,
-          zIndex: 0,
-          particleCount: 20,
-          colors: ["#4ade80", "#22c55e", "#16a34a"],
-          origin: {
-            x: x,
-            y: y,
-          },
-        };
-
-        const interval: any = setInterval(function () {
-          const timeLeft = animationEnd - Date.now();
-
-          if (timeLeft <= 0) {
-            return clearInterval(interval);
-          }
-
-          const particleCount = 10 * (timeLeft / duration);
-
-          confetti({
-            ...defaults,
-            particleCount,
-          });
-        }, 250);
-
-        // Add completing class after confetti starts
-        const taskElement = event.currentTarget.closest(".task-item");
-        if (taskElement) {
-          taskElement.classList.add("task-completing");
-        }
-        // Wait for the completion animation to finish
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-
-      await taskService.toggleTaskCompletion(taskId, completed);
+      await taskService.updateTask(taskId, { completed });
       setItems(
         items.map((item) =>
           isTask(item) && item.id === taskId ? { ...item, completed } : item
         )
       );
-
-      // If hide completed is enabled, add the hiding class after completion animation
-      if (hideCompleted && completed) {
-        setHidingItems((prev) => new Set([...prev, taskId]));
-        // Wait for the hiding animation to finish before updating state
-        setTimeout(() => {
-          setHidingItems((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(taskId);
-            return newSet;
-          });
-        }, 300);
-      }
     } catch (error) {
       console.error("Error updating task:", error);
     }
@@ -813,30 +762,10 @@ export function Dashboard() {
   const handleDrop = async (e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.stopPropagation();
+
     if (!dragState) return;
 
-    console.log("=== Drop ===");
-    console.log("Drop Index:", index);
-    console.log("Current Drag State:", dragState);
-
-    const {
-      item,
-      sourceIndex,
-      position,
-      isDraggingOverCompleted,
-      originalOrder,
-    } = dragState;
-
-    // If hide completed is enabled and we're dropping over a completed item, ignore the drop
-    if (hideCompleted && isDraggingOverCompleted) {
-      console.log(
-        "Ignoring drop - over completed item with hide completed enabled"
-      );
-      setDragState(null);
-      setPreviewAnimation(null);
-      setIsDragging(false);
-      return;
-    }
+    const { item, sourceIndex, position, originalOrder } = dragState;
 
     // Calculate the target index
     let targetIndex = position === "before" ? index : index + 1;
@@ -1013,11 +942,8 @@ export function Dashboard() {
   useEffect(() => {
     console.log("Current state:", {
       items: items,
-      filteredItems: items.filter(
-        (item) => !hideCompleted || !isTask(item) || !item.completed
-      ),
     });
-  }, [items, hideCompleted]);
+  }, [items]);
 
   // Add handleEditSection function
   const handleEditSection = async (
@@ -1493,102 +1419,15 @@ export function Dashboard() {
     }
   `;
 
-  // Modify the hide completed handler
-  const handleHideCompleted = () => {
-    const completedTasks = items
-      .filter((item) => isTask(item) && item.completed)
-      .map((item) => item.id);
-
-    setHidingItems(new Set(completedTasks));
-
-    // Wait for animation to complete before updating state
-    setTimeout(() => {
-      const newState = !hideCompleted;
-      setHideCompleted(newState);
-      localStorage.setItem("hideCompleted", JSON.stringify(newState));
-      setHidingItems(new Set());
-    }, 300); // Match the animation duration
-  };
-
-  // Update the input styles to use explicit values instead of inherit
-  const inputStyles = {
-    width: "100%",
-    height: "auto",
-    minHeight: "24px",
-  };
-
-  // Add function to handle highlight setting change
-  const handleHighlightNextTask = (value: boolean) => {
-    setHighlightNextTask(value);
-    localStorage.setItem("highlightNextTask", JSON.stringify(value));
-  };
-
-  // Add effect to listen for changes to the highlight setting
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedState = localStorage.getItem("highlightNextTask");
-      setHighlightNextTask(savedState ? JSON.parse(savedState) : true);
-    };
-
-    const handleHighlightChange = () => {
-      const savedState = localStorage.getItem("highlightNextTask");
-      setHighlightNextTask(savedState ? JSON.parse(savedState) : true);
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("highlightNextTaskChanged", handleHighlightChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener(
-        "highlightNextTaskChanged",
-        handleHighlightChange
-      );
-    };
-  }, []);
-
-  // Add handleUpdateTask function
-  const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
-    try {
-      await taskService.updateTask(taskId, updates);
-      setItems(
-        items.map((item) =>
-          isTask(item) && item.id === taskId ? { ...item, ...updates } : item
-        )
-      );
-      // Only close the modal if explicitly requested
-      if (updates.shouldClose) {
-        setSelectedTask(null);
-      }
-    } catch (error) {
-      console.error("Error updating task:", error);
-    }
-  };
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (clickTimeout) {
-        clearTimeout(clickTimeout);
-      }
-    };
-  }, [clickTimeout]);
-
-  // Add a debug effect to monitor items state
-  useEffect(() => {
-    console.log(
-      "Items State Updated:",
-      items.map((item) => ({
-        id: item.id,
-        type: item.type,
-        order: item.order,
-        completed: isTask(item) ? item.completed : undefined,
-      }))
-    );
-  }, [items]);
-
   // Update the moveItem function
   const moveItem = async (dragIndex: number, hoverIndex: number) => {
+    console.log("=== Move Item Operation ===");
+    console.log("Original Indices:", { dragIndex, hoverIndex });
+    console.log(
+      "Original Items:",
+      items.map((item) => ({ id: item.id, order: item.order }))
+    );
+
     // Get the actual indices in the original items array
     const draggedItem = filteredAndSortedItems[dragIndex];
     const originalDragIndex = items.findIndex(
@@ -1599,16 +1438,31 @@ export function Dashboard() {
       (item) => item.id === targetItem.id
     );
 
+    console.log("Found Indices:", {
+      draggedItem: { id: draggedItem.id, originalIndex: originalDragIndex },
+      targetItem: { id: targetItem.id, originalIndex: originalHoverIndex },
+    });
+
     // Create new array with reordered items
     const newItems = [...items];
     const [movedItem] = newItems.splice(originalDragIndex, 1);
     newItems.splice(originalHoverIndex, 0, movedItem);
+
+    console.log(
+      "After Splice:",
+      newItems.map((item) => ({ id: item.id, order: item.order }))
+    );
 
     // Update orders to ensure they are sequential
     const updatedItems = newItems.map((item, index) => ({
       ...item,
       order: index,
     }));
+
+    console.log(
+      "Final Updated Items:",
+      updatedItems.map((item) => ({ id: item.id, order: item.order }))
+    );
 
     setItems(updatedItems);
 
@@ -1626,13 +1480,24 @@ export function Dashboard() {
             order: section.order,
           }));
 
+        console.log("Saving to database:", {
+          taskUpdates,
+          sectionUpdates,
+        });
+
         await Promise.all([
           taskService.updateTaskOrder(currentUser.uid, taskUpdates),
           taskService.updateSectionOrder(currentUser.uid, sectionUpdates),
         ]);
+
+        console.log("Database update successful");
       }
     } catch (error) {
       console.error("Error saving item order:", error);
+      console.log(
+        "Reverting to original state:",
+        items.map((item) => ({ id: item.id, order: item.order }))
+      );
       setItems(items); // Revert on error
     }
   };
@@ -1658,6 +1523,38 @@ export function Dashboard() {
     } catch (error) {
       console.error("Error updating section:", error);
     }
+  };
+
+  // Add handleClearCompleted function
+  const handleClearCompleted = async () => {
+    const completedTasks = items
+      .filter((item) => isTask(item) && item.completed)
+      .map((item) => item.id);
+
+    setHidingItems(new Set(completedTasks));
+
+    // Wait for animation to complete before updating state
+    setTimeout(async () => {
+      const updatedItems = items.filter(
+        (item) => !isTask(item) || !item.completed
+      );
+      setItems(updatedItems);
+
+      try {
+        if (currentUser) {
+          // Delete completed tasks from Firestore
+          await Promise.all(
+            completedTasks.map((taskId) => taskService.deleteTask(taskId))
+          );
+        }
+      } catch (error) {
+        console.error("Error clearing completed tasks:", error);
+        // Revert the state if the update fails
+        setItems(items);
+      }
+
+      setHidingItems(new Set());
+    }, 300); // Match the animation duration
   };
 
   return (
@@ -1698,7 +1595,7 @@ export function Dashboard() {
                     <div className="p-2 bg-pri-blue-700 rounded-lg flex items-center justify-center">
                       <AddSquare
                         size={32}
-                        color="#fff"
+                        color="#B8DCF6"
                         autoSize={false}
                         iconStyle="Broken"
                       />
@@ -1728,17 +1625,17 @@ export function Dashboard() {
                     focusedInput === "section" ? "ring-2 ring-pri-blue-500" : ""
                   }`}
                 >
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center">
                     <div className="p-2 bg-pri-pur-500 rounded-lg flex items-center justify-center">
                       <ClockSquare
                         size={32}
-                        color="#fff"
+                        color="#B0B2E6"
                         autoSize={false}
                         iconStyle="Broken"
                       />
                     </div>
-                    <div className="text-left flex-1">
-                      <div className="flex items-center text-md font-outfit gap-4">
+                    <div className="flex-1 ml-4 mr-4">
+                      <div className="flex items-center text-md font-outfit">
                         <input
                           ref={sectionInputRef}
                           type="text"
@@ -1761,11 +1658,14 @@ export function Dashboard() {
                               /[^0-9.,:;-]/g,
                               ""
                             );
-                            setNewSectionTime(cleaned);
+                            if (cleaned.length <= 5) {
+                              setNewSectionTime(cleaned);
+                            }
                           }}
                           onKeyDown={handleSectionKeyPress}
                           placeholder="09.00"
-                          className="w-24 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                          maxLength={5}
+                          className="w-16 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none text-right"
                         />
                       </div>
                       <p className="text-neu-400 font-outfit text-sm mt-2">
@@ -1885,34 +1785,19 @@ export function Dashboard() {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="relative">
-                      <div
-                        onClick={handleHideCompleted}
-                        className="px-4 py-2 bg-neu-700 text-neu-400 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-within:ring-2 focus-within:ring-pri-blue-500 cursor-pointer"
-                      >
-                        {hideCompleted ? (
-                          <Eye size={20} color="currentColor" />
-                        ) : (
-                          <EyeClosed size={20} color="currentColor" />
-                        )}
-                        <span className="text-base font-outfit">
-                          Hide completed
-                        </span>
-                        <div className="toggle-switch ml-2">
-                          <input
-                            id="hide-completed-toggle"
-                            type="checkbox"
-                            checked={hideCompleted}
-                            onChange={handleHideCompleted}
-                            className="sr-only focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
-                            aria-label="Toggle hide completed tasks"
-                          />
-                          <span className="toggle-slider"></span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <button
+                    onClick={handleClearCompleted}
+                    className="px-4 py-2 bg-neu-700 text-neu-400 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+                  >
+                    <TrashBinTrash
+                      size={20}
+                      color="currentColor"
+                      autoSize={false}
+                    />
+                    <span className="text-base font-outfit">
+                      Clear completed
+                    </span>
+                  </button>
                 </div>
               </div>
 
@@ -1949,8 +1834,6 @@ export function Dashboard() {
                     ) : (
                       filteredAndSortedItems.map((item, index) => {
                         const isTaskItem = isTask(item);
-                        const isHidden =
-                          hideCompleted && isTaskItem && item.completed;
                         const isHiding = hidingItems.has(item.id);
 
                         return (
@@ -1959,9 +1842,6 @@ export function Dashboard() {
                             className={`relative task-item ${
                               isHiding ? "hiding" : "showing"
                             }`}
-                            style={{
-                              display: isHidden && !isHiding ? "none" : "block",
-                            }}
                           >
                             <DraggableItem
                               item={item}
@@ -1970,7 +1850,6 @@ export function Dashboard() {
                               isTaskItem={isTaskItem}
                               renderTask={renderTask}
                               renderSection={renderSection}
-                              hideCompleted={hideCompleted}
                               isTask={isTask}
                             />
                           </div>
@@ -1993,7 +1872,7 @@ export function Dashboard() {
               setSelectedTask(null);
             }
           }}
-          onUpdate={handleUpdateTask}
+          onUpdate={handleEditTask}
           onDelete={handleDeleteTask}
         />
       )}
@@ -2006,7 +1885,7 @@ export function Dashboard() {
               setSelectedSection(null);
             }
           }}
-          onUpdate={handleUpdateSection}
+          onUpdate={handleEditSection}
           onDelete={handleDeleteSection}
         />
       )}

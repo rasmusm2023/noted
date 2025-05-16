@@ -234,8 +234,10 @@ export const SectionModal: React.FC<SectionModalProps> = ({
   };
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9.,:;-]/g, "");
-    setEditedTime(value);
+    const cleaned = e.target.value.replace(/[^0-9.,:;-]/g, "");
+    if (cleaned.length <= 5) {
+      setEditedTime(cleaned);
+    }
   };
 
   const handleTimeKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -412,8 +414,9 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                   value={editedTime}
                   onChange={handleTimeChange}
                   onKeyDown={handleTimeKeyDown}
-                  className="w-24 bg-transparent text-base font-outfit font-semibold text-neu-400 focus:outline-none border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
-                  tabIndex={0}
+                  placeholder="09.00"
+                  maxLength={5}
+                  className="w-24 bg-transparent text-base font-outfit font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
                 />
               </div>
             </div>
