@@ -18,6 +18,9 @@ import {
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
 import { SectionModal } from "../components/SectionModal/SectionModal";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "../config/firebase";
 
@@ -27,6 +30,23 @@ type DayData = {
   id: string;
   date: Date;
   items: ListItem[];
+};
+
+type DragState = {
+  item: ListItem;
+  sourceIndex: number;
+  currentIndex: number;
+  position: "before" | "after";
+  isDraggingOverCompleted?: boolean;
+  originalOrder: number;
+};
+
+type DragItem = {
+  id: string;
+  type: string;
+  index: number;
+  dayIndex: number;
+  item: ListItem;
 };
 
 export function Next7Days() {
@@ -1061,239 +1081,566 @@ export function Next7Days() {
     }
   `;
 
+  // Add DraggableItem component
+  const DraggableItem = ({
+    item,
+    index,
+    moveItem,
+    isTaskItem,
+    renderTask,
+    renderSection,
+    isTask,
+    dayIndex,
+  }: {
+    item: ListItem;
+    index: number;
+    moveItem: (
+      dragIndex: number,
+      hoverIndex: number,
+      sourceDay: number,
+      targetDay: number
+    ) => void;
+    isTaskItem: boolean;
+    renderTask: (task: Task, dayIndex: number) => JSX.Element;
+    renderSection: (section: SectionItem) => JSX.Element;
+    isTask: (item: ListItem) => item is Task;
+    dayIndex: number;
+  }) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [{ isDragging }, drag] = useDrag({
+      type: "ITEM",
+      item: { id: item.id, type: item.type, index, dayIndex, item },
+      collect: (monitor: DragSourceMonitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+      canDrag: () => true,
+    });
+
+    const [{ isOver, canDrop, dropPosition }, drop] = useDrop<
+      DragItem,
+      void,
+      {
+        isOver: boolean;
+        canDrop: boolean;
+        dropPosition: "before" | "after" | null;
+      }
+    >({
+      accept: "ITEM",
+      collect: (monitor: DropTargetMonitor) => {
+        const isOver = monitor.isOver();
+        const canDrop = monitor.canDrop();
+        const clientOffset = monitor.getClientOffset();
+        const hoverBoundingRect = ref.current?.getBoundingClientRect();
+
+        let dropPosition: "before" | "after" | null = null;
+        if (isOver && hoverBoundingRect && clientOffset) {
+          const hoverMiddleY =
+            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+          // Make the top 40% of the item a "before" drop zone
+          dropPosition = hoverClientY < hoverMiddleY * 0.8 ? "before" : "after";
+        }
+
+        return { isOver, canDrop, dropPosition };
+      },
+      canDrop: (draggedItem: DragItem) => {
+        return !(
+          draggedItem.id === item.id && draggedItem.dayIndex === dayIndex
+        );
+      },
+      hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
+        if (!ref.current) return;
+
+        const dragIndex = draggedItem.index;
+        const hoverIndex = index;
+        const sourceDay = draggedItem.dayIndex;
+        const targetDay = dayIndex;
+
+        // Don't replace items with themselves
+        if (dragIndex === hoverIndex && sourceDay === targetDay) {
+          return;
+        }
+
+        // Determine rectangle on screen
+        const hoverBoundingRect = ref.current.getBoundingClientRect();
+        const hoverMiddleY =
+          (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+        const clientOffset = monitor.getClientOffset();
+        const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
+
+        // Make the drop zones more forgiving by using 40% of the item height
+        const dropThreshold = hoverMiddleY * 0.8;
+
+        // For same-day moves, only perform the move when the mouse has crossed the threshold
+        if (sourceDay === targetDay) {
+          // If we're moving an item down, only move when we've crossed the threshold
+          if (dragIndex < hoverIndex && hoverClientY < dropThreshold) return;
+          // If we're moving an item up, only move when we've crossed the threshold
+          if (dragIndex > hoverIndex && hoverClientY > dropThreshold) return;
+        }
+
+        // For cross-day moves, always allow the move
+        moveItem(dragIndex, hoverIndex, sourceDay, targetDay);
+
+        // Update the dragged item's index and day
+        draggedItem.index = hoverIndex;
+        draggedItem.dayIndex = targetDay;
+      },
+    });
+
+    // Combine drag and drop refs
+    drag(drop(ref));
+
+    const opacity = isDragging ? 0.4 : 1;
+
+    // Enhanced visual feedback for drop zones
+    const getDropZoneStyles = () => {
+      if (!isOver || !canDrop) return {};
+
+      const baseStyle = {
+        position: "relative" as const,
+        transition: "all 0.2s ease-in-out",
+      };
+
+      if (dropPosition === "before") {
+        return {
+          ...baseStyle,
+          borderTop: "2px solid #3b82f6",
+          marginTop: "2px",
+        };
+      } else if (dropPosition === "after") {
+        return {
+          ...baseStyle,
+          borderBottom: "2px solid #3b82f6",
+          marginBottom: "2px",
+        };
+      }
+
+      return baseStyle;
+    };
+
+    return (
+      <div
+        ref={ref}
+        style={{
+          opacity,
+          ...getDropZoneStyles(),
+        }}
+        className={`transition-all duration-200 ${
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        } ${isOver && canDrop ? "bg-blue-500/5" : ""}`}
+        role="button"
+        tabIndex={0}
+        aria-grabbed={isDragging}
+        aria-dropeffect="move"
+      >
+        {item.type === "section"
+          ? renderSection(item as SectionItem)
+          : isTaskItem
+          ? renderTask(item as Task, dayIndex)
+          : null}
+      </div>
+    );
+  };
+
+  // Update moveItem function
+  const moveItem = async (
+    dragIndex: number,
+    hoverIndex: number,
+    sourceDay: number,
+    targetDay: number
+  ) => {
+    console.log("=== Move Item Operation ===");
+    console.log("Original Indices:", {
+      dragIndex,
+      hoverIndex,
+      sourceDay,
+      targetDay,
+    });
+
+    // Get the dragged item from the source day
+    const draggedItem = days[sourceDay].items[dragIndex];
+    const targetItem = days[targetDay].items[hoverIndex];
+
+    console.log("Found Items:", {
+      draggedItem: { id: draggedItem.id, originalIndex: dragIndex },
+      targetItem: { id: targetItem.id, originalIndex: hoverIndex },
+    });
+
+    // Create new arrays for both days
+    const newSourceItems = [...days[sourceDay].items];
+    const newTargetItems =
+      sourceDay === targetDay ? newSourceItems : [...days[targetDay].items];
+
+    // Remove item from source day
+    const [movedItem] = newSourceItems.splice(dragIndex, 1);
+
+    // If moving to a different day, update the item's date
+    if (sourceDay !== targetDay && isTask(movedItem)) {
+      const newDate = new Date(days[targetDay].date);
+      newDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+      movedItem.date = newDate.toISOString();
+    }
+
+    // Insert item into target day
+    newTargetItems.splice(hoverIndex, 0, movedItem);
+
+    // Update orders for both days
+    const updatedSourceItems = newSourceItems.map((item, index) => ({
+      ...item,
+      order: index,
+    }));
+
+    const updatedTargetItems = newTargetItems.map((item, index) => ({
+      ...item,
+      order: index,
+    }));
+
+    // Update state
+    setDays((prevDays) => {
+      const newDays = [...prevDays];
+      if (sourceDay === targetDay) {
+        // If same day, only update that day
+        newDays[sourceDay] = {
+          ...newDays[sourceDay],
+          items: updatedTargetItems,
+        };
+      } else {
+        // If different days, update both
+        newDays[sourceDay] = {
+          ...newDays[sourceDay],
+          items: updatedSourceItems,
+        };
+        newDays[targetDay] = {
+          ...newDays[targetDay],
+          items: updatedTargetItems,
+        };
+      }
+      return newDays;
+    });
+
+    // Save to database
+    try {
+      if (currentUser) {
+        // Update task date if moving between days
+        if (sourceDay !== targetDay && isTask(movedItem)) {
+          await taskService.updateTask(movedItem.id, {
+            date: movedItem.date,
+          });
+        }
+
+        // Update orders for both days
+        const sourceTaskUpdates = updatedSourceItems
+          .filter(isTask)
+          .map((task) => ({
+            id: task.id,
+            order: task.order,
+          }));
+        const sourceSectionUpdates = updatedSourceItems
+          .filter(isSection)
+          .map((section) => ({
+            id: section.id,
+            order: section.order,
+          }));
+
+        const targetTaskUpdates = updatedTargetItems
+          .filter(isTask)
+          .map((task) => ({
+            id: task.id,
+            order: task.order,
+          }));
+        const targetSectionUpdates = updatedTargetItems
+          .filter(isSection)
+          .map((section) => ({
+            id: section.id,
+            order: section.order,
+          }));
+
+        console.log("Saving to database:", {
+          sourceTaskUpdates,
+          sourceSectionUpdates,
+          targetTaskUpdates,
+          targetSectionUpdates,
+        });
+
+        await Promise.all([
+          taskService.updateTaskOrder(currentUser.uid, sourceTaskUpdates),
+          taskService.updateSectionOrder(currentUser.uid, sourceSectionUpdates),
+          taskService.updateTaskOrder(currentUser.uid, targetTaskUpdates),
+          taskService.updateSectionOrder(currentUser.uid, targetSectionUpdates),
+        ]);
+
+        console.log("Database update successful");
+      }
+    } catch (error) {
+      console.error("Error saving item order:", error);
+      // Revert on error
+      setDays((prevDays) => {
+        const newDays = [...prevDays];
+        newDays[sourceDay] = {
+          ...newDays[sourceDay],
+          items: days[sourceDay].items,
+        };
+        if (sourceDay !== targetDay) {
+          newDays[targetDay] = {
+            ...newDays[targetDay],
+            items: days[targetDay].items,
+          };
+        }
+        return newDays;
+      });
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex-none p-4">
-        <div className="max-w-[2000px] mx-auto">
-          <div className="flex items-center justify-between mb-8 pl-8">
-            <h1 className="text-4xl font-bold font-outfit text-neu-100">
-              Next 7 Days
-            </h1>
-            <div className="bg-neu-600 rounded-lg p-2">
-              <div className="flex items-center space-x-2">
-                <div className="relative" ref={sortMenuRef}>
+    <DndProvider backend={HTML5Backend}>
+      <style>{globalStyles}</style>
+      <div className="h-screen flex flex-col">
+        <div className="flex-none p-4">
+          <div className="max-w-[2000px] mx-auto">
+            <div className="flex items-center justify-between mb-8 pl-8">
+              <h1 className="text-4xl font-bold font-outfit text-neu-100">
+                Next 7 Days
+              </h1>
+              <div className="bg-neu-600 rounded-lg p-2">
+                <div className="flex items-center space-x-2">
+                  <div className="relative" ref={sortMenuRef}>
+                    <button
+                      onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+                      className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+                    >
+                      <Sort
+                        size={20}
+                        color="currentColor"
+                        autoSize={false}
+                        iconStyle="Broken"
+                      />
+                      <span className="text-base font-outfit">Sort</span>
+                    </button>
+                    {isSortMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-50">
+                        <div className="py-1">
+                          <button
+                            onClick={() => {
+                              setCompletedPosition("top");
+                              localStorage.setItem("completedPosition", "top");
+                              setIsSortMenuOpen(false);
+                            }}
+                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                              completedPosition === "top"
+                                ? "text-pri-blue-500"
+                                : "text-neu-400 hover:bg-neu-700"
+                            }`}
+                          >
+                            <AlignTop
+                              size={20}
+                              color="currentColor"
+                              autoSize={false}
+                              iconStyle="Broken"
+                            />
+                            <span>Completed on Top</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCompletedPosition("bottom");
+                              localStorage.setItem(
+                                "completedPosition",
+                                "bottom"
+                              );
+                              setIsSortMenuOpen(false);
+                            }}
+                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                              completedPosition === "bottom"
+                                ? "text-pri-blue-500"
+                                : "text-neu-400 hover:bg-neu-700"
+                            }`}
+                          >
+                            <AlignBottom
+                              size={20}
+                              color="currentColor"
+                              autoSize={false}
+                              iconStyle="Broken"
+                            />
+                            <span>Completed on Bottom</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setCompletedPosition("custom");
+                              localStorage.setItem(
+                                "completedPosition",
+                                "custom"
+                              );
+                              setIsSortMenuOpen(false);
+                            }}
+                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+                              completedPosition === "custom"
+                                ? "text-pri-blue-500"
+                                : "text-neu-400 hover:bg-neu-700"
+                            }`}
+                          >
+                            <AlignVerticalCenter
+                              size={20}
+                              color="currentColor"
+                              autoSize={false}
+                              iconStyle="Broken"
+                            />
+                            <span>Custom Order</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <button
-                    onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
+                    onClick={handleClearCompleted}
                     className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
                   >
-                    <Sort
+                    <TrashBinTrash
                       size={20}
                       color="currentColor"
                       autoSize={false}
-                      iconStyle="Broken"
                     />
-                    <span className="text-base font-outfit">Sort</span>
+                    <span className="text-base font-outfit">
+                      Clear completed
+                    </span>
                   </button>
-                  {isSortMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-50">
-                      <div className="py-1">
-                        <button
-                          onClick={() => {
-                            setCompletedPosition("top");
-                            localStorage.setItem("completedPosition", "top");
-                            setIsSortMenuOpen(false);
-                          }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                            completedPosition === "top"
-                              ? "text-pri-blue-500"
-                              : "text-neu-400 hover:bg-neu-700"
-                          }`}
-                        >
-                          <AlignTop
-                            size={20}
-                            color="currentColor"
-                            autoSize={false}
-                            iconStyle="Broken"
-                          />
-                          <span>Completed on Top</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setCompletedPosition("bottom");
-                            localStorage.setItem("completedPosition", "bottom");
-                            setIsSortMenuOpen(false);
-                          }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                            completedPosition === "bottom"
-                              ? "text-pri-blue-500"
-                              : "text-neu-400 hover:bg-neu-700"
-                          }`}
-                        >
-                          <AlignBottom
-                            size={20}
-                            color="currentColor"
-                            autoSize={false}
-                            iconStyle="Broken"
-                          />
-                          <span>Completed on Bottom</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setCompletedPosition("custom");
-                            localStorage.setItem("completedPosition", "custom");
-                            setIsSortMenuOpen(false);
-                          }}
-                          className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                            completedPosition === "custom"
-                              ? "text-pri-blue-500"
-                              : "text-neu-400 hover:bg-neu-700"
-                          }`}
-                        >
-                          <AlignVerticalCenter
-                            size={20}
-                            color="currentColor"
-                            autoSize={false}
-                            iconStyle="Broken"
-                          />
-                          <span>Custom Order</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
-                <button
-                  onClick={handleClearCompleted}
-                  className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
-                >
-                  <TrashBinTrash
-                    size={20}
-                    color="currentColor"
-                    autoSize={false}
-                  />
-                  <span className="text-base font-outfit">Clear completed</span>
-                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Days Container - Now with dynamic height */}
-      <div className="flex-1 overflow-hidden">
-        <div className="days-container h-full overflow-x-auto">
-          <div className="flex space-x-8 p-4 pl-8 h-fit">
-            {days.map((day, dayIndex) => (
-              <div
-                key={day.date.toISOString()}
-                className={`flex-shrink-0 w-[280px] ${
-                  dayIndex > 1 ? "mt-7" : ""
-                }`}
-              >
-                {/* Add Today/Tomorrow label */}
-                {dayIndex === 0 && (
-                  <div>
-                    <span className="inline-block px-4 py-1 bg-pri-blue-500 text-neu-100 text-base font-outfit font-medium rounded-t-md">
-                      Today
-                    </span>
-                  </div>
-                )}
-                {dayIndex === 1 && (
-                  <div>
-                    <span className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-100 text-base font-outfit font-medium rounded-t-md">
-                      Tomorrow
-                    </span>
-                  </div>
-                )}
+        {/* Days Container - Now with dynamic height */}
+        <div className="flex-1 overflow-hidden">
+          <div className="days-container h-full overflow-x-auto">
+            <div className="flex space-x-8 p-4 pl-8 h-fit">
+              {days.map((day, dayIndex) => (
                 <div
-                  className={`bg-neu-800/90 p-4 h-fit ${
-                    dayIndex <= 1
-                      ? "rounded-tr-lg rounded-br-lg rounded-bl-lg"
-                      : "rounded-lg"
+                  key={day.date.toISOString()}
+                  className={`flex-shrink-0 w-[280px] ${
+                    dayIndex > 1 ? "mt-7" : ""
                   }`}
                 >
-                  <div className="flex flex-col">
-                    <div className="flex items-center justify-between mb-2">
-                      <h2 className="text-lg font-outfit font-semibold text-neu-100">
-                        {day.date.toLocaleDateString("en-US", {
-                          weekday: "long",
-                        })}
-                      </h2>
-                      <p className="text-base font-outfit text-neu-400">
-                        {day.date
-                          .toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
+                  {/* Add Today/Tomorrow label */}
+                  {dayIndex === 0 && (
+                    <div>
+                      <span className="inline-block px-4 py-1 bg-pri-blue-500 text-neu-100 text-base font-outfit font-medium rounded-t-md">
+                        Today
+                      </span>
+                    </div>
+                  )}
+                  {dayIndex === 1 && (
+                    <div>
+                      <span className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-100 text-base font-outfit font-medium rounded-t-md">
+                        Tomorrow
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className={`bg-neu-800/90 p-4 h-fit ${
+                      dayIndex <= 1
+                        ? "rounded-tr-lg rounded-br-lg rounded-bl-lg"
+                        : "rounded-lg"
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <div className="flex items-center justify-between mb-2">
+                        <h2 className="text-lg font-outfit font-semibold text-neu-100">
+                          {day.date.toLocaleDateString("en-US", {
+                            weekday: "long",
+                          })}
+                        </h2>
+                        <p className="text-base font-outfit text-neu-400">
+                          {day.date
+                            .toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
+                            .toUpperCase()}
+                        </p>
+                      </div>
+
+                      {/* Task creation */}
+                      <div className="mb-2">
+                        <TaskCreationInput dayIndex={dayIndex} />
+                      </div>
+
+                      {/* Section creation */}
+                      <div className="mb-8 pb-8 border-b-2 border-neu-700/75">
+                        <SectionCreationInput dayIndex={dayIndex} />
+                      </div>
+
+                      {/* Tasks and Sections */}
+                      <div className="space-y-4">
+                        {isLoading ? (
+                          <div className="text-neu-400">Loading tasks...</div>
+                        ) : day.items.length === 0 ? (
+                          <div className="text-center text-neu-600 py-4">
+                            <p className="text-sm font-outfit">
+                              No tasks for this day
+                            </p>
+                          </div>
+                        ) : (
+                          sortItems(day.items).map((item, index) => {
+                            const isTaskItem = isTask(item);
+                            const isHiding = hidingItems.has(item.id);
+
+                            return (
+                              <div
+                                key={item.id}
+                                className={`relative task-item ${
+                                  isHiding ? "hiding" : "showing"
+                                }`}
+                              >
+                                <DraggableItem
+                                  item={item}
+                                  index={index}
+                                  moveItem={moveItem}
+                                  isTaskItem={isTaskItem}
+                                  renderTask={renderTask}
+                                  renderSection={renderSection}
+                                  isTask={isTask}
+                                  dayIndex={dayIndex}
+                                />
+                              </div>
+                            );
                           })
-                          .toUpperCase()}
-                      </p>
-                    </div>
-
-                    {/* Task creation */}
-                    <div className="mb-2">
-                      <TaskCreationInput dayIndex={dayIndex} />
-                    </div>
-
-                    {/* Section creation */}
-                    <div className="mb-8 pb-8 border-b-2 border-neu-700/75">
-                      <SectionCreationInput dayIndex={dayIndex} />
-                    </div>
-
-                    {/* Tasks and Sections */}
-                    <div className="space-y-4">
-                      {isLoading ? (
-                        <div className="text-neu-400">Loading tasks...</div>
-                      ) : day.items.length === 0 ? (
-                        <div className="text-center text-neu-600 py-4">
-                          <p className="text-sm font-outfit">
-                            No tasks for this day
-                          </p>
-                        </div>
-                      ) : (
-                        sortItems(day.items).map((item, index) => {
-                          const isTaskItem = isTask(item);
-                          const isHiding = hidingItems.has(item.id);
-
-                          return (
-                            <div
-                              key={item.id}
-                              className={`relative task-item ${
-                                isHiding ? "hiding" : "showing"
-                              }`}
-                            >
-                              {item.type === "section"
-                                ? renderSection(item as SectionItem)
-                                : isTaskItem
-                                ? renderTask(item as Task, dayIndex)
-                                : null}
-                            </div>
-                          );
-                        })
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {selectedTask && (
-        <TaskModal
-          task={selectedTask}
-          isOpen={!!selectedTask}
-          onClose={(task) => {
-            if (task.shouldClose) {
-              setSelectedTask(null);
-            }
-          }}
-          onUpdate={handleEditTask}
-          onDelete={handleDeleteTask}
-        />
-      )}
-      {selectedSection && (
-        <SectionModal
-          section={selectedSection}
-          isOpen={!!selectedSection}
-          onClose={(section) => {
-            if (section.shouldClose) {
-              setSelectedSection(null);
-            }
-          }}
-          onUpdate={handleEditSection}
-          onDelete={handleDeleteSection}
-        />
-      )}
-    </div>
+        {selectedTask && (
+          <TaskModal
+            task={selectedTask}
+            isOpen={!!selectedTask}
+            onClose={(task) => {
+              if (task.shouldClose) {
+                setSelectedTask(null);
+              }
+            }}
+            onUpdate={handleEditTask}
+            onDelete={handleDeleteTask}
+          />
+        )}
+        {selectedSection && (
+          <SectionModal
+            section={selectedSection}
+            isOpen={!!selectedSection}
+            onClose={(section) => {
+              if (section.shouldClose) {
+                setSelectedSection(null);
+              }
+            }}
+            onUpdate={handleEditSection}
+            onDelete={handleDeleteSection}
+          />
+        )}
+      </div>
+    </DndProvider>
   );
 }
