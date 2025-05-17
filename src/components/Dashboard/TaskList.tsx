@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
-import { TrashBinTrash, Pen, CheckSquare, Record } from "solar-icon-set";
 import type { Task, SectionItem } from "../../types/task";
 import { TaskItem } from "./TaskItem";
 import { SectionItem as SectionItemComponent } from "./SectionItem";
@@ -41,7 +40,6 @@ const DraggableItem = ({
   isTaskItem,
   renderTask,
   renderSection,
-  isTask,
 }: {
   item: ListItem;
   index: number;
@@ -49,7 +47,6 @@ const DraggableItem = ({
   isTaskItem: boolean;
   renderTask: (task: Task) => JSX.Element;
   renderSection: (section: SectionItem) => JSX.Element;
-  isTask: (item: ListItem) => item is Task;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [{ isDragging }, drag] = useDrag({
@@ -257,7 +254,6 @@ export const TaskList = ({
               isTaskItem={isTaskItem}
               renderTask={renderTask}
               renderSection={renderSection}
-              isTask={isTask}
             />
           </div>
         );

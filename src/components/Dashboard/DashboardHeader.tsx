@@ -1,4 +1,3 @@
-import { Icon } from "@iconify/react";
 import { QuickActions } from "./QuickActions";
 
 // Import weather icons
