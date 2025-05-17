@@ -1,0 +1,32 @@
+import type { Subtask } from "../../types/task";
+
+interface SubtaskListProps {
+  subtasks: Subtask[];
+}
+
+export const SubtaskList = ({ subtasks }: SubtaskListProps) => {
+  if (!subtasks || subtasks.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 space-y-1">
+      {subtasks.map((subtask) => (
+        <div key={subtask.id} className="flex items-center space-x-2">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              subtask.completed ? "bg-sup-suc-500" : "bg-neu-500"
+            }`}
+          />
+          <span
+            className={`font-outfit text-sm ${
+              subtask.completed ? "line-through text-neu-400" : "text-neu-400"
+            }`}
+          >
+            {subtask.title}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};

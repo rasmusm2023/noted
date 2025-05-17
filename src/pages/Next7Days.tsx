@@ -1,28 +1,22 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
-import type { Task, SectionItem } from "../types/task";
-import {
-  TrashBinTrash,
-  Record,
-  AddSquare,
-  CheckSquare,
-  ClockSquare,
-  Sort,
-  AlignTop,
-  AlignBottom,
-  AlignVerticalCenter,
-} from "solar-icon-set";
+import type { Task, SectionItem as SectionItemType } from "../types/task";
+import type { BatchOperation } from "../services/taskService";
+import { Icon } from "@iconify/react";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
 import { SectionModal } from "../components/SectionModal/SectionModal";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { updateDoc, doc } from "firebase/firestore";
-import { db } from "../config/firebase";
+import { StatsModal } from "../components/Next7Days/StatsModal";
+import { TaskManagementHeader } from "../components/Next7Days/TaskManagementHeader";
+import { DayColumn } from "../components/Next7Days/DayColumn";
+import { TaskItem } from "../components/Next7Days/TaskItem";
+import { SectionItem } from "../components/Next7Days/SectionItem";
 
-type ListItem = Task | SectionItem;
+type ListItem = Task | SectionItemType;
 
 type DayData = {
   id: string;
@@ -60,14 +54,40 @@ const debounce = (func: Function, wait: number) => {
   };
 };
 
+// Add cache types
+type Cache<T> = {
+  data: Map<string, T>;
+  lastUpdated: number;
+};
+
+// Add offline queue type
+type QueuedOperation = {
+  type: "task" | "section";
+  operation: "create" | "update" | "delete";
+  data: any;
+  timestamp: number;
+};
+
+// Add stats types
+type FirestoreStats = {
+  uptime: string;
+  totalOperations: number;
+  dailyStats: {
+    reads: number;
+    writes: number;
+    lastReset: number;
+  };
+  operationsByType: Record<string, number>;
+  operationsByCollection: Record<string, number>;
+};
+
 export function Next7Days() {
   const { currentUser } = useAuth();
   const [days, setDays] = useState<DayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [selectedSection, setSelectedSection] = useState<SectionItem | null>(
-    null
-  );
+  const [selectedSection, setSelectedSection] =
+    useState<SectionItemType | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [editingTime, setEditingTime] = useState<string | null>(null);
@@ -85,7 +105,7 @@ export function Next7Days() {
   });
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
-  const [editingSection, setEditingSection] = useState<SectionItem | null>(
+  const [editingSection, setEditingSection] = useState<SectionItemType | null>(
     null
   );
   const [sortOption, setSortOption] = useState<
@@ -101,10 +121,118 @@ export function Next7Days() {
     const savedState = localStorage.getItem("highlightNextTask");
     return savedState ? JSON.parse(savedState) : true;
   });
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const taskInputRef = useRef<HTMLInputElement>(null);
   const sectionInputRef = useRef<HTMLInputElement>(null);
+
+  // Add caches
+  const [taskCache, setTaskCache] = useState<Cache<Task>>({
+    data: new Map(),
+    lastUpdated: 0,
+  });
+  const [sectionCache, setSectionCache] = useState<Cache<SectionItemType>>({
+    data: new Map(),
+    lastUpdated: 0,
+  });
+
+  // Add offline queue
+  const [offlineQueue, setOfflineQueue] = useState<QueuedOperation[]>([]);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Add online/offline detection
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // Process offline queue when coming back online
+  useEffect(() => {
+    if (isOnline && offlineQueue.length > 0) {
+      processOfflineQueue();
+    }
+  }, [isOnline, offlineQueue]);
+
+  // Add cache management functions
+  const updateTaskCache = (task: Task) => {
+    setTaskCache((prev) => ({
+      data: new Map(prev.data).set(task.id, task),
+      lastUpdated: Date.now(),
+    }));
+  };
+
+  const updateSectionCache = (section: SectionItemType) => {
+    setSectionCache((prev) => ({
+      data: new Map(prev.data).set(section.id, section),
+      lastUpdated: Date.now(),
+    }));
+  };
+
+  const getFromCache = (id: string, type: "task" | "section") => {
+    if (type === "task") {
+      return taskCache.data.get(id);
+    }
+    return sectionCache.data.get(id);
+  };
+
+  // Add offline queue processing
+  const processOfflineQueue = async () => {
+    if (!currentUser) return;
+
+    const queue = [...offlineQueue];
+    setOfflineQueue([]);
+
+    for (const operation of queue) {
+      try {
+        if (operation.type === "task") {
+          switch (operation.operation) {
+            case "create":
+              await taskService.createTask(currentUser.uid, operation.data);
+              break;
+            case "update":
+              await taskService.updateTask(operation.data.id, operation.data);
+              break;
+            case "delete":
+              await taskService.deleteTask(operation.data.id);
+              break;
+          }
+        } else {
+          switch (operation.operation) {
+            case "create":
+              await taskService.createSection(currentUser.uid, operation.data);
+              break;
+            case "update":
+              await taskService.updateSection(
+                operation.data.id,
+                operation.data
+              );
+              break;
+            case "delete":
+              await taskService.deleteSection(operation.data.id);
+              break;
+          }
+        }
+      } catch (error) {
+        console.error("Error processing offline operation:", error);
+        // Add failed operation back to queue
+        setOfflineQueue((prev) => [...prev, operation]);
+      }
+    }
+  };
+
+  // Add queue operation function
+  const queueOperation = (operation: QueuedOperation) => {
+    setOfflineQueue((prev) => [...prev, operation]);
+  };
 
   // Initialize the next 7 days
   useEffect(() => {
@@ -122,91 +250,60 @@ export function Next7Days() {
   }, []);
 
   // Load tasks and sections for each day
-  useEffect(() => {
-    const loadData = async () => {
-      if (!currentUser) {
-        setIsLoading(false);
-        return;
-      }
+  const loadData = async () => {
+    if (!currentUser) {
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        setIsLoading(true);
-        const [userTasks, userSections] = await Promise.all([
-          taskService.getUserTasks(currentUser.uid),
-          taskService.getUserSections(currentUser.uid),
-        ]);
+    try {
+      setIsLoading(true);
+      const tasks = await taskService.getUserTasks(currentUser.uid);
+      const sections = await taskService.getUserSections(currentUser.uid);
 
-        // Check for tasks without dates and add them
-        const tasksNeedingDates = userTasks.filter((task) => !task.date);
-        if (tasksNeedingDates.length > 0) {
-          console.log("Found tasks without dates:", tasksNeedingDates.length);
-          const today = new Date();
-          today.setHours(12, 0, 0, 0);
-
-          // Update all tasks without dates to today
-          await Promise.all(
-            tasksNeedingDates.map((task) =>
-              taskService.updateTask(task.id, {
-                ...task,
-                date: today.toISOString(),
-              })
-            )
-          );
-
-          // Reload tasks after update
-          const updatedTasks = await taskService.getUserTasks(currentUser.uid);
-          userTasks.splice(0, userTasks.length, ...updatedTasks);
-        }
-
-        // Convert tasks to the new format
-        const tasksWithType = userTasks.map((task) => ({
-          ...task,
-          type: "task" as const,
-        }));
-
-        // Sort all items by order
-        const allItems = [...tasksWithType, ...userSections].sort((a, b) => {
-          if (a.order !== undefined && b.order !== undefined) {
-            return a.order - b.order;
-          }
-          return (
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        });
-
-        // Distribute items across days based on their date
-        setDays((prevDays) => {
-          const newDays = prevDays.map((day) => {
-            const dayStart = new Date(day.date);
-            dayStart.setHours(0, 0, 0, 0);
-
-            const dayEnd = new Date(day.date);
-            dayEnd.setHours(23, 59, 59, 999);
-
-            // Filter items for this day
-            const dayItems = allItems.filter((item) => {
-              if (isTask(item)) {
-                const taskDate = new Date(item.date);
-                return taskDate >= dayStart && taskDate <= dayEnd;
-              }
-              // For now, put sections in the first day
-              return day === prevDays[0];
-            });
-
-            return {
-              ...day,
-              items: dayItems,
-            };
+      // Group tasks by day
+      const tasksByDay = tasks.reduce(
+        (acc: Record<number, Task[]>, task: Task) => {
+          const taskDate = new Date(task.date);
+          const dayIndex = days.findIndex((day) => {
+            const dayDate = new Date(day.date);
+            return taskDate.toDateString() === dayDate.toDateString();
           });
-          return newDays;
-        });
-      } catch (error) {
-        console.error("Error loading data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+          if (dayIndex !== -1) {
+            if (!acc[dayIndex]) {
+              acc[dayIndex] = [];
+            }
+            acc[dayIndex].push(task);
+          }
+          return acc;
+        },
+        {}
+      );
 
+      // Put all sections in the first day
+      const sectionsByDay: Record<number, SectionItemType[]> = {
+        0: sections,
+      };
+
+      // Update days with tasks and sections
+      setDays((prevDays) =>
+        prevDays.map((day, index) => ({
+          ...day,
+          items: [
+            ...(sectionsByDay[index] || []),
+            ...(tasksByDay[index] || []),
+          ],
+        }))
+      );
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Call loadData when component mounts and when user changes
+  useEffect(() => {
     loadData();
   }, [currentUser]);
 
@@ -231,7 +328,7 @@ export function Next7Days() {
     return item.type === "task";
   };
 
-  const isSection = (item: ListItem): item is SectionItem => {
+  const isSection = (item: ListItem): item is SectionItemType => {
     return item.type === "section";
   };
 
@@ -263,9 +360,6 @@ export function Next7Days() {
   };
 
   const handleAddTask = async (dayIndex: number, title: string) => {
-    console.log("=== Creating New Task ===");
-    console.log("Input:", { dayIndex, title });
-
     if (!currentUser) {
       console.error("No user logged in");
       return;
@@ -278,97 +372,57 @@ export function Next7Days() {
 
     try {
       const taskDate = days[dayIndex].date;
-      // Set the time to noon to avoid timezone issues
       taskDate.setHours(12, 0, 0, 0);
 
-      console.log("Creating task with date:", taskDate.toISOString());
-
-      // Optimistically update the UI first
-      const optimisticTask = {
-        id: `temp_${Date.now()}`, // Temporary ID
+      const taskData: Omit<
+        Task,
+        "id" | "userId" | "createdAt" | "updatedAt" | "order"
+      > = {
         type: "task" as const,
         title: title.trim(),
         description: "",
         scheduledTime: taskDate.toLocaleString(),
         completed: false,
         date: taskDate.toISOString(),
-        order: 0,
-        createdAt: new Date().toISOString(),
-        userId: currentUser.uid,
-        updatedAt: new Date().toISOString(),
       };
 
-      // Update local state immediately
+      if (!isOnline) {
+        // Queue the operation if offline
+        queueOperation({
+          type: "task",
+          operation: "create",
+          data: taskData,
+          timestamp: Date.now(),
+        });
+        return;
+      }
+
+      const newTask = await taskService.createTask(currentUser.uid, taskData);
+      updateTaskCache(newTask);
+
+      // Update UI
       setDays((prevDays) => {
         const newDays = [...prevDays];
         const day = newDays[dayIndex];
-
-        // Update orders of existing items
         const updatedItems = day.items.map((item) => ({
           ...item,
           order: (item.order ?? 0) + 1,
         }));
 
-        // Add new task at the beginning with order 0
         newDays[dayIndex] = {
           ...day,
-          items: [optimisticTask, ...updatedItems],
+          items: [{ ...newTask, type: "task" as const }, ...updatedItems],
         };
 
         return newDays;
       });
 
-      // Clear the input
       setNewTaskInputs((prev) => ({
         ...prev,
         [dayIndex]: { title: "", description: "" },
       }));
-
-      // Then create the task in the database
-      const newTask = await taskService.createTask(currentUser.uid, {
-        type: "task",
-        title: title.trim(),
-        description: "",
-        scheduledTime: taskDate.toLocaleString(),
-        completed: false,
-        date: taskDate.toISOString(),
-      });
-
-      // Update the temporary task with the real one
-      setDays((prevDays) => {
-        const newDays = [...prevDays];
-        const day = newDays[dayIndex];
-        const updatedItems = day.items.map((item) =>
-          item.id === optimisticTask.id
-            ? { ...newTask, type: "task" as const }
-            : item
-        );
-        newDays[dayIndex] = {
-          ...day,
-          items: updatedItems,
-        };
-        return newDays;
-      });
-
-      console.log("Task creation completed");
     } catch (error) {
       console.error("Error creating task:", error);
-
-      // Revert the optimistic update on error
-      setDays((prevDays) => {
-        const newDays = [...prevDays];
-        const day = newDays[dayIndex];
-        const updatedItems = day.items.filter(
-          (item) => !item.id.startsWith("temp_")
-        );
-        newDays[dayIndex] = {
-          ...day,
-          items: updatedItems,
-        };
-        return newDays;
-      });
-
-      // Show error to user (you might want to add a proper error notification system)
       alert("Failed to create task. Please try again.");
     }
   };
@@ -535,7 +589,7 @@ export function Next7Days() {
 
   const handleEditSection = async (
     sectionId: string,
-    updates: Partial<SectionItem>
+    updates: Partial<SectionItemType>
   ) => {
     try {
       await taskService.updateSection(sectionId, updates);
@@ -601,13 +655,13 @@ export function Next7Days() {
     const isNextTask =
       highlightNextTask && firstUncompletedTask?.id === item.id;
 
-    const handleTaskClick = (item: Task, e: React.MouseEvent) => {
+    const handleTaskClick = (task: Task, e: React.MouseEvent) => {
       // Don't open modal if clicking on buttons, inputs, or if we're editing
       if (
         e.target instanceof HTMLElement &&
         (e.target.closest("button") ||
           e.target.closest("input") ||
-          editingTask?.id === item.id)
+          editingTask?.id === task.id)
       ) {
         e.stopPropagation();
         return;
@@ -618,13 +672,13 @@ export function Next7Days() {
         clearTimeout(clickTimeout);
         setClickTimeout(null);
         // If we had a timeout, this is a double click
-        setEditingTask(item);
+        setEditingTask(task);
         return;
       }
 
       // Set a new timeout
       const timeout = setTimeout(() => {
-        setSelectedTask(item);
+        setSelectedTask(task);
         setClickTimeout(null);
       }, 200); // 200ms delay to allow for double click
 
@@ -632,180 +686,26 @@ export function Next7Days() {
     };
 
     return (
-      <div
-        key={item.id}
-        data-task-id={item.id}
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setSelectedTask(item);
-          }
-        }}
-        className={`task-item p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
-          item.completed
-            ? "bg-sup-suc-400 bg-opacity-50"
-            : isTask(item) && item.backgroundColor
-            ? item.backgroundColor
-            : "bg-neu-800"
-        } ${
-          isNextTask
-            ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
-            : ""
-        } focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
-        onClick={(e) => handleTaskClick(item, e)}
-      >
-        <div className="flex items-center space-x-4 flex-1">
-          <div className="flex items-center justify-center h-full">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleTaskCompletion(item.id, !item.completed, dayIndex, e);
-              }}
-              className={`transition-all duration-300 flex items-center justify-center ${
-                item.completed
-                  ? "text-neu-100 hover:text-neu-100 scale-95"
-                  : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-full p-1`}
-              aria-label={`Mark task "${item.title}" as ${
-                item.completed ? "incomplete" : "complete"
-              }`}
-            >
-              {item.completed ? (
-                <CheckSquare size={32} color="currentColor" autoSize={false} />
-              ) : (
-                <Record
-                  size={32}
-                  color="currentColor"
-                  autoSize={false}
-                  className={isNextTask ? "animate-bounce-subtle" : ""}
-                />
-              )}
-            </button>
-          </div>
-          <div className="flex-1 flex items-center">
-            <div className="flex-1">
-              <h3
-                className={`text-base font-outfit font-regular transition-all duration-300 ${
-                  item.completed ? "text-neu-100 scale-95" : "text-neu-100"
-                }`}
-              >
-                {editingTask?.id === item.id ? (
-                  <input
-                    ref={taskInputRef}
-                    type="text"
-                    value={editingTask.title}
-                    onChange={(e) =>
-                      setEditingTask({
-                        ...editingTask,
-                        title: e.target.value,
-                      })
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleEditTask(item.id, {
-                          title: editingTask.title,
-                        });
-                      } else if (e.key === "Escape") {
-                        setEditingTask(null);
-                      }
-                    }}
-                    onBlur={() => {
-                      handleEditTask(item.id, {
-                        title: editingTask.title,
-                      });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-transparent text-base font-outfit font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
-                    autoFocus
-                  />
-                ) : (
-                  item.title
-                )}
-              </h3>
-              {item.subtasks && item.subtasks.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {item.subtasks.map((subtask) => (
-                    <div
-                      key={subtask.id}
-                      className="flex items-center space-x-2"
-                    >
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          subtask.completed ? "bg-sup-suc-500" : "bg-neu-500"
-                        }`}
-                      />
-                      <span
-                        className={`font-outfit text-sm ${
-                          subtask.completed
-                            ? "line-through text-neu-400"
-                            : "text-neu-400"
-                        }`}
-                      >
-                        {subtask.title}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex items-center space-x-2 ml-4">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteTask(item.id);
-                }}
-                className={`p-2 flex items-center justify-center ${
-                  item.completed
-                    ? "text-neu-100 hover:text-neu-100"
-                    : "text-neu-400 hover:text-red-500"
-                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
-                aria-label={`Delete task "${item.title}"`}
-              >
-                <TrashBinTrash
-                  size={16}
-                  color="currentColor"
-                  autoSize={false}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <TaskItem
+        task={item}
+        dayIndex={dayIndex}
+        isNextTask={isNextTask}
+        editingTask={editingTask}
+        onTaskClick={handleTaskClick}
+        onTaskCompletion={handleTaskCompletion}
+        onTaskDelete={handleDeleteTask}
+        onTaskEdit={handleEditTask}
+        onEditingTaskChange={setEditingTask}
+      />
     );
   };
 
-  const renderSection = (item: SectionItem) => (
-    <div
-      className={`p-4 ${
-        item.backgroundColor || "bg-neu-900"
-      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
-      tabIndex={0}
-      onClick={() => setSelectedSection(item)}
-    >
-      <div className="flex-1">
-        <h3 className="text-md font-outfit font-semibold text-neu-300">
-          {item.text}
-        </h3>
-      </div>
-      <div className="mx-4">
-        <h3 className="text-base font-outfit font-semibold text-neu-400">
-          {item.time.replace(":", ".")}
-        </h3>
-      </div>
-      <div className="flex items-center space-x-2">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeleteSection(item.id);
-          }}
-          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
-          aria-label={`Delete section "${item.text}"`}
-        >
-          <TrashBinTrash size={16} color="currentColor" autoSize={false} />
-        </button>
-      </div>
-    </div>
+  const renderSection = (item: SectionItemType) => (
+    <SectionItem
+      section={item}
+      onSectionClick={setSelectedSection}
+      onSectionDelete={handleDeleteSection}
+    />
   );
 
   // Clean up timeout on unmount
@@ -816,243 +716,6 @@ export function Next7Days() {
       }
     };
   }, [clickTimeout]);
-
-  const TaskCreationInput = ({ dayIndex }: { dayIndex: number }) => {
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [localInput, setLocalInput] = useState("");
-    const [isFocused, setIsFocused] = useState(false);
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
-      setLocalInput(newValue);
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        if (localInput.trim()) {
-          handleAddTask(dayIndex, localInput);
-          setLocalInput("");
-        }
-      } else if (e.key === "Escape") {
-        setLocalInput("");
-      }
-    };
-
-    // Update parent state only when the input loses focus
-    const handleBlur = () => {
-      setIsFocused(false);
-      handleTaskInputChange(dayIndex, "title", localInput);
-    };
-
-    return (
-      <div className="flex flex-col space-y-2">
-        <div
-          className={`flex items-center space-x-4 bg-neu-900/50 rounded-lg p-4 transition-all duration-200 ${
-            isFocused ? "ring-2 ring-pri-blue-500" : ""
-          }`}
-        >
-          <div className="p-2 bg-pri-blue-700 rounded-lg flex items-center justify-center">
-            <AddSquare
-              size={26}
-              color="#B8DCF6"
-              autoSize={false}
-              iconStyle="Broken"
-            />
-          </div>
-          <div className="flex-1">
-            <input
-              ref={inputRef}
-              type="text"
-              value={localInput}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              onFocus={() => setIsFocused(true)}
-              onBlur={handleBlur}
-              placeholder="Add new task..."
-              className="w-full bg-transparent text-base font-outfit font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-            />
-            <p className="text-sm font-outfit text-neu-600 mt-2">
-              Press Enter to add
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const SectionCreationInput = ({ dayIndex }: { dayIndex: number }) => {
-    const titleInputRef = useRef<HTMLInputElement>(null);
-    const timeInputRef = useRef<HTMLInputElement>(null);
-    const [localTitle, setLocalTitle] = useState("");
-    const [localTime, setLocalTime] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
-
-    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setLocalTitle(e.target.value);
-    };
-
-    const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const cleaned = e.target.value.replace(/[^0-9.,:;-]/g, "");
-      if (cleaned.length <= 5) {
-        setLocalTime(cleaned);
-      }
-    };
-
-    const handleAddSection = async () => {
-      if (isSubmitting) return;
-
-      if (!currentUser) {
-        console.error("No user logged in");
-        return;
-      }
-
-      const title = localTitle.trim();
-      const time = formatTimeFromInput(localTime.trim());
-
-      if (!title || !time) {
-        console.error("Missing required fields:", { title, time });
-        return;
-      }
-
-      try {
-        setIsSubmitting(true);
-        const newSection = await taskService.createSection(currentUser.uid, {
-          text: title,
-          time: time,
-        });
-
-        setDays((prevDays) => {
-          const newDays = prevDays.map((day, idx) => {
-            if (idx === dayIndex) {
-              const sectionExists = day.items.some(
-                (item) => item.type === "section" && item.id === newSection.id
-              );
-
-              if (!sectionExists) {
-                return {
-                  ...day,
-                  items: [newSection, ...day.items],
-                };
-              }
-            }
-            return day;
-          });
-
-          return newDays;
-        });
-
-        setLocalTitle("");
-        setLocalTime("");
-        if (titleInputRef.current) {
-          titleInputRef.current.focus();
-        }
-      } catch (error) {
-        console.error("Error creating section:", error);
-      } finally {
-        setIsSubmitting(false);
-      }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleAddSection();
-      } else if (e.key === "Escape") {
-        setLocalTitle("");
-        setLocalTime("");
-      }
-    };
-
-    return (
-      <div
-        className={`flex items-center space-x-4 bg-neu-900/50 rounded-lg p-4 transition-all duration-200 ${
-          isFocused ? "ring-2 ring-pri-blue-500" : ""
-        }`}
-      >
-        <div className="p-2 bg-pri-pur-500 rounded-lg flex items-center justify-center">
-          <ClockSquare
-            size={26}
-            color="#B0B2E6"
-            autoSize={false}
-            iconStyle="Broken"
-          />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <input
-              ref={titleInputRef}
-              type="text"
-              value={localTitle}
-              onChange={handleTitleChange}
-              onKeyDown={handleKeyDown}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="Add a section..."
-              className="w-[calc(100%-4rem)] bg-transparent text-base font-outfit font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-            />
-            <input
-              ref={timeInputRef}
-              type="text"
-              value={localTime}
-              onChange={handleTimeChange}
-              onKeyDown={handleKeyDown}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              placeholder="09.00"
-              maxLength={5}
-              className="w-16 bg-transparent text-base font-outfit font-semibold text-neu-100 placeholder-neu-400 focus:outline-none text-right"
-            />
-          </div>
-          <p className="text-sm font-outfit text-neu-600 mt-2">
-            Press Enter to add
-          </p>
-        </div>
-      </div>
-    );
-  };
-
-  const handleClearCompleted = async () => {
-    // Get all completed tasks across all days
-    const completedTasks = days.flatMap((day) =>
-      day.items
-        .filter((item) => isTask(item) && item.completed)
-        .map((item) => item.id)
-    );
-
-    // Add hiding animation
-    setHidingItems(new Set(completedTasks));
-
-    // Wait for animation to complete before updating state
-    setTimeout(async () => {
-      try {
-        if (currentUser) {
-          // Delete completed tasks from Firestore
-          await Promise.all(
-            completedTasks.map((taskId) => taskService.deleteTask(taskId))
-          );
-
-          // Update local state by filtering out completed tasks
-          setDays((prevDays) =>
-            prevDays.map((day) => ({
-              ...day,
-              items: day.items.filter(
-                (item) => !isTask(item) || !item.completed
-              ),
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("Error clearing completed tasks:", error);
-        // Revert the state if the update fails
-        setDays(days);
-      }
-
-      // Clear hiding items after animation
-      setHidingItems(new Set());
-    }, 300); // Match the animation duration
-  };
 
   // Add the globalStyles
   const globalStyles = `
@@ -1197,7 +860,7 @@ export function Next7Days() {
     ) => void;
     isTaskItem: boolean;
     renderTask: (task: Task, dayIndex: number) => JSX.Element;
-    renderSection: (section: SectionItem) => JSX.Element;
+    renderSection: (section: SectionItemType) => JSX.Element;
     isTask: (item: ListItem) => item is Task;
     dayIndex: number;
   }) => {
@@ -1330,7 +993,7 @@ export function Next7Days() {
         aria-dropeffect="move"
       >
         {item.type === "section"
-          ? renderSection(item as SectionItem)
+          ? renderSection(item as SectionItemType)
           : isTaskItem
           ? renderTask(item as Task, dayIndex)
           : null}
@@ -1345,158 +1008,82 @@ export function Next7Days() {
     sourceDay: number,
     targetDay: number
   ) => {
-    console.log("=== Move Item Operation ===");
-    console.log("Original Indices:", {
-      dragIndex,
-      hoverIndex,
-      sourceDay,
-      targetDay,
-    });
+    if (!currentUser) return;
 
-    // Get the dragged item from the source day
-    const draggedItem = days[sourceDay].items[dragIndex];
-    const targetItem = days[targetDay].items[hoverIndex];
+    const sourceItems = [...days[sourceDay].items];
+    const [movedItem] = sourceItems.splice(dragIndex, 1);
+    const targetItems =
+      sourceDay === targetDay ? sourceItems : [...days[targetDay].items];
+    targetItems.splice(hoverIndex, 0, movedItem);
 
-    // Create new arrays for both days
-    const newSourceItems = [...days[sourceDay].items];
-    const newTargetItems =
-      sourceDay === targetDay ? newSourceItems : [...days[targetDay].items];
-
-    // Remove item from source day
-    const [movedItem] = newSourceItems.splice(dragIndex, 1);
-
-    // If moving to a different day, update the item's date
-    if (sourceDay !== targetDay && isTask(movedItem)) {
-      const newDate = new Date(days[targetDay].date);
-      newDate.setHours(12, 0, 0, 0);
-      movedItem.date = newDate.toISOString();
-    }
-
-    // Insert item into target day
-    newTargetItems.splice(hoverIndex, 0, movedItem);
-
-    // Only update orders for items that actually changed position
-    const getAffectedItems = (
-      items: ListItem[],
-      startIdx: number,
-      endIdx: number
-    ) => {
-      const affectedItems = items.slice(
-        Math.min(startIdx, endIdx),
-        Math.max(startIdx, endIdx) + 1
-      );
-      return affectedItems.map((item, idx) => ({
-        ...item,
-        order: Math.min(startIdx, endIdx) + idx,
-      }));
-    };
-
-    // Update state immediately for smooth UI
+    // Update UI immediately
     setDays((prevDays) => {
       const newDays = [...prevDays];
-      if (sourceDay === targetDay) {
-        newDays[sourceDay] = {
-          ...newDays[sourceDay],
-          items: newTargetItems,
-        };
-      } else {
-        newDays[sourceDay] = {
-          ...newDays[sourceDay],
-          items: newSourceItems,
-        };
+      newDays[sourceDay] = {
+        ...newDays[sourceDay],
+        items: sourceItems,
+      };
+      if (sourceDay !== targetDay) {
         newDays[targetDay] = {
           ...newDays[targetDay],
-          items: newTargetItems,
+          items: targetItems,
         };
       }
       return newDays;
     });
 
-    // Debounce the database updates
+    // Update orders
+    const updatedSourceItems = sourceItems.map((item, index) => ({
+      ...item,
+      order: index,
+    }));
+    const updatedTargetItems = targetItems.map((item, index) => ({
+      ...item,
+      order: index,
+    }));
+
+    // Group updates by type
+    const updates = new Map<
+      string,
+      { type: "task" | "section"; updates: any[] }
+    >();
+
+    updatedSourceItems.forEach((item) => {
+      const type = isTask(item) ? "task" : "section";
+      if (!updates.has(type)) {
+        updates.set(type, { type, updates: [] });
+      }
+      updates.get(type)?.updates.push(item);
+    });
+
+    if (sourceDay !== targetDay) {
+      updatedTargetItems.forEach((item) => {
+        const type = isTask(item) ? "task" : "section";
+        if (!updates.has(type)) {
+          updates.set(type, { type, updates: [] });
+        }
+        updates.get(type)?.updates.push(item);
+      });
+    }
+
     const debouncedUpdate = debounce(async () => {
       try {
-        if (currentUser) {
-          // Update task date if moving between days
-          if (sourceDay !== targetDay && isTask(movedItem)) {
-            await taskService.updateTask(movedItem.id, {
-              date: movedItem.date,
+        const operations: BatchOperation[] = [];
+
+        // Convert updates to batch operations
+        updates.forEach(({ type, updates }) => {
+          updates.forEach((item) => {
+            operations.push({
+              type,
+              operation: "update",
+              id: item.id,
+              data: { order: item.order },
             });
-          }
+          });
+        });
 
-          // Only update orders for affected items
-          const sourceUpdates = getAffectedItems(
-            newSourceItems,
-            dragIndex,
-            newSourceItems.length - 1
-          );
-          const targetUpdates =
-            sourceDay === targetDay
-              ? getAffectedItems(
-                  newTargetItems,
-                  hoverIndex,
-                  newTargetItems.length - 1
-                )
-              : getAffectedItems(newTargetItems, 0, newTargetItems.length - 1);
-
-          const sourceTaskUpdates = sourceUpdates
-            .filter(isTask)
-            .map((task) => ({
-              id: task.id,
-              order: task.order,
-            }));
-          const sourceSectionUpdates = sourceUpdates
-            .filter(isSection)
-            .map((section) => ({
-              id: section.id,
-              order: section.order,
-            }));
-
-          const targetTaskUpdates = targetUpdates
-            .filter(isTask)
-            .map((task) => ({
-              id: task.id,
-              order: task.order,
-            }));
-          const targetSectionUpdates = targetUpdates
-            .filter(isSection)
-            .map((section) => ({
-              id: section.id,
-              order: section.order,
-            }));
-
-          // Only make database calls if there are updates
-          const updates = [];
-          if (sourceTaskUpdates.length > 0) {
-            updates.push(
-              taskService.updateTaskOrder(currentUser.uid, sourceTaskUpdates)
-            );
-          }
-          if (sourceSectionUpdates.length > 0) {
-            updates.push(
-              taskService.updateSectionOrder(
-                currentUser.uid,
-                sourceSectionUpdates
-              )
-            );
-          }
-          if (targetTaskUpdates.length > 0) {
-            updates.push(
-              taskService.updateTaskOrder(currentUser.uid, targetTaskUpdates)
-            );
-          }
-          if (targetSectionUpdates.length > 0) {
-            updates.push(
-              taskService.updateSectionOrder(
-                currentUser.uid,
-                targetSectionUpdates
-              )
-            );
-          }
-
-          if (updates.length > 0) {
-            await Promise.all(updates);
-          }
-        }
+        // Execute batch operations
+        await taskService.batchOperations(operations);
       } catch (error) {
         console.error("Error saving item order:", error);
         // Revert on error
@@ -1515,228 +1102,82 @@ export function Next7Days() {
           return newDays;
         });
       }
-    }, 500); // 500ms debounce
+    }, 1000);
 
     debouncedUpdate();
+  };
+
+  const handleClearCompleted = async () => {
+    // Get all completed tasks across all days
+    const completedTasks = days.flatMap((day) =>
+      day.items
+        .filter((item) => isTask(item) && item.completed)
+        .map((item) => item.id)
+    );
+
+    // Add hiding animation
+    setHidingItems(new Set(completedTasks));
+
+    // Wait for animation to complete before updating state
+    setTimeout(async () => {
+      try {
+        if (currentUser) {
+          // Delete completed tasks from Firestore
+          await Promise.all(
+            completedTasks.map((taskId) => taskService.deleteTask(taskId))
+          );
+
+          // Update local state by filtering out completed tasks
+          setDays((prevDays) =>
+            prevDays.map((day) => ({
+              ...day,
+              items: day.items.filter(
+                (item) => !isTask(item) || !item.completed
+              ),
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error clearing completed tasks:", error);
+        // Revert the state if the update fails
+        setDays(days);
+      }
+
+      // Clear hiding items after animation
+      setHidingItems(new Set());
+    }, 300); // Match the animation duration
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
       <div className="h-screen flex flex-col">
-        <div className="flex-none pt-8 pb-8 bg-neu-900/30 backdrop-blur-md sticky top-0 z-10">
-          <div className="max-w-[2000px] mx-auto">
-            <div className="flex items-center justify-between pl-8 pr-8">
-              <h1 className="text-4xl font-bold font-outfit text-neu-100">
-                Next 7 Days
-              </h1>
-              <div className="bg-neu-600/50 backdrop-blur-sm rounded-lg p-2">
-                <div className="flex items-center space-x-2">
-                  <div className="relative" ref={sortMenuRef}>
-                    <button
-                      onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                      className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
-                    >
-                      <Sort
-                        size={20}
-                        color="currentColor"
-                        autoSize={false}
-                        iconStyle="Broken"
-                      />
-                      <span className="text-base font-outfit">Sort</span>
-                    </button>
-                    {isSortMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-neu-800 rounded-lg shadow-lg z-50">
-                        <div className="py-1">
-                          <button
-                            onClick={() => {
-                              setCompletedPosition("top");
-                              localStorage.setItem("completedPosition", "top");
-                              setIsSortMenuOpen(false);
-                            }}
-                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                              completedPosition === "top"
-                                ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-700"
-                            }`}
-                          >
-                            <AlignTop
-                              size={20}
-                              color="currentColor"
-                              autoSize={false}
-                              iconStyle="Broken"
-                            />
-                            <span>Completed on Top</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setCompletedPosition("bottom");
-                              localStorage.setItem(
-                                "completedPosition",
-                                "bottom"
-                              );
-                              setIsSortMenuOpen(false);
-                            }}
-                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                              completedPosition === "bottom"
-                                ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-700"
-                            }`}
-                          >
-                            <AlignBottom
-                              size={20}
-                              color="currentColor"
-                              autoSize={false}
-                              iconStyle="Broken"
-                            />
-                            <span>Completed on Bottom</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setCompletedPosition("custom");
-                              localStorage.setItem(
-                                "completedPosition",
-                                "custom"
-                              );
-                              setIsSortMenuOpen(false);
-                            }}
-                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                              completedPosition === "custom"
-                                ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-700"
-                            }`}
-                          >
-                            <AlignVerticalCenter
-                              size={20}
-                              color="currentColor"
-                              autoSize={false}
-                              iconStyle="Broken"
-                            />
-                            <span>Custom Order</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleClearCompleted}
-                    className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
-                  >
-                    <TrashBinTrash
-                      size={20}
-                      color="currentColor"
-                      autoSize={false}
-                    />
-                    <span className="text-base font-outfit">
-                      Clear completed
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TaskManagementHeader
+          onClearCompleted={handleClearCompleted}
+          onStatsClick={() => setIsStatsModalOpen(true)}
+          completedPosition={completedPosition}
+          onCompletedPositionChange={setCompletedPosition}
+        />
 
         {/* Days Container - Now with dynamic height */}
         <div className="flex-1 overflow-y-auto relative">
           <div className="days-container h-full overflow-x-auto">
             <div className="flex space-x-8 p-4 pl-8 h-fit min-h-[calc(100vh-8rem)]">
               {days.map((day, dayIndex) => (
-                <div
+                <DayColumn
                   key={day.date.toISOString()}
-                  className={`flex-shrink-0 w-[280px] ${
-                    dayIndex > 1 ? "mt-7" : ""
-                  }`}
-                >
-                  {/* Add Today/Tomorrow label */}
-                  {dayIndex === 0 && (
-                    <div>
-                      <span className="inline-block px-4 py-1 bg-pri-blue-500 text-neu-100 text-base font-outfit font-medium rounded-t-md">
-                        Today
-                      </span>
-                    </div>
-                  )}
-                  {dayIndex === 1 && (
-                    <div>
-                      <span className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-100 text-base font-outfit font-medium rounded-t-md">
-                        Tomorrow
-                      </span>
-                    </div>
-                  )}
-                  <div
-                    className={`bg-neu-800/90 p-4 h-fit ${
-                      dayIndex <= 1
-                        ? "rounded-tr-lg rounded-br-lg rounded-bl-lg"
-                        : "rounded-lg"
-                    }`}
-                  >
-                    <div className="flex flex-col">
-                      <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-lg font-outfit font-semibold text-neu-100">
-                          {day.date.toLocaleDateString("en-US", {
-                            weekday: "long",
-                          })}
-                        </h2>
-                        <p className="text-base font-outfit text-neu-400">
-                          {day.date
-                            .toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                            })
-                            .toUpperCase()}
-                        </p>
-                      </div>
-
-                      {/* Task creation */}
-                      <div className="mb-2">
-                        <TaskCreationInput dayIndex={dayIndex} />
-                      </div>
-
-                      {/* Section creation */}
-                      <div className="mb-8 pb-8 border-b-2 border-neu-700/75">
-                        <SectionCreationInput dayIndex={dayIndex} />
-                      </div>
-
-                      {/* Tasks and Sections */}
-                      <div className="space-y-4">
-                        {isLoading ? (
-                          <div className="text-neu-400">Loading tasks...</div>
-                        ) : day.items.length === 0 ? (
-                          <div className="text-center text-neu-600 py-4">
-                            <p className="text-sm font-outfit">
-                              No tasks for this day
-                            </p>
-                          </div>
-                        ) : (
-                          sortItems(day.items).map((item, index) => {
-                            const isTaskItem = isTask(item);
-                            const isHiding = hidingItems.has(item.id);
-
-                            return (
-                              <div
-                                key={item.id}
-                                className={`relative task-item ${
-                                  isHiding ? "hiding" : "showing"
-                                }`}
-                              >
-                                <DraggableItem
-                                  item={item}
-                                  index={index}
-                                  moveItem={moveItem}
-                                  isTaskItem={isTaskItem}
-                                  renderTask={renderTask}
-                                  renderSection={renderSection}
-                                  isTask={isTask}
-                                  dayIndex={dayIndex}
-                                />
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  day={day}
+                  dayIndex={dayIndex}
+                  isLoading={isLoading}
+                  hidingItems={hidingItems}
+                  onAddTask={handleAddTask}
+                  onSectionAdded={() => loadData()}
+                  moveItem={moveItem}
+                  renderTask={renderTask}
+                  renderSection={renderSection}
+                  isTask={isTask}
+                  sortItems={sortItems}
+                />
               ))}
             </div>
           </div>
@@ -1768,6 +1209,12 @@ export function Next7Days() {
             onDelete={handleDeleteSection}
           />
         )}
+
+        {/* Add Stats Modal */}
+        <StatsModal
+          isOpen={isStatsModalOpen}
+          onClose={() => setIsStatsModalOpen(false)}
+        />
       </div>
     </DndProvider>
   );

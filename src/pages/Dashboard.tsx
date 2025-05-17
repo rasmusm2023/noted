@@ -22,6 +22,10 @@ import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { PageTransition } from "../components/PageTransition";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
+import { TaskProgress } from "../components/Dashboard/TaskProgress";
+import { QuickActions } from "../components/Dashboard/QuickActions";
+import { TaskList } from "../components/Dashboard/TaskList";
 
 // Import weather icons
 import sunIcon from "../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -233,9 +237,33 @@ export function Dashboard() {
   const { currentUser } = useAuth();
   const [items, setItems] = useState<ListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [isCreatingTimestamp, setIsCreatingTimestamp] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedSection, setSelectedSection] = useState<SectionItem | null>(
+    null
+  );
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingTitle, setEditingTitle] = useState<string | null>(null);
   const [editingTime, setEditingTime] = useState<string | null>(null);
+  const [newTaskInputs, setNewTaskInputs] = useState<{
+    [key: number]: { title: string; description: string };
+  }>({});
+  const [selectedDay, setSelectedDay] = useState<number>(0);
+  const [completedPosition, setCompletedPosition] = useState<
+    "top" | "bottom" | "mixed"
+  >(() => {
+    const savedPosition = localStorage.getItem("completedPosition");
+    return (savedPosition as "top" | "bottom" | "mixed") || "mixed";
+  });
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
+  const [editingSection, setEditingSection] = useState<SectionItem | null>(
+    null
+  );
+  const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
+  const listContainerRef = useRef<HTMLDivElement>(null);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newSectionTitle, setNewSectionTitle] = useState("");
@@ -247,14 +275,6 @@ export function Dashboard() {
   const taskInputRef = useRef<HTMLInputElement>(null);
   const sectionInputRef = useRef<HTMLInputElement>(null);
 
-  const [completedPosition, setCompletedPosition] = useState<
-    "top" | "bottom" | "mixed"
-  >(() => {
-    const savedPosition = localStorage.getItem("completedPosition");
-    return (savedPosition as "top" | "bottom" | "mixed") || "mixed";
-  });
-  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
-
   // Add new drag and drop state
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -265,26 +285,10 @@ export function Dashboard() {
     direction: "up" | "down";
   } | null>(null);
 
-  const sortMenuRef = useRef<HTMLDivElement>(null);
-
-  // Add state to track items that are being hidden
-  const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
-
-  // Add new state for highlight setting
   const [highlightNextTask, setHighlightNextTask] = useState(() => {
     const savedState = localStorage.getItem("highlightNextTask");
     return savedState ? JSON.parse(savedState) : true;
   });
-
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [selectedSection, setSelectedSection] = useState<SectionItem | null>(
-    null
-  );
-
-  const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
-
-  // Add a ref for the list container
-  const listContainerRef = useRef<HTMLDivElement>(null);
 
   const isTask = (item: ListItem): item is Task => {
     return item.type === "task";
@@ -595,13 +599,11 @@ export function Dashboard() {
     }
   };
 
-  const handleAddTask = async () => {
+  const handleAddTask = async (title: string, description: string) => {
     if (!currentUser) {
       console.error("No user logged in");
       return;
     }
-
-    if (!newTaskTitle.trim()) return;
 
     try {
       // Add today's date at noon for the new task
@@ -609,20 +611,14 @@ export function Dashboard() {
       today.setHours(12, 0, 0, 0);
       const newTask = await taskService.createTask(currentUser.uid, {
         type: "task",
-        title: newTaskTitle.trim(),
-        description: newTaskDescription.trim(),
+        title: title,
+        description: description,
         scheduledTime: today.toLocaleString(),
         completed: false,
         date: today.toISOString(),
       });
 
       setItems((prevItems) => [newTask, ...prevItems]);
-      setNewTaskTitle("");
-      setNewTaskDescription("");
-      // Keep focus on the input field
-      if (taskInputRef.current) {
-        taskInputRef.current.focus();
-      }
     } catch (error) {
       console.error("Error creating task:", error);
     }
@@ -631,7 +627,7 @@ export function Dashboard() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleAddTask();
+      handleAddTask(newTaskTitle, newTaskDescription);
     } else if (e.key === "Escape") {
       setNewTaskTitle("");
       setNewTaskDescription("");
@@ -859,16 +855,8 @@ export function Dashboard() {
     // Save the new order to the database
     try {
       if (currentUser) {
-        const taskUpdates = updatedItems.filter(isTask).map((task) => ({
-          id: task.id,
-          order: task.order,
-        }));
-        const sectionUpdates = updatedItems
-          .filter(isSection)
-          .map((section) => ({
-            id: section.id,
-            order: section.order,
-          }));
+        const taskUpdates = updatedItems.filter(isTask) as Task[];
+        const sectionUpdates = updatedItems.filter(isSection) as SectionItem[];
 
         console.log("Saving to database:", {
           taskUpdates,
@@ -876,8 +864,8 @@ export function Dashboard() {
         });
 
         await Promise.all([
-          taskService.updateTaskOrder(currentUser.uid, taskUpdates),
-          taskService.updateSectionOrder(currentUser.uid, sectionUpdates),
+          taskService.updateTaskOrder(taskUpdates),
+          taskService.updateSectionOrder(sectionUpdates),
         ]);
 
         console.log("Database update successful");
@@ -924,17 +912,9 @@ export function Dashboard() {
   }, [isSortMenuOpen]);
 
   // Update the handleAddSection function
-  const handleAddSection = async () => {
+  const handleAddSection = async (title: string, time: string) => {
     if (!currentUser) {
       console.error("No user logged in");
-      return;
-    }
-
-    const title = newSectionTitle.trim();
-    const time = formatTimeFromInput(newSectionTime.trim());
-
-    if (!title || !time) {
-      console.error("Missing required fields:", { title, time });
       return;
     }
 
@@ -945,13 +925,6 @@ export function Dashboard() {
       });
 
       setItems((prevItems) => [newSection, ...prevItems]);
-      setNewSectionTitle("");
-      setNewSectionTime("");
-
-      // Keep focus on the title input field
-      if (sectionInputRef.current) {
-        sectionInputRef.current.focus();
-      }
     } catch (error) {
       console.error("Error creating section:", error);
     }
@@ -960,7 +933,7 @@ export function Dashboard() {
   const handleSectionKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleAddSection();
+      handleAddSection(newSectionTitle, newSectionTime);
     } else if (e.key === "Escape") {
       setNewSectionTitle("");
       setNewSectionTime("");
@@ -1510,16 +1483,8 @@ export function Dashboard() {
     // Save to database
     try {
       if (currentUser) {
-        const taskUpdates = updatedItems.filter(isTask).map((task) => ({
-          id: task.id,
-          order: task.order,
-        }));
-        const sectionUpdates = updatedItems
-          .filter(isSection)
-          .map((section) => ({
-            id: section.id,
-            order: section.order,
-          }));
+        const taskUpdates = updatedItems.filter(isTask) as Task[];
+        const sectionUpdates = updatedItems.filter(isSection) as SectionItem[];
 
         console.log("Saving to database:", {
           taskUpdates,
@@ -1527,8 +1492,8 @@ export function Dashboard() {
         });
 
         await Promise.all([
-          taskService.updateTaskOrder(currentUser.uid, taskUpdates),
-          taskService.updateSectionOrder(currentUser.uid, sectionUpdates),
+          taskService.updateTaskOrder(taskUpdates),
+          taskService.updateSectionOrder(sectionUpdates),
         ]);
 
         console.log("Database update successful");
@@ -1572,30 +1537,23 @@ export function Dashboard() {
       .filter((item) => isTask(item) && item.completed)
       .map((item) => item.id);
 
-    setHidingItems(new Set(completedTasks));
+    const updatedItems = items.filter(
+      (item) => !isTask(item) || !item.completed
+    );
+    setItems(updatedItems);
 
-    // Wait for animation to complete before updating state
-    setTimeout(async () => {
-      const updatedItems = items.filter(
-        (item) => !isTask(item) || !item.completed
-      );
-      setItems(updatedItems);
-
-      try {
-        if (currentUser) {
-          // Delete completed tasks from Firestore
-          await Promise.all(
-            completedTasks.map((taskId) => taskService.deleteTask(taskId))
-          );
-        }
-      } catch (error) {
-        console.error("Error clearing completed tasks:", error);
-        // Revert the state if the update fails
-        setItems(items);
+    try {
+      if (currentUser) {
+        // Delete completed tasks from Firestore
+        await Promise.all(
+          completedTasks.map((taskId) => taskService.deleteTask(taskId))
+        );
       }
-
-      setHidingItems(new Set());
-    }, 300); // Match the animation duration
+    } catch (error) {
+      console.error("Error clearing completed tasks:", error);
+      // Revert the state if the update fails
+      setItems(items);
+    }
   };
 
   return (
@@ -1603,303 +1561,41 @@ export function Dashboard() {
       <style>{globalStyles}</style>
       <PageTransition>
         <div className="p-8">
-          <div className="max-w-4xl mx-auto space-y-8">
-            {/* Header Box */}
-            <div className="bg-neu-800 rounded-xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-4xl font-bold font-outfit text-neu-100">
-                    {dayOfWeek}
-                  </h1>
-                  <span className="text-2xl font-outfit text-neu-400 uppercase">
-                    {currentDate}
-                  </span>
-                </div>
-                {temperature !== null && (
-                  <div className="flex items-center gap-2">
-                    {getWeatherIcon(weatherCondition)}
-                    <span className="text-2xl font-outfit text-neu-100">
-                      {temperature}°C
-                    </span>
-                  </div>
-                )}
+          <div className="max-w-5xl mx-auto space-y-8">
+            <DashboardHeader
+              dayOfWeek={dayOfWeek}
+              currentDate={currentDate}
+              temperature={temperature}
+              weatherCondition={weatherCondition}
+              onAddTask={handleAddTask}
+              onAddSection={handleAddSection}
+            />
+
+            <div className="bg-neu-800 rounded-xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
+              <TaskProgress
+                completionPercentage={completionPercentage}
+                completedPosition={completedPosition}
+                onCompletedPositionChange={setCompletedPosition}
+                onClearCompleted={handleClearCompleted}
+              />
+
+              {/* Tasks Box */}
+              <div className="bg-neu-800 rounded-xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
+                <TaskList
+                  items={filteredAndSortedItems}
+                  isLoading={isLoading}
+                  highlightNextTask={highlightNextTask}
+                  editingTask={editingTask}
+                  onTaskCompletion={handleTaskCompletion}
+                  onTaskSelect={setSelectedTask}
+                  onTaskEdit={setEditingTask}
+                  onTaskDelete={handleDeleteTask}
+                  onSectionSelect={setSelectedSection}
+                  onSectionDelete={handleDeleteSection}
+                  onMoveItem={moveItem}
+                  isTask={isTask}
+                />
               </div>
-
-              {/* Quick Actions */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div
-                  className={`p-6 bg-neu-700 rounded-lg hover:bg-neu-600 transition-colors ${
-                    focusedInput === "task" ? "ring-2 ring-pri-blue-500" : ""
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-pri-blue-700 rounded-lg flex items-center justify-center">
-                      <AddSquare
-                        size={32}
-                        color="#B8DCF6"
-                        autoSize={false}
-                        iconStyle="Broken"
-                      />
-                    </div>
-                    <div className="text-left font-outfit text-md flex-1">
-                      <input
-                        ref={taskInputRef}
-                        type="text"
-                        value={newTaskTitle}
-                        onChange={(e) => setNewTaskTitle(e.target.value)}
-                        onKeyDown={handleKeyPress}
-                        onFocus={() => setFocusedInput("task")}
-                        onBlur={() => setFocusedInput(null)}
-                        placeholder="Add new task..."
-                        className="w-full bg-transparent font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                        autoFocus
-                      />
-                      <p className="text-neu-400 text-sm font-outfit mt-2">
-                        Press Enter to add
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className={`p-6 bg-neu-700 rounded-lg hover:bg-neu-600 transition-colors ${
-                    focusedInput === "section" ? "ring-2 ring-pri-blue-500" : ""
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className="p-2 bg-pri-pur-500 rounded-lg flex items-center justify-center">
-                      <ClockSquare
-                        size={32}
-                        color="#B0B2E6"
-                        autoSize={false}
-                        iconStyle="Broken"
-                      />
-                    </div>
-                    <div className="flex-1 ml-4 mr-4">
-                      <div className="flex items-center text-md font-outfit">
-                        <input
-                          ref={sectionInputRef}
-                          type="text"
-                          value={newSectionTitle}
-                          onChange={(e) => setNewSectionTitle(e.target.value)}
-                          onKeyDown={handleSectionKeyPress}
-                          onFocus={() => setFocusedInput("section")}
-                          onBlur={() => setFocusedInput(null)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          placeholder="Add a section..."
-                          className="flex-1 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-                        />
-                        <input
-                          type="text"
-                          value={newSectionTime}
-                          onChange={(e) => {
-                            const cleaned = e.target.value.replace(
-                              /[^0-9.,:;-]/g,
-                              ""
-                            );
-                            if (cleaned.length <= 5) {
-                              setNewSectionTime(cleaned);
-                            }
-                          }}
-                          onKeyDown={handleSectionKeyPress}
-                          placeholder="09.00"
-                          maxLength={5}
-                          className="w-16 bg-transparent text-md font-semibold text-neu-100 placeholder-neu-400 focus:outline-none text-right"
-                        />
-                      </div>
-                      <p className="text-neu-400 font-outfit text-sm mt-2">
-                        Press Enter to add
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Tasks Box */}
-            <div className="bg-neu-800 rounded-xl p-6 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-8">
-                  <h2 className="text-2xl font-outfit font-semibold text-neu-100">
-                    Today
-                  </h2>
-                  <div className="hidden 2xl:flex items-center gap-2">
-                    <div className="w-[300px] h-2 bg-sup-suc-900 rounded-full">
-                      <div
-                        className="h-full bg-sup-suc-500 rounded-full"
-                        style={{
-                          width: `${completionPercentage}%`,
-                        }}
-                      ></div>
-                    </div>
-                    <span className="text-base font-outfit text-neu-400">
-                      {completionPercentage}%
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="relative" ref={sortMenuRef}>
-                    <button
-                      onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-                      className="px-4 py-2 bg-neu-700 text-neu-400 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
-                    >
-                      <Sort
-                        size={20}
-                        color="currentColor"
-                        autoSize={false}
-                        iconStyle="Broken"
-                      />
-                      <span className="text-base font-outfit">Sort</span>
-                    </button>
-                    {isSortMenuOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-neu-700 rounded-lg shadow-lg z-50">
-                        <div className="py-1">
-                          <button
-                            onClick={() => {
-                              setCompletedPosition("top");
-                              localStorage.setItem("completedPosition", "top");
-                              setIsSortMenuOpen(false);
-                            }}
-                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                              completedPosition === "top"
-                                ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-600"
-                            }`}
-                          >
-                            <AlignTop
-                              size={20}
-                              color="currentColor"
-                              autoSize={false}
-                              iconStyle="Broken"
-                            />
-                            <span>Completed on Top</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setCompletedPosition("bottom");
-                              localStorage.setItem(
-                                "completedPosition",
-                                "bottom"
-                              );
-                              setIsSortMenuOpen(false);
-                            }}
-                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                              completedPosition === "bottom"
-                                ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-600"
-                            }`}
-                          >
-                            <AlignBottom
-                              size={20}
-                              color="currentColor"
-                              autoSize={false}
-                              iconStyle="Broken"
-                            />
-                            <span>Completed on Bottom</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setCompletedPosition("mixed");
-                              localStorage.setItem(
-                                "completedPosition",
-                                "mixed"
-                              );
-                              setIsSortMenuOpen(false);
-                            }}
-                            className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
-                              completedPosition === "mixed"
-                                ? "text-pri-blue-500"
-                                : "text-neu-400 hover:bg-neu-600"
-                            }`}
-                          >
-                            <AlignVerticalCenter
-                              size={20}
-                              color="currentColor"
-                              autoSize={false}
-                              iconStyle="Broken"
-                            />
-                            <span>Custom Order</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleClearCompleted}
-                    className="px-4 py-2 bg-neu-700 text-neu-400 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
-                  >
-                    <TrashBinTrash
-                      size={20}
-                      color="currentColor"
-                      autoSize={false}
-                    />
-                    <span className="text-base font-outfit">
-                      Clear completed
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Tasks List */}
-              {isLoading ? (
-                <div className="text-neu-400 text-md">Loading tasks...</div>
-              ) : (
-                <div className="space-y-4">
-                  {/* List of items */}
-                  <div className="space-y-4">
-                    {filteredAndSortedItems.length === 0 ? (
-                      <div className="space-y-6">
-                        <div className="text-center text-neu-400 py-8">
-                          <p className="text-lg mb-2">
-                            There are no tasks for today
-                          </p>
-                          <p className="text-sm">Add a task to get started</p>
-                        </div>
-                        <div className="p-4 rounded-lg border-2 border-dashed border-neu-700 flex items-center justify-between">
-                          <div className="flex items-center space-x-4 flex-1">
-                            <div className="flex items-center justify-center h-full">
-                              <div className="w-8 h-8 rounded-full border-2 border-dashed border-neu-600"></div>
-                            </div>
-                            <div className="flex-1">
-                              <div className="h-6 w-48 bg-neu-700 rounded animate-pulse"></div>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 rounded bg-neu-700"></div>
-                            <div className="w-8 h-8 rounded bg-neu-700"></div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      filteredAndSortedItems.map((item, index) => {
-                        const isTaskItem = isTask(item);
-                        const isHiding = hidingItems.has(item.id);
-
-                        return (
-                          <div
-                            key={item.id}
-                            className={`relative task-item ${
-                              isHiding ? "hiding" : "showing"
-                            }`}
-                          >
-                            <DraggableItem
-                              item={item}
-                              index={index}
-                              moveItem={moveItem}
-                              isTaskItem={isTaskItem}
-                              renderTask={renderTask}
-                              renderSection={renderSection}
-                              isTask={isTask}
-                            />
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -9,6 +9,8 @@ import {
   where,
   getDocs,
   writeBatch,
+  serverTimestamp,
+  orderBy,
 } from "firebase/firestore";
 import type {
   Task,
@@ -17,10 +19,137 @@ import type {
   SectionItem,
 } from "../types/task";
 
+// Add Firestore operation tracker
+type FirestoreOperation = {
+  type: "read" | "write";
+  collection: string;
+  operation: string;
+  timestamp: number;
+  details?: any;
+};
+
+class FirestoreTracker {
+  private static instance: FirestoreTracker;
+  private operations: FirestoreOperation[] = [];
+  private startTime: number;
+  private dailyStats: {
+    reads: number;
+    writes: number;
+    lastReset: number;
+  };
+
+  private constructor() {
+    this.startTime = Date.now();
+    this.dailyStats = {
+      reads: 0,
+      writes: 0,
+      lastReset: Date.now(),
+    };
+  }
+
+  static getInstance(): FirestoreTracker {
+    if (!FirestoreTracker.instance) {
+      FirestoreTracker.instance = new FirestoreTracker();
+    }
+    return FirestoreTracker.instance;
+  }
+
+  trackOperation(operation: Omit<FirestoreOperation, "timestamp">) {
+    const timestamp = Date.now();
+    this.operations.push({ ...operation, timestamp });
+
+    // Update daily stats
+    if (operation.type === "read") {
+      this.dailyStats.reads++;
+    } else {
+      this.dailyStats.writes++;
+    }
+
+    // Check if we need to reset daily stats (every 24 hours)
+    if (timestamp - this.dailyStats.lastReset > 24 * 60 * 60 * 1000) {
+      this.dailyStats = {
+        reads: 0,
+        writes: 0,
+        lastReset: timestamp,
+      };
+    }
+
+    // Log warning if we're approaching limits
+    this.checkLimits();
+  }
+
+  private checkLimits() {
+    const DAILY_READ_LIMIT = 50000; // Firestore free tier limit
+    const DAILY_WRITE_LIMIT = 20000; // Firestore free tier limit
+    const WARNING_THRESHOLD = 0.8; // 80% of limit
+
+    if (this.dailyStats.reads > DAILY_READ_LIMIT * WARNING_THRESHOLD) {
+      console.warn(
+        `⚠️ Approaching daily read limit: ${this.dailyStats.reads}/${DAILY_READ_LIMIT}`
+      );
+    }
+    if (this.dailyStats.writes > DAILY_WRITE_LIMIT * WARNING_THRESHOLD) {
+      console.warn(
+        `⚠️ Approaching daily write limit: ${this.dailyStats.writes}/${DAILY_WRITE_LIMIT}`
+      );
+    }
+  }
+
+  getStats() {
+    const now = Date.now();
+    const uptime = now - this.startTime;
+    const hours = Math.floor(uptime / (1000 * 60 * 60));
+    const minutes = Math.floor((uptime % (1000 * 60 * 60)) / (1000 * 60));
+
+    return {
+      uptime: `${hours}h ${minutes}m`,
+      dailyStats: this.dailyStats,
+      totalOperations: this.operations.length,
+      operationsByType: this.operations.reduce((acc, op) => {
+        acc[op.type] = (acc[op.type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+      operationsByCollection: this.operations.reduce((acc, op) => {
+        acc[op.collection] = (acc[op.collection] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+    };
+  }
+
+  logStats() {
+    const stats = this.getStats();
+    console.group("📊 Firestore Operations Stats");
+    console.log("Uptime:", stats.uptime);
+    console.log("Daily Stats:", stats.dailyStats);
+    console.log("Total Operations:", stats.totalOperations);
+    console.log("Operations by Type:", stats.operationsByType);
+    console.log("Operations by Collection:", stats.operationsByCollection);
+    console.groupEnd();
+  }
+}
+
+const tracker = FirestoreTracker.getInstance();
+
+// Make tracker accessible globally for stats viewing
+(window as any).tracker = tracker;
+
+// Add periodic stats logging
+setInterval(() => {
+  tracker.logStats();
+}, 5 * 60 * 1000); // Log every 5 minutes
+
 const tasksCollection = "tasks";
 const timestampsCollection = "timestamps";
 const titlesCollection = "titles";
 const sectionsCollection = "sections";
+
+// Add batch operation types
+export type BatchOperation = {
+  type: "task" | "section";
+  operation: "create" | "update" | "delete";
+  data: any;
+  id?: string;
+};
 
 export const taskService = {
   // Create a new task
@@ -28,6 +157,13 @@ export const taskService = {
     userId: string,
     taskData: Omit<Task, "id" | "userId" | "createdAt" | "updatedAt" | "order">
   ): Promise<Task> {
+    tracker.trackOperation({
+      type: "write",
+      collection: tasksCollection,
+      operation: "create",
+      details: taskData,
+    });
+
     console.log("Creating task for user:", userId);
     console.log("Task data:", taskData);
 
@@ -80,6 +216,13 @@ export const taskService = {
 
   // Get all tasks for a user
   async getUserTasks(userId: string): Promise<Task[]> {
+    tracker.trackOperation({
+      type: "read",
+      collection: tasksCollection,
+      operation: "getAll",
+      details: { userId },
+    });
+
     if (!userId) {
       console.error("getUserTasks called with no userId");
       return [];
@@ -114,6 +257,13 @@ export const taskService = {
 
   // Update a task
   async updateTask(taskId: string, updates: Partial<Task>): Promise<void> {
+    tracker.trackOperation({
+      type: "write",
+      collection: tasksCollection,
+      operation: "update",
+      details: { taskId, updates },
+    });
+
     try {
       const taskRef = doc(db, tasksCollection, taskId);
       const now = new Date().toISOString();
@@ -150,6 +300,13 @@ export const taskService = {
 
   // Delete a task
   async deleteTask(taskId: string): Promise<void> {
+    tracker.trackOperation({
+      type: "write",
+      collection: tasksCollection,
+      operation: "delete",
+      details: { taskId },
+    });
+
     const taskRef = doc(db, tasksCollection, taskId);
     await deleteDoc(taskRef);
   },
@@ -166,49 +323,71 @@ export const taskService = {
     });
   },
 
-  async updateTaskOrder(
-    userId: string,
-    taskOrders: { id: string; order: number }[]
-  ): Promise<void> {
+  // Add batch operations
+  async batchOperations(operations: BatchOperation[]) {
+    tracker.trackOperation({
+      type: "write",
+      collection: "batch",
+      operation: "batch",
+      details: { operationCount: operations.length },
+    });
+
     const batch = writeBatch(db);
 
-    taskOrders.forEach(({ id, order }) => {
-      const taskRef = doc(db, tasksCollection, id);
-      batch.update(taskRef, { order, updatedAt: new Date().toISOString() });
-    });
+    for (const op of operations) {
+      const collectionName = op.type === "task" ? "tasks" : "sections";
+
+      switch (op.operation) {
+        case "create":
+          const docRef = doc(collection(db, collectionName));
+          batch.set(docRef, {
+            ...op.data,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          });
+          break;
+
+        case "update":
+          if (!op.id) throw new Error("ID required for update operation");
+          const updateRef = doc(db, collectionName, op.id);
+          batch.update(updateRef, {
+            ...op.data,
+            updatedAt: serverTimestamp(),
+          });
+          break;
+
+        case "delete":
+          if (!op.id) throw new Error("ID required for delete operation");
+          const deleteRef = doc(db, collectionName, op.id);
+          batch.delete(deleteRef);
+          break;
+      }
+    }
 
     await batch.commit();
   },
 
-  async updateTimestampOrder(
-    userId: string,
-    timestampOrders: { id: string; order: number }[]
-  ): Promise<void> {
-    const batch = writeBatch(db);
+  // Modify existing methods to use batch operations where appropriate
+  async updateTaskOrder(tasks: Task[]) {
+    const operations: BatchOperation[] = tasks.map((task) => ({
+      type: "task",
+      operation: "update",
+      id: task.id,
+      data: { order: task.order },
+    }));
 
-    timestampOrders.forEach(({ id, order }) => {
-      const timestampRef = doc(db, "timestamps", id);
-      batch.update(timestampRef, {
-        order,
-        updatedAt: new Date().toISOString(),
-      });
-    });
-
-    await batch.commit();
+    await this.batchOperations(operations);
   },
 
-  async updateTitleOrder(
-    userId: string,
-    titleOrders: { id: string; order: number }[]
-  ): Promise<void> {
-    const batch = writeBatch(db);
+  async updateSectionOrder(sections: SectionItem[]) {
+    const operations: BatchOperation[] = sections.map((section) => ({
+      type: "section",
+      operation: "update",
+      id: section.id,
+      data: { order: section.order },
+    }));
 
-    titleOrders.forEach(({ id, order }) => {
-      const titleRef = doc(db, "titles", id);
-      batch.update(titleRef, { order, updatedAt: new Date().toISOString() });
-    });
-
-    await batch.commit();
+    await this.batchOperations(operations);
   },
 
   // Create a new timestamp
@@ -485,24 +664,6 @@ export const taskService = {
       updatedAt: now,
     });
     console.log("Section updated successfully");
-  },
-
-  // Update section order
-  async updateSectionOrder(
-    userId: string,
-    sectionOrders: { id: string; order: number }[]
-  ): Promise<void> {
-    const batch = writeBatch(db);
-
-    sectionOrders.forEach(({ id, order }) => {
-      const sectionRef = doc(db, sectionsCollection, id);
-      batch.update(sectionRef, {
-        order,
-        updatedAt: new Date().toISOString(),
-      });
-    });
-
-    await batch.commit();
   },
 
   // Add new function to move incomplete tasks to next day

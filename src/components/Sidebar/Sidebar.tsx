@@ -3,14 +3,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLists } from "../../contexts/ListContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  ClipboardCheck,
-  HeartShine,
-  StarsMinimalistic,
-  Settings,
   SquareAltArrowLeft,
   SquareAltArrowRight,
-  AddSquare,
-  Checklist,
   User,
   Logout,
   Sun,
@@ -19,7 +13,7 @@ import {
   StarShine,
   AltArrowRight,
 } from "solar-icon-set";
-import { CalendarSeven } from "../../assets/icons";
+import { Icon } from "@iconify/react";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 
@@ -39,7 +33,7 @@ const avatars = [
 interface MenuItem {
   id: string;
   label: string;
-  icon: React.ComponentType<{ size: number; color: string }>;
+  icon: () => JSX.Element;
   path: string;
 }
 
@@ -52,11 +46,20 @@ const menuSections: MenuSection[] = [
   {
     title: "Tasks",
     items: [
-      { id: "today", label: "Today", icon: ClipboardCheck, path: "/" },
+      {
+        id: "today",
+        label: "Today",
+        icon: () => (
+          <Icon icon="mingcute:schedule-fill" width={24} height={24} />
+        ),
+        path: "/",
+      },
       {
         id: "next7days",
         label: "Next 7 Days",
-        icon: CalendarSeven,
+        icon: () => (
+          <Icon icon="mingcute:trello-board-fill" width={24} height={24} />
+        ),
         path: "/next7days",
       },
     ],
@@ -64,8 +67,18 @@ const menuSections: MenuSection[] = [
   {
     title: "Progress",
     items: [
-      { id: "habits", label: "Habits", icon: HeartShine, path: "/habits" },
-      { id: "goals", label: "Goals", icon: StarsMinimalistic, path: "/goals" },
+      {
+        id: "habits",
+        label: "Habits",
+        icon: () => <Icon icon="mingcute:heart-fill" width={24} height={24} />,
+        path: "/habits",
+      },
+      {
+        id: "goals",
+        label: "Goals",
+        icon: () => <Icon icon="mingcute:trophy-fill" width={24} height={24} />,
+        path: "/goals",
+      },
     ],
   },
 ];
@@ -307,14 +320,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       : "text-neu-500 hover:bg-neu-700 hover:text-neu-100"
                   }`}
                 >
-                  <item.icon
-                    size={24}
-                    color={
-                      location.pathname === item.path
-                        ? "#f3f4f6"
-                        : "currentColor"
-                    }
-                  />
+                  {item.icon()}
                   {isOpen && <span>{item.label}</span>}
                 </button>
               ))}
@@ -361,8 +367,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           : "text-neu-500 hover:bg-neu-700 hover:text-neu-100"
                       }`}
                     >
-                      <Checklist
-                        size={24}
+                      <Icon
+                        icon="mingcute:hashtag-fill"
+                        width={24}
+                        height={24}
                         color={
                           location.pathname === `/list/${list.id}`
                             ? "#f3f4f6"
@@ -380,8 +388,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     onClick={() => setIsAddingList(true)}
                     className="w-full flex items-center font-semibold space-x-3 p-3 rounded-lg text-neu-500 hover:bg-neu-700 hover:text-neu-100 border-2 border-dashed border-neu-600 hover:border-neu-500 transition-colors font-outfit"
                   >
-                    <AddSquare size={24} color="currentColor" />
-                    <span>Add List</span>
+                    <Icon
+                      icon="mingcute:add-circle-fill"
+                      width={24}
+                      height={24}
+                    />
+                    <span>Add new list</span>
                   </button>
                 )}
 
@@ -434,7 +446,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
               className="w-full flex items-center text-base font-medium space-x-3 p-3 rounded-md text-neu-400 hover:bg-neu-700 hover:text-neu-100 font-outfit"
             >
-              <Settings size={24} color="currentColor" />
+              <Icon icon="mingcute:settings-3-fill" width={24} height={24} />
               {isOpen && <span>Settings</span>}
             </button>
 
