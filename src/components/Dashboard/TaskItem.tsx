@@ -1,4 +1,5 @@
-import { CheckSquare, Record, Pen, TrashBinTrash } from "solar-icon-set";
+import { CheckSquare, Record } from "solar-icon-set";
+import { Icon } from "@iconify/react";
 import type { Task } from "../../types/task";
 
 interface TaskItemProps {
@@ -69,14 +70,9 @@ export const TaskItem = ({
             }`}
           >
             {task.completed ? (
-              <CheckSquare size={32} color="currentColor" autoSize={false} />
+              <Icon icon="mingcute:choice-line" className="w-8 h-8" />
             ) : (
-              <Record
-                size={32}
-                color="currentColor"
-                autoSize={false}
-                className={isNextTask ? "animate-bounce-subtle" : ""}
-              />
+              <Icon icon="mingcute:square-line" className="w-8 h-8" />
             )}
           </button>
         </div>
@@ -146,7 +142,7 @@ export const TaskItem = ({
               } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
               aria-label={`Edit task "${task.title}"`}
             >
-              <Pen size={24} color="currentColor" autoSize={false} />
+              <Icon icon="mingcute:edit-2-fill" width={24} height={24} />
             </button>
             <button
               onClick={(e) => {
@@ -160,7 +156,7 @@ export const TaskItem = ({
               } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
               aria-label={`Delete task "${task.title}"`}
             >
-              <TrashBinTrash size={24} color="currentColor" autoSize={false} />
+              <Icon icon="mingcute:delete-2-fill" width={24} height={24} />
             </button>
           </div>
         </div>

@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import type { Task, Subtask } from "../../types/task";
-import {
-  Pen,
-  TrashBinTrash,
-  AddSquare,
-  Hashtag,
-  CloseCircle,
-  CheckCircle,
-  Record,
-} from "solar-icon-set";
+import { Icon } from "@iconify/react";
 
 interface TaskModalProps {
   task: Task;
@@ -391,7 +383,10 @@ export function TaskModal({
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3 flex-1">
-              <Pen size={24} color="currentColor" className="text-neu-400" />
+              <Icon
+                icon="mingcute:pencil-3-fill"
+                className="text-neu-400 w-6 h-6"
+              />
               <textarea
                 ref={titleTextareaRef}
                 value={editedTitle}
@@ -440,7 +435,10 @@ export function TaskModal({
                         className="p-1 text-neu-400 hover:text-neu-100 transition-colors"
                         aria-label="Close color picker"
                       >
-                        <CloseCircle size={16} color="currentColor" />
+                        <Icon
+                          icon="mingcute:close-circle-fill"
+                          className="w-6 h-6"
+                        />
                       </button>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
@@ -481,7 +479,7 @@ export function TaskModal({
                 className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center"
                 aria-label="Delete task"
               >
-                <TrashBinTrash size={24} color="currentColor" />
+                <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
               </button>
               <button
                 ref={closeModalButtonRef}
@@ -492,11 +490,7 @@ export function TaskModal({
                 className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center"
                 aria-label="Close modal"
               >
-                <CloseCircle
-                  size={24}
-                  color="currentColor"
-                  iconStyle="Broken"
-                />
+                <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
               </button>
             </div>
           </div>
@@ -505,10 +499,9 @@ export function TaskModal({
           <div className="mt-8" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
-                <Hashtag
-                  size={20}
-                  color="currentColor"
-                  className="text-neu-400"
+                <Icon
+                  icon="mingcute:more-2-fill"
+                  className="text-neu-400 w-5 h-5"
                 />
                 <h3 className="text-md font-medium font-outfit text-neu-200">
                   Subtasks
@@ -524,7 +517,7 @@ export function TaskModal({
             <div className="flex items-center space-x-2 mb-4">
               <div className="flex items-center space-x-2 flex-1 bg-neu-700 rounded-lg px-4 py-2 focus-within:ring-2 focus-within:ring-pri-blue-500">
                 <div className="text-neu-400 flex items-center justify-center">
-                  <AddSquare size={20} color="currentColor" />
+                  <Icon icon="mingcute:add-fill" className="w-5 h-5" />
                 </div>
                 <input
                   ref={subtaskInputRef}
@@ -580,17 +573,12 @@ export function TaskModal({
                       }`}
                     >
                       {subtask.completed ? (
-                        <CheckCircle
-                          size={20}
-                          color="currentColor"
-                          autoSize={false}
+                        <Icon
+                          icon="mingcute:checkbox-fill"
+                          className="w-5 h-5"
                         />
                       ) : (
-                        <Record
-                          size={20}
-                          color="currentColor"
-                          autoSize={false}
-                        />
+                        <Icon icon="mingcute:square-fill" className="w-5 h-5" />
                       )}
                     </button>
                     <span
@@ -611,7 +599,7 @@ export function TaskModal({
                     className="p-1 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center"
                     aria-label={`Delete subtask "${subtask.title}"`}
                   >
-                    <TrashBinTrash size={20} color="currentColor" />
+                    <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
                   </button>
                 </div>
               ))}

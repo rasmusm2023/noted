@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CloseCircle, TrashBinTrash, Pen, ClockCircle } from "solar-icon-set";
+import { Icon } from "@iconify/react";
 import type { SectionItem } from "../../types/task";
 
 const SECTION_COLORS = [
@@ -291,7 +291,10 @@ export const SectionModal: React.FC<SectionModalProps> = ({
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3 flex-1">
-              <Pen size={24} color="currentColor" className="text-neu-400" />
+              <Icon
+                icon="mingcute:pencil-3-fill"
+                className="text-neu-400 w-6 h-6"
+              />
               <textarea
                 ref={titleTextareaRef}
                 value={editedTitle}
@@ -336,7 +339,10 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                         className="p-1 text-neu-400 hover:text-neu-100 transition-colors"
                         aria-label="Close color picker"
                       >
-                        <CloseCircle size={16} color="currentColor" />
+                        <Icon
+                          icon="mingcute:close-circle-fill"
+                          className="w-6 h-6"
+                        />
                       </button>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
@@ -377,7 +383,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                 className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center"
                 aria-label="Delete section"
               >
-                <TrashBinTrash size={24} color="currentColor" />
+                <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
               </button>
               <button
                 ref={closeModalButtonRef}
@@ -388,21 +394,16 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                 className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center"
                 aria-label="Close modal"
               >
-                <CloseCircle
-                  size={24}
-                  color="currentColor"
-                  iconStyle="Broken"
-                />
+                <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
               </button>
             </div>
           </div>
 
           <div className="mb-6">
             <div className="flex items-center space-x-3">
-              <ClockCircle
-                size={24}
-                color="currentColor"
-                className="text-neu-400"
+              <Icon
+                icon="mingcute:alarm-2-fill"
+                className="text-neu-400 w-6 h-6"
               />
               <div className="flex-1">
                 <label className="block text-md font-medium font-outfit text-neu-200 mb-2">

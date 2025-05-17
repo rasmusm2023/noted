@@ -75,12 +75,12 @@ export const TaskItem = ({
           >
             {task.completed ? (
               <Icon
-                icon="mingcute:check-fill"
+                icon="mingcute:choice-line"
                 className="w-full h-full text-white"
               />
             ) : (
               <Icon
-                icon="mingcute:record-fill"
+                icon="mingcute:square-line"
                 className="w-full h-full text-current"
               />
             )}

@@ -68,7 +68,7 @@ export const DashboardHeader = ({
         {temperature !== null && (
           <div className="flex items-center gap-2">
             {getWeatherIcon(weatherCondition)}
-            <span className="text-2xl font-outfit text-neu-100">
+            <span className="text-2xl font-outfit text-neu-400">
               {temperature}°C
             </span>
           </div>

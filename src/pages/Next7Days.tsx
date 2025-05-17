@@ -98,10 +98,10 @@ export function Next7Days() {
   }>({});
   const [selectedDay, setSelectedDay] = useState<number>(0);
   const [completedPosition, setCompletedPosition] = useState<
-    "top" | "bottom" | "custom"
+    "top" | "bottom" | "mixed"
   >(() => {
     const savedPosition = localStorage.getItem("completedPosition");
-    return (savedPosition as "top" | "bottom" | "custom") || "custom";
+    return (savedPosition as "top" | "bottom" | "mixed") || "mixed";
   });
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
@@ -140,6 +140,9 @@ export function Next7Days() {
   // Add offline queue
   const [offlineQueue, setOfflineQueue] = useState<QueuedOperation[]>([]);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Add this near the top with other state declarations
+  const hasLoadedData = useRef(false);
 
   // Add online/offline detection
   useEffect(() => {
@@ -237,6 +240,9 @@ export function Next7Days() {
   // Initialize the next 7 days
   useEffect(() => {
     const today = new Date();
+    // Set time to midnight in local timezone
+    today.setHours(0, 0, 0, 0);
+
     const next7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
@@ -246,55 +252,152 @@ export function Next7Days() {
         items: [],
       };
     });
+    console.log(
+      "Initialized days:",
+      next7Days.map((day) => day.date.toISOString())
+    );
     setDays(next7Days);
   }, []);
 
-  // Load tasks and sections for each day
-  const loadData = async () => {
-    if (!currentUser) {
+  // Define processData outside useEffect so it can be reused
+  const processData = async () => {
+    if (!currentUser || days.length === 0) {
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
+      console.log("Fetching tasks and sections...");
       const tasks = await taskService.getUserTasks(currentUser.uid);
       const sections = await taskService.getUserSections(currentUser.uid);
+
+      // Add detailed task logging
+      console.log(
+        "Detailed task data:",
+        tasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          date: task.date,
+          scheduledTime: task.scheduledTime,
+          type: task.type,
+          completed: task.completed,
+          order: task.order,
+          userId: task.userId,
+          createdAt: task.createdAt,
+          updatedAt: task.updatedAt,
+        }))
+      );
+
+      console.log("Fetched tasks:", tasks);
+      console.log("Fetched sections:", sections);
 
       // Group tasks by day
       const tasksByDay = tasks.reduce(
         (acc: Record<number, Task[]>, task: Task) => {
-          const taskDate = new Date(task.date);
+          console.log("Processing task:", task);
+          // Parse the date from the task's scheduledTime field
+          const taskDate = parseDateString(task.scheduledTime);
+          // Reset time part for comparison in local timezone
+          taskDate.setHours(0, 0, 0, 0);
+
+          console.log(
+            "Days array:",
+            days.map((day) => ({
+              date: day.date.toISOString(),
+              dateLocal: day.date.toLocaleString(),
+            }))
+          );
+
           const dayIndex = days.findIndex((day) => {
             const dayDate = new Date(day.date);
-            return taskDate.toDateString() === dayDate.toDateString();
+            // Reset time part for comparison in local timezone
+            dayDate.setHours(0, 0, 0, 0);
+
+            const taskDateStr = taskDate.toISOString().split("T")[0];
+            const dayDateStr = dayDate.toISOString().split("T")[0];
+
+            console.log("Comparing dates:", {
+              taskDateStr,
+              dayDateStr,
+              taskDateLocal: taskDate.toLocaleString(),
+              dayDateLocal: dayDate.toLocaleString(),
+            });
+
+            return taskDateStr === dayDateStr;
           });
+
+          console.log(
+            "Task date:",
+            taskDate.toISOString(),
+            "Day index:",
+            dayIndex
+          );
           if (dayIndex !== -1) {
             if (!acc[dayIndex]) {
               acc[dayIndex] = [];
             }
-            acc[dayIndex].push(task);
+            // Ensure task has all required properties
+            const taskWithType: Task = {
+              ...task,
+              type: "task" as const,
+              description: task.description || "",
+              scheduledTime: task.scheduledTime,
+              completed: task.completed || false,
+              date: task.scheduledTime, // Use scheduledTime as the date
+              userId: task.userId,
+              createdAt: task.createdAt,
+              updatedAt: task.updatedAt,
+              order: task.order || 0,
+            };
+            console.log("Adding task to day:", dayIndex, taskWithType);
+            acc[dayIndex].push(taskWithType);
           }
           return acc;
         },
         {}
       );
+      console.log("Tasks by day:", tasksByDay);
 
-      // Put all sections in the first day
+      // Put all sections in the first day and ensure they have the correct type
       const sectionsByDay: Record<number, SectionItemType[]> = {
-        0: sections,
+        0: sections.map((section) => ({
+          ...section,
+          type: "section" as const,
+          userId: section.userId,
+          createdAt: section.createdAt,
+          updatedAt: section.updatedAt,
+          order: section.order || 0,
+        })),
       };
+      console.log("Sections by day:", sectionsByDay);
 
       // Update days with tasks and sections
-      setDays((prevDays) =>
-        prevDays.map((day, index) => ({
-          ...day,
-          items: [
-            ...(sectionsByDay[index] || []),
-            ...(tasksByDay[index] || []),
-          ],
-        }))
-      );
+      setDays((prevDays) => {
+        const newDays = prevDays.map((day, index) => {
+          const updatedDay = {
+            ...day,
+            items: [
+              ...(sectionsByDay[index] || []),
+              ...(tasksByDay[index] || []),
+            ],
+          };
+          console.log(
+            `Day ${index} items:`,
+            updatedDay.items.map((item) => ({
+              id: item.id,
+              type: item.type,
+              title: "title" in item ? item.title : "section",
+              date: "date" in item ? item.date : "N/A",
+            }))
+          );
+          return updatedDay;
+        });
+        console.log("Updated days:", newDays);
+        return newDays;
+      });
+
+      hasLoadedData.current = true;
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -302,27 +405,44 @@ export function Next7Days() {
     }
   };
 
-  // Call loadData when component mounts and when user changes
+  // Process tasks and sections after days are initialized
   useEffect(() => {
-    loadData();
-  }, [currentUser]);
+    if (!currentUser || days.length === 0 || hasLoadedData.current) {
+      setIsLoading(false);
+      return;
+    }
+    processData();
+  }, [currentUser, days.length]); // Add days.length to dependencies to ensure we process when days are initialized
 
-  // Handle click outside of sort menu
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        sortMenuRef.current &&
-        !sortMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsSortMenuOpen(false);
-      }
-    };
+  // Add a function to reload data
+  const reloadData = () => {
+    hasLoadedData.current = false;
+    processData();
+  };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // Add this function before loadData
+  const parseDateString = (dateStr: string): Date => {
+    console.log("Parsing date string:", dateStr);
+    // Handle format "DD/MM/YYYY, HH:mm:ss"
+    const [datePart, timePart] = dateStr.split(", ");
+    console.log("Date parts:", { datePart, timePart });
+    const [day, month, year] = datePart.split("/");
+    const [hours, minutes] = timePart.split(":");
+    console.log("Parsed components:", { day, month, year, hours, minutes });
+
+    // Create date in local timezone
+    const date = new Date();
+    date.setFullYear(parseInt(year));
+    date.setMonth(parseInt(month) - 1); // Months are 0-based
+    date.setDate(parseInt(day));
+    date.setHours(parseInt(hours));
+    date.setMinutes(parseInt(minutes));
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    console.log("Parsed date:", date.toISOString());
+    return date;
+  };
 
   const isTask = (item: ListItem): item is Task => {
     return item.type === "task";
@@ -1171,7 +1291,7 @@ export function Next7Days() {
                   isLoading={isLoading}
                   hidingItems={hidingItems}
                   onAddTask={handleAddTask}
-                  onSectionAdded={() => loadData()}
+                  onSectionAdded={reloadData}
                   moveItem={moveItem}
                   renderTask={renderTask}
                   renderSection={renderSection}

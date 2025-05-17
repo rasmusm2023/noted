@@ -1,4 +1,4 @@
-import { AddSquare, ClockSquare } from "solar-icon-set";
+import { Icon } from "@iconify/react";
 import { useRef, useState } from "react";
 
 interface QuickActionsProps {
@@ -41,9 +41,14 @@ export const QuickActions = ({
     if (e.key === "Enter") {
       e.preventDefault();
       if (newSectionTitle.trim() && newSectionTime.trim()) {
-        onAddSection(newSectionTitle.trim(), newSectionTime.trim());
+        // First format the time
+        const formattedTime = formatTimeFromInput(newSectionTime);
+        // Then send the formatted time to create the section
+        onAddSection(newSectionTitle.trim(), formattedTime);
+        // Finally clear both inputs
         setNewSectionTitle("");
         setNewSectionTime("");
+        // Focus back on the section input
         if (sectionInputRef.current) {
           sectionInputRef.current.focus();
         }
@@ -93,6 +98,16 @@ export const QuickActions = ({
     }
   };
 
+  const handleTimeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    // Only allow numbers and specific symbols
+    const cleaned = input.replace(/[^0-9.,:;-]/g, "");
+
+    if (cleaned.length <= 5) {
+      setNewSectionTime(cleaned);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div
@@ -102,11 +117,11 @@ export const QuickActions = ({
       >
         <div className="flex items-center space-x-4">
           <div className="p-2 bg-pri-blue-700 rounded-lg flex items-center justify-center">
-            <AddSquare
-              size={32}
+            <Icon
+              icon="mingcute:add-fill"
+              width={32}
+              height={32}
               color="#B8DCF6"
-              autoSize={false}
-              iconStyle="Broken"
             />
           </div>
           <div className="text-left font-outfit text-md flex-1">
@@ -136,11 +151,11 @@ export const QuickActions = ({
       >
         <div className="flex items-center">
           <div className="p-2 bg-pri-pur-500 rounded-lg flex items-center justify-center">
-            <ClockSquare
-              size={32}
+            <Icon
+              icon="mingcute:dividing-line-fill"
+              width={32}
+              height={32}
               color="#B0B2E6"
-              autoSize={false}
-              iconStyle="Broken"
             />
           </div>
           <div className="flex-1 ml-4 mr-4">
@@ -160,12 +175,7 @@ export const QuickActions = ({
               <input
                 type="text"
                 value={newSectionTime}
-                onChange={(e) => {
-                  const formatted = formatTimeFromInput(e.target.value);
-                  if (formatted.length <= 5) {
-                    setNewSectionTime(formatted);
-                  }
-                }}
+                onChange={handleTimeInput}
                 onKeyDown={handleSectionKeyPress}
                 placeholder="09.00"
                 maxLength={5}

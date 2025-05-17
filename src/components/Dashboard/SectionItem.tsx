@@ -1,4 +1,4 @@
-import { Pen, TrashBinTrash } from "solar-icon-set";
+import { Icon } from "@iconify/react";
 import type { SectionItem as SectionItemType } from "../../types/task";
 
 interface SectionItemProps {
@@ -46,7 +46,7 @@ export const SectionItem = ({
           className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
           aria-label={`Edit section "${section.text}"`}
         >
-          <Pen size={24} color="currentColor" autoSize={false} />
+          <Icon icon="mingcute:edit-2-fill" width={24} height={24} />
         </button>
         <button
           onClick={(e) => {
@@ -56,7 +56,7 @@ export const SectionItem = ({
           className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
           aria-label={`Delete section "${section.text}"`}
         >
-          <TrashBinTrash size={24} color="currentColor" autoSize={false} />
+          <Icon icon="mingcute:delete-2-fill" width={24} height={24} />
         </button>
       </div>
     </div>

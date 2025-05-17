@@ -2,18 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
 import type { Task, SectionItem } from "../types/task";
-import {
-  TrashBinTrash,
-  Pen,
-  CheckSquare,
-  Record,
-  AddSquare,
-  ClockSquare,
-  Sort,
-  AlignBottom,
-  AlignTop,
-  AlignVerticalCenter,
-} from "solar-icon-set";
+import { TrashBinTrash, Pen, CheckSquare, Record } from "solar-icon-set";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
 import { SectionModal } from "../components/SectionModal/SectionModal";
@@ -24,7 +13,6 @@ import { PageTransition } from "../components/PageTransition";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
 import { TaskProgress } from "../components/Dashboard/TaskProgress";
-import { QuickActions } from "../components/Dashboard/QuickActions";
 import { TaskList } from "../components/Dashboard/TaskList";
 
 // Import weather icons
@@ -606,6 +594,8 @@ export function Dashboard() {
     }
 
     try {
+      console.log("Creating new task:", { title, description });
+
       // Add today's date at noon for the new task
       const today = new Date();
       today.setHours(12, 0, 0, 0);
@@ -618,7 +608,9 @@ export function Dashboard() {
         date: today.toISOString(),
       });
 
+      console.log("Task created successfully:", newTask);
       setItems((prevItems) => [newTask, ...prevItems]);
+      console.log("Updated items state with new task");
     } catch (error) {
       console.error("Error creating task:", error);
     }
@@ -627,8 +619,13 @@ export function Dashboard() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
+      console.log("Enter key pressed, adding task:", {
+        title: newTaskTitle,
+        description: newTaskDescription,
+      });
       handleAddTask(newTaskTitle, newTaskDescription);
     } else if (e.key === "Escape") {
+      console.log("Escape key pressed, clearing task inputs");
       setNewTaskTitle("");
       setNewTaskDescription("");
     }
@@ -877,13 +874,6 @@ export function Dashboard() {
     }
   };
 
-  // Add useEffect to monitor state changes
-  useEffect(() => {
-    console.log("State Changed:", {
-      items: items.map((item) => ({ id: item.id, order: item.order })),
-    });
-  }, [items]);
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -952,13 +942,6 @@ export function Dashboard() {
     }
   };
 
-  // Add debug logging for allItems
-  useEffect(() => {
-    console.log("Current state:", {
-      items: items,
-    });
-  }, [items]);
-
   // Add handleEditSection function
   const handleEditSection = async (
     sectionId: string,
@@ -977,29 +960,6 @@ export function Dashboard() {
       console.error("Error updating section:", error);
     }
   };
-
-  // Add useEffect for handling click events
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-
-      // Only handle non-input clicks at the document level
-      if (target.tagName !== "INPUT") {
-        console.log("Click event:", {
-          target: target.tagName,
-          className: target.className,
-          isInput: target.tagName === "INPUT",
-          eventPhase: e.eventPhase,
-          currentTarget: e.currentTarget as HTMLElement,
-        });
-      }
-    };
-
-    document.addEventListener("click", handleClick, false);
-    return () => {
-      document.removeEventListener("click", handleClick, false);
-    };
-  }, []);
 
   // Update the input click handler
   const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
@@ -1580,7 +1540,7 @@ export function Dashboard() {
               />
 
               {/* Tasks Box */}
-              <div className="bg-neu-800 rounded-xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
+              <div className="bg-neu-800 rounded-xl pt-8 pb-8">
                 <TaskList
                   items={filteredAndSortedItems}
                   isLoading={isLoading}
