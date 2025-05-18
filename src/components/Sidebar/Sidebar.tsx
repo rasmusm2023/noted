@@ -267,11 +267,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     <aside
       className={`${
         isOpen ? "w-72" : "w-24"
-      } bg-neu-800 transition-all duration-300 ease-in-out relative`}
+      } bg-neu-whi-100 border-r border-neu-gre-300 transition-all duration-300 ease-in-out relative`}
     >
       <div className="h-full flex flex-col">
         {/* Logo and Toggle */}
-        <div className="p-4 flex items-center justify-between border-b border-neu-700">
+        <div className="p-4 flex items-center justify-between border-b border-neu-gre-300">
           {isOpen ? (
             <img
               src="/assets/logos/tidori-logo.png"
@@ -287,7 +287,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-md hover:bg-neu-700 hover:text-neu-400 text-neu-600 flex items-center justify-center"
+            className="p-2 rounded-md hover:bg-neu-gre-100 hover:text-neu-gre-700 text-neu-gre-500 flex items-center justify-center"
           >
             {isOpen ? (
               <SquareAltArrowLeft
@@ -306,149 +306,119 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
-          {menuSections.map((section, index) => (
-            <div key={section.title} className="space-y-2">
+        <nav className="flex-1 overflow-y-auto py-4">
+          <div className="px-4 space-y-6">
+            {/* Tasks Section */}
+            <div className="space-y-1">
               {isOpen && (
-                <h2 className="px-3 text-sm font-bold text-neu-500 uppercase tracking-wider font-outfit">
-                  {section.title}
+                <h2 className="text-sm font-medium text-neu-gre-600 mb-2">
+                  Tasks
                 </h2>
               )}
-              {section.items.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`w-full flex items-center font-semibold space-x-3 p-3 rounded-md ${
-                    location.pathname === item.path
-                      ? "bg-pri-blue-500 text-neu-100"
-                      : "text-neu-500 hover:bg-neu-700 hover:text-neu-100"
-                  }`}
-                >
-                  {item.icon()}
-                  {isOpen && <span>{item.label}</span>}
-                </button>
-              ))}
-              {index < menuSections.length - 1 && (
-                <div className="h-px bg-neu-700 my-4" />
-              )}
+              <button
+                onClick={() => navigate("/")}
+                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                  location.pathname === "/"
+                    ? "bg-neu-gre-100 text-neu-gre-900"
+                    : ""
+                }`}
+              >
+                <Icon icon="mingcute:home-2-fill" width={20} height={20} />
+                {isOpen && <span>Home</span>}
+              </button>
+
+              <button
+                onClick={() => navigate("/next7days")}
+                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                  location.pathname === "/next7days"
+                    ? "bg-neu-gre-100 text-neu-gre-900"
+                    : ""
+                }`}
+              >
+                <Icon icon="mingcute:calendar-fill" width={20} height={20} />
+                {isOpen && <span>Next 7 Days</span>}
+              </button>
             </div>
-          ))}
 
-          {/* Lists Section */}
-          <div className="space-y-2">
-            <div className="h-px bg-neu-700 mb-4" />
-            {isOpen && (
-              <h2 className="px-3 text-sm font-bold text-neu-500 uppercase tracking-wider font-outfit">
-                Lists
-              </h2>
-            )}
+            {/* Progress Section */}
+            <div className="space-y-1">
+              {isOpen && (
+                <h2 className="text-sm font-medium text-neu-gre-600 mb-2">
+                  Progress
+                </h2>
+              )}
+              <button
+                onClick={() => navigate("/habits")}
+                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                  location.pathname === "/habits"
+                    ? "bg-neu-gre-100 text-neu-gre-900"
+                    : ""
+                }`}
+              >
+                <Icon icon="mingcute:heart-fill" width={20} height={20} />
+                {isOpen && <span>Habits</span>}
+              </button>
 
-            {/* Error Message */}
-            {error && (
-              <div className="px-3 py-2 bg-sup-err-400 text-sup-err-100 rounded-md text-sm">
-                {error}
+              <button
+                onClick={() => navigate("/goals")}
+                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                  location.pathname === "/goals"
+                    ? "bg-neu-gre-100 text-neu-gre-900"
+                    : ""
+                }`}
+              >
+                <Icon icon="mingcute:star-fill" width={20} height={20} />
+                {isOpen && <span>Goals</span>}
+              </button>
+            </div>
+
+            {/* Lists Section */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between mb-2">
+                {isOpen && (
+                  <h2 className="text-sm font-medium text-neu-gre-600">
+                    Lists
+                  </h2>
+                )}
                 <button
-                  onClick={clearError}
-                  className="ml-2 text-sup-err-100 hover:text-sup-err-200"
+                  onClick={() => setIsAddingList(true)}
+                  className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700"
                 >
-                  ×
+                  <Icon icon="mingcute:add-fill" width={20} height={20} />
                 </button>
               </div>
-            )}
 
-            {/* Custom Lists */}
-            {loading ? (
-              <div className="px-3 text-neu-500">Loading lists...</div>
-            ) : (
-              <>
+              {/* Lists */}
+              <div className="space-y-1">
                 {lists.map((list) => (
-                  <div key={list.id} className="group flex items-center">
-                    <button
-                      onClick={() => handleNavigation(`/list/${list.id}`)}
-                      className={`flex-1 flex items-center font-semibold space-x-3 p-3 rounded-md ${
-                        location.pathname === `/list/${list.id}`
-                          ? "bg-pri-blue-500 text-neu-100"
-                          : "text-neu-500 hover:bg-neu-700 hover:text-neu-100"
-                      }`}
-                    >
-                      <Icon
-                        icon="mingcute:hashtag-fill"
-                        width={24}
-                        height={24}
-                        color={
-                          location.pathname === `/list/${list.id}`
-                            ? "#f3f4f6"
-                            : "currentColor"
-                        }
-                      />
-                      {isOpen && <span>{list.name}</span>}
-                    </button>
-                  </div>
-                ))}
-
-                {/* Add List Button */}
-                {isOpen && !isAddingList && (
                   <button
-                    onClick={() => setIsAddingList(true)}
-                    className="w-full flex items-center font-semibold space-x-3 p-3 rounded-lg text-neu-500 hover:bg-neu-700 hover:text-neu-100 border-2 border-dashed border-neu-600 hover:border-neu-500 transition-colors font-outfit"
+                    key={list.id}
+                    onClick={() => navigate(`/list/${list.id}`)}
+                    className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                      location.pathname === `/list/${list.id}`
+                        ? "bg-neu-gre-100 text-neu-gre-900"
+                        : ""
+                    }`}
                   >
                     <Icon
-                      icon="mingcute:add-circle-fill"
-                      width={24}
-                      height={24}
+                      icon="mingcute:minimize-line"
+                      width={16}
+                      height={16}
                     />
-                    <span>Add new list</span>
+                    {isOpen && <span>{list.name}</span>}
                   </button>
-                )}
-
-                {/* Add List Input */}
-                {isOpen && isAddingList && (
-                  <div className="flex flex-col space-y-2 p-2">
-                    <input
-                      type="text"
-                      value={newListName}
-                      onChange={(e) => setNewListName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleAddList();
-                        if (e.key === "Escape") {
-                          setIsAddingList(false);
-                          setNewListName("");
-                        }
-                      }}
-                      placeholder="List name..."
-                      className="w-full px-4 py-2 bg-neu-800 text-neu-100 rounded-lg border-2 border-neu-600 placeholder-neu-600 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent font-outfit"
-                      autoFocus
-                    />
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={handleAddList}
-                        className="flex-1 px-4 py-2 text-neu-100 bg-pri-blue-500 rounded-lg hover:bg-pri-blue-600 transition-colors font-outfit"
-                      >
-                        Add
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsAddingList(false);
-                          setNewListName("");
-                        }}
-                        className="flex-1 px-4 py-2 text-neu-100 bg-neu-700 rounded-lg hover:bg-neu-600 transition-colors font-outfit"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+                ))}
+              </div>
+            </div>
           </div>
         </nav>
 
-        {/* Settings Button */}
+        {/* Settings */}
         <div className="px-4 pb-4">
           <div className="relative" ref={settingsMenuRef}>
             <button
               onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
-              className="w-full flex items-center text-base font-medium space-x-3 p-3 rounded-md text-neu-400 hover:bg-neu-700 hover:text-neu-100 font-outfit"
+              className="w-full flex items-center text-base font-medium space-x-3 p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit"
             >
               <Icon icon="mingcute:settings-3-fill" width={24} height={24} />
               {isOpen && <span>Settings</span>}
@@ -456,14 +426,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
             {/* Settings Dropdown Menu */}
             {isSettingsMenuOpen && (
-              <div className="absolute bottom-full left-full ml-2 w-48 bg-neu-800 rounded-lg shadow-lg border border-neu-700 z-50">
+              <div className="absolute bottom-full left-full ml-2 w-48 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 z-50">
                 <div className="py-1">
                   <button
                     onClick={() => {
                       setIsDarkMode(!isDarkMode);
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-100 hover:bg-neu-700 hover:rounded-lg font-outfit"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
                   >
                     {isDarkMode ? (
                       <>
@@ -480,7 +450,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
                   {/* Highlight Next Task Option */}
                   <div className="relative group">
-                    <button className="w-full flex items-center justify-between px-4 py-2 text-sm text-neu-100 hover:bg-neu-700 hover:rounded-lg font-outfit">
+                    <button className="w-full flex items-center justify-between px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit">
                       <div className="flex items-center space-x-2">
                         <StarShine size={20} color="currentColor" />
                         <span>Highlight next task</span>
@@ -489,21 +459,21 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     </button>
 
                     {/* Submenu */}
-                    <div className="absolute left-full top-0 ml-1 w-24 bg-neu-800 rounded-lg shadow-lg border border-neu-700 hidden group-hover:block">
+                    <div className="absolute left-full top-0 ml-1 w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 hidden group-hover:block">
                       <button
                         onClick={() => {
                           handleHighlightNextTask(true);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-700 hover:rounded-t-lg font-outfit ${
+                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-gre-100 hover:rounded-t-lg font-outfit ${
                           highlightNextTask
-                            ? "text-pri-blue-500"
-                            : "text-neu-100"
+                            ? "text-pri-pin-500"
+                            : "text-neu-gre-700"
                         }`}
                       >
                         <span>Yes</span>
                         {highlightNextTask && (
-                          <Unread size={16} color="#3b82f6" className="ml-1" />
+                          <Unread size={16} color="#FF87BD" className="ml-1" />
                         )}
                       </button>
                       <button
@@ -511,15 +481,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           handleHighlightNextTask(false);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-700 hover:rounded-b-lg font-outfit ${
+                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-gre-100 hover:rounded-b-lg font-outfit ${
                           !highlightNextTask
-                            ? "text-pri-blue-500"
-                            : "text-neu-100"
+                            ? "text-pri-pin-500"
+                            : "text-neu-gre-700"
                         }`}
                       >
                         <span>No</span>
                         {!highlightNextTask && (
-                          <Unread size={16} color="#3b82f6" className="ml-1" />
+                          <Unread size={16} color="#FF87BD" className="ml-1" />
                         )}
                       </button>
                     </div>
@@ -531,36 +501,24 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* User Profile Section */}
-        <div className="p-3 border-t border-neu-700">
+        <div className="px-4 pb-4">
           <div className="relative" ref={profileMenuRef}>
             <button
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              className="w-full flex items-center space-x-4 p-4 rounded-md text-neu-400 hover:bg-neu-700 hover:text-neu-100"
+              className="w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit"
             >
-              <div className="w-12 h-12 rounded-lg bg-neu-700 flex items-center justify-center overflow-hidden">
-                {userDetails.selectedAvatar ? (
-                  <img
-                    src={
-                      avatars.find((a) => a.id === userDetails.selectedAvatar)
-                        ?.src
-                    }
-                    alt="Profile Avatar"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <User size={24} color="currentColor" />
-                )}
-              </div>
+              <img
+                src={avatars[(userDetails.selectedAvatar || 1) - 1].src}
+                alt="Profile"
+                className="w-8 h-8 rounded-full"
+              />
               {isOpen && (
-                <div className="flex-1 text-left font-outfit">
-                  <p className="text-md font-medium text-neu-100">
-                    {greeting}{" "}
-                    {userDetails.firstName ||
-                      currentUser?.email?.split("@")[0] ||
-                      "User"}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {userDetails.firstName}
                   </p>
-                  <p className="text-sm text-neu-400">
-                    {currentUser?.email || ""}
+                  <p className="text-xs text-neu-gre-500 truncate">
+                    {currentUser?.email}
                   </p>
                 </div>
               )}
@@ -568,28 +526,27 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
             {/* Profile Dropdown Menu */}
             {isProfileMenuOpen && (
-              <div className="absolute bottom-full left-full ml-2 w-56 bg-neu-800 rounded-lg shadow-lg border border-neu-700">
+              <div className="absolute bottom-full left-0 mb-2 w-full bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200">
                 <div className="py-1">
                   <button
                     onClick={() => {
                       navigate("/account");
                       setIsProfileMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-base text-neu-100 hover:bg-neu-700 font-outfit"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
                   >
-                    <User size={24} color="currentColor" />
-                    <span>Account Details</span>
+                    <User size={20} color="currentColor" />
+                    <span>Account</span>
                   </button>
-
                   <button
                     onClick={() => {
                       logout();
                       setIsProfileMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-base text-red-400 hover:bg-neu-700 font-outfit"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
                   >
-                    <Logout size={24} color="currentColor" />
-                    <span>Sign Out</span>
+                    <Logout size={20} color="currentColor" />
+                    <span>Logout</span>
                   </button>
                 </div>
               </div>

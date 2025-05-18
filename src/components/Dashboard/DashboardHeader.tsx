@@ -55,20 +55,20 @@ export const DashboardHeader = ({
   onAddSection,
 }: DashboardHeaderProps) => {
   return (
-    <div className="bg-neu-800 rounded-xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
+    <div className="bg-neu-gre-200 rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-4xl font-bold font-outfit text-neu-100">
+          <h1 className="text-4xl font-bold font-outfit text-neu-gre-900">
             {dayOfWeek}
           </h1>
-          <span className="text-2xl font-outfit text-neu-400 uppercase">
+          <span className="text-2xl font-outfit text-neu-gre-600 uppercase">
             {currentDate}
           </span>
         </div>
         {temperature !== null && (
           <div className="flex items-center gap-2">
             {getWeatherIcon(weatherCondition)}
-            <span className="text-2xl font-outfit text-neu-400">
+            <span className="text-2xl font-outfit text-neu-bla-400">
               {temperature}°C
             </span>
           </div>

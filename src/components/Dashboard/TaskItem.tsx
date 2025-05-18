@@ -1,4 +1,3 @@
-import { CheckSquare, Record } from "solar-icon-set";
 import { Icon } from "@iconify/react";
 import type { Task } from "../../types/task";
 
@@ -42,15 +41,15 @@ export const TaskItem = ({
       }}
       className={`task-item p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
         task.completed
-          ? "bg-sup-suc-400 bg-opacity-50"
+          ? "bg-neu-whi-200"
           : task.backgroundColor
           ? task.backgroundColor
-          : "bg-neu-700"
+          : "bg-neu-whi-100"
       } ${
         isNextTask
-          ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
+          ? "highlighted-task ring-2 ring-pri-pin-500 ring-opacity-60"
           : ""
-      } focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
+      } focus:outline-none focus:ring-2 focus:ring-pri-pin-500`}
       onClick={() => onSelect(task)}
     >
       <div className="flex items-center space-x-4 flex-1">
@@ -62,17 +61,17 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
-                ? "text-neu-100 hover:text-neu-100 scale-95"
-                : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
-            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-full p-1`}
+                ? "text-neu-gre-900 hover:text-neu-gre-900 scale-95"
+                : "text-pri-pin-500 hover:text-pri-pin-600 hover:scale-95"
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pin-500 rounded-full p-1`}
             aria-label={`Mark task "${task.title}" as ${
               task.completed ? "incomplete" : "complete"
             }`}
           >
             {task.completed ? (
-              <Icon icon="mingcute:choice-line" className="w-8 h-8" />
+              <Icon icon="mingcute:check-circle-line" className="w-8 h-8" />
             ) : (
-              <Icon icon="mingcute:square-line" className="w-8 h-8" />
+              <Icon icon="mingcute:round-line" className="w-8 h-8" />
             )}
           </button>
         </div>
@@ -81,7 +80,11 @@ export const TaskItem = ({
             <h3
               className={`text-base font-outfit font-regular ${
                 isEditing ? "" : "transition-all duration-300"
-              } ${task.completed ? "text-neu-100 scale-95" : "text-neu-100"}`}
+              } ${
+                task.completed
+                  ? "text-neu-gre-400 scale-95"
+                  : "text-neu-gre-900"
+              }`}
             >
               {isEditing ? (
                 <input
@@ -99,7 +102,7 @@ export const TaskItem = ({
                     onEdit({ ...task, title: editingTitle });
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-transparent text-base font-outfit font-regular text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500"
+                  className="w-full bg-transparent text-base font-outfit font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pin-500"
                   autoFocus
                 />
               ) : (
@@ -112,14 +115,14 @@ export const TaskItem = ({
                   <div key={subtask.id} className="flex items-center space-x-2">
                     <div
                       className={`w-2 h-2 rounded-full ${
-                        subtask.completed ? "bg-sup-suc-500" : "bg-neu-500"
+                        subtask.completed ? "bg-pri-pin-500" : "bg-neu-gre-300"
                       }`}
                     />
                     <span
                       className={`font-outfit text-sm ${
                         subtask.completed
-                          ? "line-through text-neu-400"
-                          : "text-neu-400"
+                          ? "line-through text-neu-gre-400"
+                          : "text-neu-gre-600"
                       }`}
                     >
                       {subtask.title}
@@ -137,9 +140,9 @@ export const TaskItem = ({
               }}
               className={`p-2 flex items-center justify-center ${
                 task.completed
-                  ? "text-neu-100 hover:text-neu-100"
-                  : "text-neu-400 hover:text-neu-100"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
+                  ? "text-neu-gre-400 hover:text-neu-gre-600"
+                  : "text-neu-gre-500 hover:text-neu-gre-700"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pin-500 rounded-lg`}
               aria-label={`Edit task "${task.title}"`}
             >
               <Icon icon="mingcute:edit-2-fill" width={24} height={24} />
@@ -151,9 +154,9 @@ export const TaskItem = ({
               }}
               className={`p-2 flex items-center justify-center ${
                 task.completed
-                  ? "text-neu-100 hover:text-neu-100"
-                  : "text-neu-400 hover:text-red-500"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
+                  ? "text-neu-gre-400 hover:text-neu-gre-600"
+                  : "text-neu-gre-500 hover:text-sup-err-500"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pin-500 rounded-lg`}
               aria-label={`Delete task "${task.title}"`}
             >
               <Icon icon="mingcute:delete-2-fill" width={24} height={24} />

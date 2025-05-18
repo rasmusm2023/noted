@@ -1542,7 +1542,7 @@ export function Dashboard() {
               onAddSection={handleAddSection}
             />
 
-            <div className="bg-neu-800 rounded-xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
+            <div className="bg-neu-gre-200 rounded-xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
               <TaskProgress
                 completionPercentage={completionPercentage}
                 completedPosition={completedPosition}
@@ -1551,7 +1551,7 @@ export function Dashboard() {
               />
 
               {/* Tasks Box */}
-              <div className="bg-neu-800 rounded-xl pt-8 pb-8">
+              <div className="bg-transparent rounded-xl pt-8 pb-8">
                 <TaskList
                   items={filteredAndSortedItems}
                   isLoading={isLoading}

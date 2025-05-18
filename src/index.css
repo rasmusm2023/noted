@@ -4,12 +4,12 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   html,
   body {
-    @apply bg-neu-900 text-neu-100 min-h-screen;
+    @apply bg-neu-whi-100 text-neu-gre-900 min-h-screen;
   }
 }
 
@@ -30,8 +30,8 @@ button {
 }
 
 /* Remove the default dark mode styles */
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 }
