@@ -329,12 +329,23 @@ export function Dashboard() {
 
   // Update date on mount and every day
   useEffect(() => {
-    const updateDate = () => {
+    const updateDate = async () => {
       const now = new Date();
       const day = now.getDate().toString().padStart(2, "0");
       const month = now.toLocaleString("default", { month: "short" });
       setCurrentDate(`${month} ${day}`);
       setDayOfWeek(now.toLocaleString("default", { weekday: "long" }));
+
+      // Move incomplete tasks to next day and delete completed tasks
+      if (currentUser) {
+        await taskService.moveIncompleteTasksToNextDay(currentUser.uid);
+        // Reload data after moving tasks
+        const [tasks, sections] = await Promise.all([
+          taskService.getUserTasks(currentUser.uid),
+          taskService.getUserSections(currentUser.uid),
+        ]);
+        setItems([...tasks, ...sections]);
+      }
     };
 
     updateDate();
@@ -354,7 +365,7 @@ export function Dashboard() {
     }, timeUntilMidnight);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [currentUser]);
 
   // Add temperature fetching
   useEffect(() => {

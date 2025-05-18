@@ -273,13 +273,17 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         {/* Logo and Toggle */}
         <div className="p-4 flex items-center justify-between border-b border-neu-700">
           {isOpen ? (
-            <h1 className="text-2xl font-bold text-pri-blue-100 font-outfit">
-              noted.
-            </h1>
+            <img
+              src="/assets/logos/tidori-logo.png"
+              alt="Tidori"
+              className="h-6"
+            />
           ) : (
-            <h1 className="text-2xl font-bold text-pri-blue-100 font-outfit">
-              n.
-            </h1>
+            <img
+              src="/assets/logos/tidori-logo-only.png"
+              alt="Tidori"
+              className="h-6 w-6"
+            />
           )}
           <button
             onClick={onToggle}

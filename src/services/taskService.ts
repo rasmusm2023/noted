@@ -725,8 +725,5 @@ export const taskService = {
 
     // Commit all changes
     await batch.commit();
-    console.log(`Deleted ${completedTasks.length} completed tasks`);
-    console.log(`Deleted ${todaySections.length} sections`);
-    console.log(`Moved ${incompleteTasks.length} incomplete tasks to next day`);
   },
 };
