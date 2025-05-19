@@ -88,19 +88,6 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-const returningUserGreetings = [
-  "Welcome back,",
-  "Hello there,",
-  "Great to see you,",
-  "Hey there,",
-  "Hi there,",
-  "Greetings,",
-  "Hello,",
-  "Hey,",
-];
-
-const firstTimeGreetings = ["Welcome,", "Hello,", "Hi there,"];
-
 interface UserDetails {
   firstName: string;
   selectedAvatar?: number;
@@ -121,13 +108,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     firstName: "",
     selectedAvatar: 1,
     createdAt: "",
-  });
-  const [isFirstLogin, setIsFirstLogin] = useState(true);
-  const [greeting] = useState(() => {
-    const greetings = isFirstLogin
-      ? firstTimeGreetings
-      : returningUserGreetings;
-    return greetings[Math.floor(Math.random() * greetings.length)];
   });
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const settingsMenuRef = useRef<HTMLDivElement>(null);
@@ -151,13 +131,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             selectedAvatar: data.selectedAvatar || 1,
             createdAt: data.createdAt || "",
           });
-
-          // Check if this is the first login by comparing creation time with last login time
-          const creationTime = new Date(data.createdAt).getTime();
-          const lastLoginTime = new Date(
-            currentUser.metadata.lastSignInTime || ""
-          ).getTime();
-          setIsFirstLogin(Math.abs(lastLoginTime - creationTime) < 60000); // Within 1 minute
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
@@ -274,15 +247,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <div className="p-4 flex items-center justify-between border-b border-neu-gre-300">
           {isOpen ? (
             <img
-              src="/assets/logos/tidori-logo.png"
-              alt="Tidori"
-              className="h-6"
+              src="/assets/logos/dori-logotype-638x200.png"
+              alt="Dori"
+              className="h-8"
             />
           ) : (
             <img
-              src="/assets/logos/tidori-logo-only.png"
-              alt="Tidori"
-              className="h-6 w-6"
+              src="/assets/logos/dori-logo-200x200.png"
+              alt="Dori"
+              className="h-8 w-8"
             />
           )}
           <button
@@ -305,6 +278,60 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </button>
         </div>
 
+        {/* User Profile Section - Moved to top */}
+        <div className="px-4 py-3 border-b border-neu-gre-300">
+          <div className="relative" ref={profileMenuRef}>
+            <button
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="w-full flex items-center space-x-3 p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit"
+            >
+              <img
+                src={avatars[(userDetails.selectedAvatar || 1) - 1].src}
+                alt="Profile"
+                className="w-8 h-8 rounded-md"
+              />
+              {isOpen && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-medium truncate">
+                    {userDetails.firstName}
+                  </p>
+                  <p className="text-xs text-neu-gre-500 truncate">
+                    {currentUser?.email}
+                  </p>
+                </div>
+              )}
+            </button>
+
+            {/* Profile Dropdown Menu */}
+            {isProfileMenuOpen && (
+              <div className="absolute top-full left-0 mt-2 w-full bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200">
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      navigate("/account");
+                      setIsProfileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
+                  >
+                    <User size={20} color="currentColor" />
+                    <span>Account</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsProfileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
+                  >
+                    <Logout size={20} color="currentColor" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4">
           <div className="px-4 space-y-6">
@@ -323,8 +350,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     : ""
                 }`}
               >
-                <Icon icon="mingcute:home-2-fill" width={20} height={20} />
-                {isOpen && <span>Home</span>}
+                <Icon
+                  icon="mingcute:calendar-day-fill"
+                  width={20}
+                  height={20}
+                />
+                {isOpen && <span>Today</span>}
               </button>
 
               <button
@@ -426,7 +457,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
             {/* Settings Dropdown Menu */}
             {isSettingsMenuOpen && (
-              <div className="absolute bottom-full left-full ml-2 w-48 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 z-50">
+              <div className="absolute bottom-full left-0 mb-2 w-full bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200">
                 <div className="py-1">
                   <button
                     onClick={() => {
@@ -494,60 +525,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       </button>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* User Profile Section */}
-        <div className="px-4 pb-4">
-          <div className="relative" ref={profileMenuRef}>
-            <button
-              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              className="w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit"
-            >
-              <img
-                src={avatars[(userDetails.selectedAvatar || 1) - 1].src}
-                alt="Profile"
-                className="w-8 h-8 rounded-full"
-              />
-              {isOpen && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {userDetails.firstName}
-                  </p>
-                  <p className="text-xs text-neu-gre-500 truncate">
-                    {currentUser?.email}
-                  </p>
-                </div>
-              )}
-            </button>
-
-            {/* Profile Dropdown Menu */}
-            {isProfileMenuOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-full bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200">
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      navigate("/account");
-                      setIsProfileMenuOpen(false);
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
-                  >
-                    <User size={20} color="currentColor" />
-                    <span>Account</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsProfileMenuOpen(false);
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
-                  >
-                    <Logout size={20} color="currentColor" />
-                    <span>Logout</span>
-                  </button>
                 </div>
               </div>
             )}

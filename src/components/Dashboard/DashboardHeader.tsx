@@ -1,4 +1,6 @@
 import { QuickActions } from "./QuickActions";
+import { Greeting } from "../Greeting/Greeting";
+import { MotivationalQuote } from "../Greeting/MotivationalQuote";
 
 // Import weather icons
 import sunIcon from "../../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -56,6 +58,8 @@ export const DashboardHeader = ({
 }: DashboardHeaderProps) => {
   return (
     <div className="bg-neu-gre-200 rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
+      <Greeting className="mb-2" />
+      <MotivationalQuote className="mb-6" />
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <h1 className="text-4xl font-bold font-outfit text-neu-gre-900">

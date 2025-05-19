@@ -33,7 +33,7 @@ export const SortMenuButton = ({
     <div className="relative" ref={sortMenuRef}>
       <button
         onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-        className="px-4 py-2 bg-neu-700 text-neu-400 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+        className="px-4 py-2 bg-neu-whi-100 text-neu-bla-800 border border-neu-bla-800 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
       >
         {completedPosition === "mixed" ? (
           <Icon
@@ -66,7 +66,7 @@ export const SortMenuButton = ({
         </span>
       </button>
       {isSortMenuOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-neu-700 rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-48 bg-neu-whi-100 border border-neu-bla-800 rounded-lg shadow-lg z-50">
           <div className="py-1">
             <button
               onClick={() => {
@@ -77,7 +77,7 @@ export const SortMenuButton = ({
               className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                 completedPosition === "mixed"
                   ? "text-pri-blue-500"
-                  : "text-neu-400 hover:bg-neu-600"
+                  : "text-neu-bla-800 hover:bg-neu-600"
               }`}
             >
               <Icon
@@ -97,7 +97,7 @@ export const SortMenuButton = ({
               className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                 completedPosition === "top"
                   ? "text-pri-blue-500"
-                  : "text-neu-400 hover:bg-neu-600"
+                  : "text-neu-bla-800 hover:bg-neu-600"
               }`}
             >
               <Icon
@@ -117,7 +117,7 @@ export const SortMenuButton = ({
               className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
                 completedPosition === "bottom"
                   ? "text-pri-blue-500"
-                  : "text-neu-400 hover:bg-neu-600"
+                  : "text-neu-bla-800 hover:bg-neu-600"
               }`}
             >
               <Icon
