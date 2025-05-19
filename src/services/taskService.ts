@@ -555,7 +555,7 @@ export const taskService = {
   // Create a new section
   async createSection(
     userId: string,
-    sectionData: { text: string; time: string }
+    sectionData: { text: string; time: string; scheduledTime: string }
   ): Promise<SectionItem> {
     console.log("Creating section for user:", userId);
     console.log("Section data:", sectionData);
@@ -572,6 +572,7 @@ export const taskService = {
       userId,
       createdAt: now,
       updatedAt: now,
+      scheduledTime: sectionData.scheduledTime,
       order: 0, // New sections always get order 0
       backgroundColor: "bg-neu-800", // Add default background color
     };
@@ -586,7 +587,16 @@ export const taskService = {
       // Try to update existing sections' orders, but don't fail if it doesn't work
       try {
         const batch = writeBatch(db);
-        currentSections.forEach((existingSection) => {
+        // Only update orders of sections for the same date
+        const sectionsForSameDate = currentSections.filter((s) => {
+          const existingDate = new Date(s.scheduledTime || s.createdAt);
+          const newDate = new Date(sectionData.scheduledTime);
+          existingDate.setHours(0, 0, 0, 0);
+          newDate.setHours(0, 0, 0, 0);
+          return existingDate.getTime() === newDate.getTime();
+        });
+
+        sectionsForSameDate.forEach((existingSection) => {
           const sectionRef = doc(db, sectionsCollection, existingSection.id);
           batch.update(sectionRef, {
             order: (existingSection.order ?? 0) + 1,
@@ -681,9 +691,6 @@ export const taskService = {
       this.getUserSections(userId),
     ]);
 
-    // Create a batch for all operations
-    const batch = writeBatch(db);
-
     // 1. Delete completed tasks from today
     const completedTasks = tasks.filter((task) => {
       const taskDate = new Date(task.date);
@@ -691,22 +698,30 @@ export const taskService = {
       return task.completed && taskDate.getTime() === today.getTime();
     });
 
-    completedTasks.forEach((task) => {
-      const taskRef = doc(db, tasksCollection, task.id);
-      batch.delete(taskRef);
-    });
+    for (const task of completedTasks) {
+      try {
+        await this.deleteTask(task.id);
+        console.log("Deleted completed task:", task.id);
+      } catch (error) {
+        console.error("Error deleting completed task:", task.id, error);
+      }
+    }
 
-    // 2. Delete all sections from today
-    const todaySections = sections.filter((section) => {
+    // 2. Delete sections that are older than today
+    const oldSections = sections.filter((section) => {
       const sectionDate = new Date(section.createdAt);
       sectionDate.setHours(0, 0, 0, 0);
-      return sectionDate.getTime() === today.getTime();
+      return sectionDate.getTime() < today.getTime();
     });
 
-    todaySections.forEach((section) => {
-      const sectionRef = doc(db, sectionsCollection, section.id);
-      batch.delete(sectionRef);
-    });
+    for (const section of oldSections) {
+      try {
+        await this.deleteSection(section.id);
+        console.log("Deleted old section:", section.id);
+      } catch (error) {
+        console.error("Error deleting old section:", section.id, error);
+      }
+    }
 
     // 3. Move incomplete tasks to tomorrow
     const incompleteTasks = tasks.filter((task) => {
@@ -715,15 +730,16 @@ export const taskService = {
       return !task.completed && taskDate.getTime() === today.getTime();
     });
 
-    incompleteTasks.forEach((task) => {
-      const taskRef = doc(db, tasksCollection, task.id);
-      batch.update(taskRef, {
-        date: tomorrow.toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-    });
-
-    // Commit all changes
-    await batch.commit();
+    for (const task of incompleteTasks) {
+      try {
+        await this.updateTask(task.id, {
+          date: tomorrow.toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+        console.log("Moved incomplete task to tomorrow:", task.id);
+      } catch (error) {
+        console.error("Error moving incomplete task:", task.id, error);
+      }
+    }
   },
 };

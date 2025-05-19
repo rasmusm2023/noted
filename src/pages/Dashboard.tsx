@@ -286,35 +286,80 @@ export function Dashboard() {
     return item.type === "section";
   };
 
-  // Update filteredAndSortedItems to remove hideCompleted filter
-  const filteredAndSortedItems = items.sort((a, b) => {
-    // If both items have order, use that for custom sorting
-    if (
-      completedPosition === "mixed" &&
-      a.order !== undefined &&
-      b.order !== undefined
-    ) {
-      return a.order - b.order;
+  // Helper function to parse date strings
+  const parseDateString = (dateStr: string): Date => {
+    console.log("Parsing date string:", dateStr);
+
+    // If it's an ISO string, parse it directly
+    if (dateStr.includes("T")) {
+      return new Date(dateStr);
     }
 
-    // For completed on top/bottom sorting
-    const aIsCompleted = isTask(a) && a.completed;
-    const bIsCompleted = isTask(b) && b.completed;
-
-    if (completedPosition === "top") {
-      if (aIsCompleted && !bIsCompleted) return -1;
-      if (!aIsCompleted && bIsCompleted) return 1;
-    } else if (completedPosition === "bottom") {
-      if (aIsCompleted && !bIsCompleted) return 1;
-      if (!aIsCompleted && bIsCompleted) return -1;
+    // Handle format "DD/MM/YYYY, HH:mm:ss"
+    const [datePart, timePart] = dateStr.split(", ");
+    if (!datePart || !timePart) {
+      console.warn("Invalid date format:", dateStr);
+      return new Date(); // Return current date as fallback
     }
 
-    // If both items are in the same completion state, maintain their relative order
-    if (a.order !== undefined && b.order !== undefined) {
-      return a.order - b.order;
-    }
-    return 0;
-  });
+    console.log("Date parts:", { datePart, timePart });
+    const [day, month, year] = datePart.split("/");
+    const [hours, minutes] = timePart.split(":");
+    console.log("Parsed components:", { day, month, year, hours, minutes });
+
+    // Create date in local timezone
+    const date = new Date();
+    date.setFullYear(parseInt(year));
+    date.setMonth(parseInt(month) - 1); // Months are 0-based
+    date.setDate(parseInt(day));
+    date.setHours(parseInt(hours));
+    date.setMinutes(parseInt(minutes));
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    console.log("Parsed date:", date.toISOString());
+    return date;
+  };
+
+  // Update filteredAndSortedItems to filter for today and sort
+  const filteredAndSortedItems = items
+    .filter((item) => {
+      const itemDate = parseDateString(
+        isTask(item) ? item.scheduledTime : item.scheduledTime || item.createdAt
+      );
+      itemDate.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return itemDate.getTime() === today.getTime();
+    })
+    .sort((a, b) => {
+      // If both items have order, use that for custom sorting
+      if (
+        completedPosition === "mixed" &&
+        a.order !== undefined &&
+        b.order !== undefined
+      ) {
+        return a.order - b.order;
+      }
+
+      // For completed on top/bottom sorting
+      const aIsCompleted = isTask(a) && a.completed;
+      const bIsCompleted = isTask(b) && b.completed;
+
+      if (completedPosition === "top") {
+        if (aIsCompleted && !bIsCompleted) return -1;
+        if (!aIsCompleted && bIsCompleted) return 1;
+      } else if (completedPosition === "bottom") {
+        if (aIsCompleted && !bIsCompleted) return 1;
+        if (!aIsCompleted && bIsCompleted) return -1;
+      }
+
+      // If both items are in the same completion state, maintain their relative order
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      return 0;
+    });
 
   // Calculate completion percentage
   const todaysTasks = items.filter(isTask);
@@ -326,6 +371,13 @@ export function Dashboard() {
             100
         )
       : 0;
+
+  // Add useEffect to load data on mount and when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      loadData();
+    }
+  }, [currentUser]);
 
   // Update date on mount and every day
   useEffect(() => {
@@ -445,57 +497,105 @@ export function Dashboard() {
     );
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      if (!currentUser) {
-        setIsLoading(false);
-        return;
-      }
+  const loadData = async () => {
+    if (!currentUser) return;
 
-      try {
-        setIsLoading(true);
-        const [userTasks, userSections] = await Promise.all([
-          taskService.getUserTasks(currentUser.uid),
-          taskService.getUserSections(currentUser.uid),
-        ]);
+    try {
+      setIsLoading(true);
+      console.log("Fetching tasks and sections...");
+      const tasks = await taskService.getUserTasks(currentUser.uid);
+      const sections = await taskService.getUserSections(currentUser.uid);
 
-        // Get today's date at midnight for comparison
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+      console.log("Raw data loaded:", { tasks, sections });
 
-        // Filter tasks to only include today's tasks
-        const todaysTasks = userTasks.filter((task) => {
-          const taskDate = new Date(task.date);
-          taskDate.setHours(0, 0, 0, 0);
-          return taskDate.getTime() === today.getTime();
+      // Set today to midnight for consistent comparison
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Filter tasks for today
+      const todaysTasks = tasks.filter((task) => {
+        const taskDate = parseDateString(task.scheduledTime);
+        taskDate.setHours(0, 0, 0, 0);
+
+        const taskDateStr = taskDate.toISOString().split("T")[0];
+        const todayStr = today.toISOString().split("T")[0];
+
+        console.log("Comparing task dates:", {
+          taskDateStr,
+          todayStr,
+          taskTitle: task.title,
         });
 
-        // Convert tasks to the new format
-        const tasksWithType = todaysTasks.map((task) => ({
-          ...task,
-          type: "task" as const,
-        }));
+        return taskDateStr === todayStr;
+      });
 
-        // Combine and sort all items
-        const allItems = [...tasksWithType, ...userSections].sort((a, b) => {
-          if (a.order !== undefined && b.order !== undefined) {
-            return a.order - b.order;
-          }
-          return (
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
+      // Filter sections for today
+      const todaysSections = sections.filter((section) => {
+        const sectionDate = parseDateString(
+          section.scheduledTime || section.createdAt
+        );
+        sectionDate.setHours(0, 0, 0, 0);
+
+        const sectionDateStr = sectionDate.toISOString().split("T")[0];
+        const todayStr = today.toISOString().split("T")[0];
+
+        console.log("Comparing section dates:", {
+          sectionDateStr,
+          todayStr,
+          sectionText: section.text,
         });
 
-        setItems(allItems);
-      } catch (error) {
-        console.error("Error loading data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        return sectionDateStr === todayStr;
+      });
 
-    loadData();
-  }, [currentUser]);
+      console.log("Filtered data:", { todaysTasks, todaysSections });
+
+      // Convert tasks to new format
+      const tasksWithType = todaysTasks.map((task) => ({
+        ...task,
+        type: "task" as const,
+      }));
+
+      // Convert sections to new format
+      const sectionsWithType = todaysSections.map((section) => ({
+        ...section,
+        type: "section" as const,
+      }));
+
+      // Combine and sort items
+      const allItems = [...tasksWithType, ...sectionsWithType].sort((a, b) => {
+        // If both items have order, use that for custom sorting
+        if (a.order !== undefined && b.order !== undefined) {
+          return a.order - b.order;
+        }
+
+        // For completed on top/bottom sorting
+        const aIsCompleted = isTask(a) && a.completed;
+        const bIsCompleted = isTask(b) && b.completed;
+
+        if (completedPosition === "top") {
+          if (aIsCompleted && !bIsCompleted) return -1;
+          if (!aIsCompleted && bIsCompleted) return 1;
+        } else if (completedPosition === "bottom") {
+          if (aIsCompleted && !bIsCompleted) return 1;
+          if (!aIsCompleted && bIsCompleted) return -1;
+        }
+
+        // If both items are in the same completion state, maintain their relative order
+        if (a.order !== undefined && b.order !== undefined) {
+          return a.order - b.order;
+        }
+        return 0;
+      });
+
+      console.log("Final items to display:", allItems);
+      setItems(allItems);
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleTaskCompletion = async (
     taskId: string,
@@ -914,21 +1014,30 @@ export function Dashboard() {
 
   // Update the handleAddSection function
   const handleAddSection = async (title: string, time: string) => {
-    if (!currentUser) {
-      console.error("No user logged in");
-      return;
-    }
+    if (!currentUser) return;
 
     try {
-      const newSection = await taskService.createSection(currentUser.uid, {
+      // Calculate today's date at noon
+      const today = new Date();
+      today.setHours(12, 0, 0, 0);
+
+      await taskService.createSection(currentUser.uid, {
         text: title,
         time: time,
+        scheduledTime: today.toLocaleString(),
       });
 
-      setItems((prevItems) => [newSection, ...prevItems]);
+      // Reload data to show the new section
+      loadData();
     } catch (error) {
       console.error("Error creating section:", error);
     }
+  };
+
+  // Update the time display in the section item
+  const formatTime = (time: string | undefined) => {
+    if (!time) return "";
+    return time;
   };
 
   const handleSectionKeyPress = (e: React.KeyboardEvent) => {
@@ -998,7 +1107,7 @@ export function Dashboard() {
       </div>
       <div className="mx-4">
         <h3 className="text-base font-outfit font-semibold text-neu-400">
-          {item.time.replace(":", ".")}
+          {formatTime(item.time)}
         </h3>
       </div>
       <div className="flex items-center space-x-2">

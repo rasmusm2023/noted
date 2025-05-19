@@ -28,9 +28,10 @@ export interface Task extends BaseItem {
 export interface SectionItem extends BaseItem {
   type: "section";
   text: string;
-  time: string;
-  backgroundColor: string;
+  time?: string;
+  backgroundColor?: string;
   shouldClose?: boolean;
+  scheduledTime?: string; // Add scheduledTime field
 }
 
 export type ListItem = Task | SectionItem;

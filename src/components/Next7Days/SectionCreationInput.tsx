@@ -89,10 +89,18 @@ export const SectionCreationInput = ({
     try {
       setIsSubmitting(true);
 
+      // Calculate the date for this section based on dayIndex
+      const date = new Date();
+      date.setDate(date.getDate() + dayIndex);
+      date.setHours(12, 0, 0, 0);
+
+      console.log("Creating section for date:", date.toLocaleString());
+
       // Create section in database
       await taskService.createSection(currentUser.uid, {
         text: title,
         time: time,
+        scheduledTime: date.toLocaleString(),
       });
 
       // Reset form

@@ -46,6 +46,11 @@ service cloud.firestore {
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+      // Allow batch operations for tasks
+      allow write: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isOwner(request.resource.data.userId)
+      );
     }
 
     // Timestamps collection rules
@@ -67,6 +72,11 @@ service cloud.firestore {
       allow read: if isAuthenticated() && isOwner(resource.data.userId);
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+      // Allow batch operations for sections
+      allow write: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isOwner(request.resource.data.userId)
+      );
     }
   }
 } 

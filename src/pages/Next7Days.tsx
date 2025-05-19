@@ -359,17 +359,66 @@ export function Next7Days() {
       );
       console.log("Tasks by day:", tasksByDay);
 
-      // Put all sections in the first day and ensure they have the correct type
-      const sectionsByDay: Record<number, SectionItemType[]> = {
-        0: sections.map((section) => ({
-          ...section,
-          type: "section" as const,
-          userId: section.userId,
+      // Distribute sections across days based on their date
+      const sectionsByDay: Record<number, SectionItemType[]> = {};
+
+      sections.forEach((section) => {
+        // Parse the date from the section's scheduledTime field
+        const sectionDate = parseDateString(
+          section.scheduledTime || section.createdAt
+        );
+        // Reset time part for comparison in local timezone
+        sectionDate.setHours(0, 0, 0, 0);
+
+        console.log("Processing section:", {
+          id: section.id,
+          text: section.text,
+          scheduledTime: section.scheduledTime,
           createdAt: section.createdAt,
-          updatedAt: section.updatedAt,
-          order: section.order || 0,
-        })),
-      };
+          parsedDate: sectionDate.toLocaleString(),
+        });
+
+        // Find the corresponding day index
+        const dayIndex = days.findIndex((day) => {
+          const dayDate = new Date(day.date);
+          dayDate.setHours(0, 0, 0, 0);
+
+          const sectionDateStr = sectionDate.toISOString().split("T")[0];
+          const dayDateStr = dayDate.toISOString().split("T")[0];
+
+          console.log("Comparing dates:", {
+            sectionDateStr,
+            dayDateStr,
+            sectionDateLocal: sectionDate.toLocaleString(),
+            dayDateLocal: dayDate.toLocaleString(),
+          });
+
+          return sectionDateStr === dayDateStr;
+        });
+
+        console.log("Section day index:", dayIndex);
+
+        if (dayIndex !== -1) {
+          if (!sectionsByDay[dayIndex]) {
+            sectionsByDay[dayIndex] = [];
+          }
+
+          // Ensure section has all required properties
+          const sectionWithType: SectionItemType = {
+            ...section,
+            type: "section" as const,
+            userId: section.userId,
+            createdAt: section.createdAt,
+            updatedAt: section.updatedAt,
+            order: section.order || 0,
+            scheduledTime: section.scheduledTime || section.createdAt, // Ensure scheduledTime is set
+          };
+
+          console.log("Adding section to day:", dayIndex, sectionWithType);
+          sectionsByDay[dayIndex].push(sectionWithType);
+        }
+      });
+
       console.log("Sections by day:", sectionsByDay);
 
       // Update days with tasks and sections
@@ -423,8 +472,19 @@ export function Next7Days() {
   // Add this function before loadData
   const parseDateString = (dateStr: string): Date => {
     console.log("Parsing date string:", dateStr);
+
+    // If it's an ISO string, parse it directly
+    if (dateStr.includes("T")) {
+      return new Date(dateStr);
+    }
+
     // Handle format "DD/MM/YYYY, HH:mm:ss"
     const [datePart, timePart] = dateStr.split(", ");
+    if (!datePart || !timePart) {
+      console.warn("Invalid date format:", dateStr);
+      return new Date(); // Return current date as fallback
+    }
+
     console.log("Date parts:", { datePart, timePart });
     const [day, month, year] = datePart.split("/");
     const [hours, minutes] = timePart.split(":");
