@@ -111,17 +111,17 @@ export const QuickActions = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div
-        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-pri-tea-100 transition-colors border border-pri-tea-300 ${
-          focusedInput === "task" ? "ring-2 ring-pri-tea-400" : ""
+        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-orange-test-500/10 transition-colors border-2 border-orange-test-500/75 ${
+          focusedInput === "task" ? "ring-2 ring-orange-test-500" : ""
         }`}
       >
         <div className="flex items-center space-x-4">
-          <div className="p-2 bg-pri-tea-400 rounded-lg flex items-center justify-center">
+          <div className="p-2 bg-orange-test-500 rounded-lg flex items-center justify-center">
             <Icon
               icon="mingcute:add-fill"
               width={32}
               height={32}
-              color="#E0FAF7"
+              color="#FFF5F8"
             />
           </div>
           <div className="text-left font-inter text-base flex-1">
@@ -134,7 +134,7 @@ export const QuickActions = ({
               onFocus={() => setFocusedInput("task")}
               onBlur={() => setFocusedInput(null)}
               placeholder="Add new task..."
-              className="w-full bg-transparent font-semibold text-pri-tea-900 placeholder-neu-gre-500 focus:outline-none"
+              className="w-full bg-transparent font-semibold text-gre-800 placeholder-neu-gre-600 focus:outline-none"
               autoFocus
             />
             <p className="text-neu-gre-500 text-sm font-inter mt-2">
@@ -145,17 +145,17 @@ export const QuickActions = ({
       </div>
 
       <div
-        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-pri-tea-100 transition-colors border border-pri-tea-300 ${
-          focusedInput === "section" ? "ring-2 ring-pri-tea-400" : ""
+        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-pink-test-500/10 transition-colors border-2 border-pink-test-500/75 ${
+          focusedInput === "section" ? "ring-2 ring-pink-test-500" : ""
         }`}
       >
         <div className="flex items-center">
-          <div className="p-2 bg-pri-tea-400 rounded-lg flex items-center justify-center">
+          <div className="p-2 bg-pink-test-500 rounded-lg flex items-center justify-center">
             <Icon
               icon="mingcute:dividing-line-fill"
               width={32}
               height={32}
-              color="#E0FAF7"
+              color="#FFF5F8"
             />
           </div>
           <div className="flex-1 ml-4 mr-4">
@@ -170,7 +170,7 @@ export const QuickActions = ({
                 onBlur={() => setFocusedInput(null)}
                 onClick={(e) => e.stopPropagation()}
                 placeholder="Add a section..."
-                className="w-full bg-transparent text-base font-semibold text-pri-tea-900 placeholder-neu-gre-500 focus:outline-none"
+                className="w-full bg-transparent text-base font-semibold text-gre-800 placeholder-neu-gre-600 focus:outline-none"
               />
               <input
                 type="text"
@@ -179,7 +179,7 @@ export const QuickActions = ({
                 onKeyDown={handleSectionKeyPress}
                 placeholder="09.00"
                 maxLength={5}
-                className="w-full bg-transparent text-md font-semibold text-pri-tea-900 placeholder-neu-gre-500 focus:outline-none text-right"
+                className="w-full bg-transparent text-base font-semibold text-neu-gre-800 placeholder-neu-gre-600 focus:outline-none text-right"
               />
             </div>
             <p className="text-neu-gre-500 font-inter text-sm mt-2">

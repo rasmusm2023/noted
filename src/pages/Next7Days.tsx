@@ -1352,6 +1352,23 @@ export function Next7Days() {
     }, 300); // Match the animation duration
   };
 
+  useEffect(() => {
+    const handleHighlightNextTaskChange = (event: CustomEvent) => {
+      setHighlightNextTask(event.detail);
+    };
+
+    window.addEventListener(
+      "highlightNextTaskChanged",
+      handleHighlightNextTaskChange as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        "highlightNextTaskChanged",
+        handleHighlightNextTaskChange as EventListener
+      );
+    };
+  }, []);
+
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>

@@ -2,17 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLists } from "../../contexts/ListContext";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  SquareAltArrowLeft,
-  SquareAltArrowRight,
-  User,
-  Logout,
-  Sun,
-  Moon,
-  Unread,
-  StarShine,
-  AltArrowRight,
-} from "solar-icon-set";
+import { Unread, AltArrowRight } from "solar-icon-set";
 import { Icon } from "@iconify/react";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
@@ -226,14 +216,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   };
 
   const handleHighlightNextTask = (value: boolean) => {
-    console.log("Sidebar: Setting highlight to:", value);
     // Update local state immediately
     setHighlightNextTask(value);
     // Save to localStorage
     localStorage.setItem("highlightNextTask", JSON.stringify(value));
     // Dispatch custom event to notify other components
-    console.log("Sidebar: Dispatching highlightNextTaskChanged event");
-    window.dispatchEvent(new Event("highlightNextTaskChanged"));
+    window.dispatchEvent(
+      new CustomEvent("highlightNextTaskChanged", { detail: value })
+    );
   };
 
   return (
@@ -263,16 +253,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             className="p-2 rounded-md hover:bg-neu-gre-100 hover:text-neu-gre-700 text-neu-gre-500 flex items-center justify-center"
           >
             {isOpen ? (
-              <SquareAltArrowLeft
-                size={32}
-                color="currentColor"
-                autoSize={false}
+              <Icon
+                icon="mingcute:layout-leftbar-close-fill"
+                width={24}
+                height={24}
               />
             ) : (
-              <SquareAltArrowRight
-                size={32}
-                color="currentColor"
-                autoSize={false}
+              <Icon
+                icon="mingcute:layout-leftbar-open-fill"
+                width={24}
+                height={24}
               />
             )}
           </button>
@@ -283,7 +273,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="relative" ref={profileMenuRef}>
             <button
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              className="w-full flex items-center space-x-3 p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter"
+              className={`w-full flex items-center ${
+                isOpen ? "space-x-3" : "justify-center"
+              } p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter`}
             >
               <img
                 src={avatars[(userDetails.selectedAvatar || 1) - 1].src}
@@ -291,7 +283,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 className="w-8 h-8 rounded-md"
               />
               {isOpen && (
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 ml-3">
                   <p className="text-base font-medium truncate">
                     {userDetails.firstName}
                   </p>
@@ -304,16 +296,22 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
             {/* Profile Dropdown Menu */}
             {isProfileMenuOpen && (
-              <div className="absolute top-full left-0 mt-2 w-full bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200">
+              <div
+                className={`absolute ${
+                  isOpen ? "top-full left-0 mt-2" : "top-0 left-full ml-2"
+                } ${
+                  isOpen ? "w-full" : "w-72"
+                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200`}
+              >
                 <div className="py-1">
                   <button
                     onClick={() => {
                       navigate("/account");
                       setIsProfileMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
                   >
-                    <User size={20} color="currentColor" />
+                    <Icon icon="mingcute:user-3-fill" width={20} height={20} />
                     <span>Account</span>
                   </button>
                   <button
@@ -321,9 +319,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       logout();
                       setIsProfileMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
                   >
-                    <Logout size={20} color="currentColor" />
+                    <Icon icon="mingcute:exit-fill" width={20} height={20} />
                     <span>Logout</span>
                   </button>
                 </div>
@@ -337,16 +335,20 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="px-4 space-y-6">
             {/* Tasks Section */}
             <div className="space-y-1">
-              {isOpen && (
-                <h2 className="text-sm font-medium text-neu-gre-600 mb-2">
-                  Tasks
-                </h2>
-              )}
+              <h2
+                className={`text-sm font-medium text-neu-gre-600 mb-2 ${
+                  isOpen ? "" : "text-center"
+                }`}
+              >
+                Tasks
+              </h2>
               <button
                 onClick={() => navigate("/")}
-                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                className={`w-full flex items-center ${
+                  isOpen ? "space-x-3" : "justify-center"
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                   location.pathname === "/"
-                    ? "bg-neu-gre-100 text-neu-gre-900"
+                    ? "bg-neu-gre-200 text-neu-gre-900"
                     : ""
                 }`}
               >
@@ -355,69 +357,93 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   width={20}
                   height={20}
                 />
-                {isOpen && <span>Today</span>}
+                {isOpen && <span className="text-base">Today</span>}
               </button>
 
               <button
                 onClick={() => navigate("/next7days")}
-                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                className={`w-full flex items-center ${
+                  isOpen ? "space-x-3" : "justify-center"
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                   location.pathname === "/next7days"
-                    ? "bg-neu-gre-100 text-neu-gre-900"
+                    ? "bg-neu-gre-200 text-neu-gre-900"
                     : ""
                 }`}
               >
                 <Icon icon="mingcute:calendar-fill" width={20} height={20} />
-                {isOpen && <span>Next 7 Days</span>}
+                {isOpen && <span className="text-base">Next 7 Days</span>}
               </button>
             </div>
 
             {/* Progress Section */}
             <div className="space-y-1">
-              {isOpen && (
-                <h2 className="text-sm font-medium text-neu-gre-600 mb-2">
-                  Progress
-                </h2>
-              )}
+              <h2
+                className={`text-sm font-medium text-neu-gre-600 mb-2 ${
+                  isOpen ? "" : "text-center"
+                }`}
+              >
+                Progress
+              </h2>
               <button
                 onClick={() => navigate("/habits")}
-                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                className={`w-full flex items-center ${
+                  isOpen ? "space-x-3" : "justify-center"
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                   location.pathname === "/habits"
-                    ? "bg-neu-gre-100 text-neu-gre-900"
+                    ? "bg-neu-gre-200 text-neu-gre-900"
                     : ""
                 }`}
               >
                 <Icon icon="mingcute:heart-fill" width={20} height={20} />
-                {isOpen && <span>Habits</span>}
+                {isOpen && <span className="text-base">Habits</span>}
               </button>
 
               <button
                 onClick={() => navigate("/goals")}
-                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                className={`w-full flex items-center ${
+                  isOpen ? "space-x-3" : "justify-center"
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                   location.pathname === "/goals"
-                    ? "bg-neu-gre-100 text-neu-gre-900"
+                    ? "bg-neu-gre-200 text-neu-gre-900"
                     : ""
                 }`}
               >
                 <Icon icon="mingcute:star-fill" width={20} height={20} />
-                {isOpen && <span>Goals</span>}
+                {isOpen && <span className="text-base">Goals</span>}
               </button>
             </div>
 
             {/* Lists Section */}
             <div className="space-y-1">
-              <div className="flex items-center justify-between mb-2">
+              <div
+                className={`flex items-center ${
+                  isOpen ? "justify-between" : "justify-center"
+                } mb-2`}
+              >
+                <h2
+                  className={`text-sm font-medium text-neu-gre-600 ${
+                    isOpen ? "" : "text-center"
+                  }`}
+                >
+                  Lists
+                </h2>
                 {isOpen && (
-                  <h2 className="text-sm font-medium text-neu-gre-600">
-                    Lists
-                  </h2>
+                  <button
+                    onClick={() => setIsAddingList(true)}
+                    className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700"
+                  >
+                    <Icon icon="mingcute:add-fill" width={20} height={20} />
+                  </button>
                 )}
+              </div>
+              {!isOpen && (
                 <button
                   onClick={() => setIsAddingList(true)}
-                  className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700"
+                  className="w-full p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 flex justify-center"
                 >
                   <Icon icon="mingcute:add-fill" width={20} height={20} />
                 </button>
-              </div>
+              )}
 
               {/* Lists */}
               <div className="space-y-1">
@@ -425,9 +451,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   <button
                     key={list.id}
                     onClick={() => navigate(`/list/${list.id}`)}
-                    className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                    className={`w-full flex items-center ${
+                      isOpen ? "space-x-3" : "justify-center"
+                    } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                       location.pathname === `/list/${list.id}`
-                        ? "bg-neu-gre-100 text-neu-gre-900"
+                        ? "bg-neu-gre-200 text-neu-gre-900"
                         : ""
                     }`}
                   >
@@ -436,7 +464,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       width={16}
                       height={16}
                     />
-                    {isOpen && <span>{list.name}</span>}
+                    {isOpen && <span className="text-base">{list.name}</span>}
                   </button>
                 ))}
               </div>
@@ -449,31 +477,43 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="relative" ref={settingsMenuRef}>
             <button
               onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
-              className="w-full flex items-center text-base font-medium space-x-3 p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter"
+              className={`w-full flex items-center ${
+                isOpen ? "space-x-3" : "justify-center"
+              } text-base font-medium p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter`}
             >
               <Icon icon="mingcute:settings-3-fill" width={24} height={24} />
-              {isOpen && <span>Settings</span>}
+              {isOpen && <span className="ml-3">Settings</span>}
             </button>
 
             {/* Settings Dropdown Menu */}
             {isSettingsMenuOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-full bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200">
+              <div
+                className={`absolute ${
+                  isOpen ? "bottom-full left-0 mb-2" : "bottom-0 left-full ml-2"
+                } ${
+                  isOpen ? "w-full" : "w-72"
+                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200`}
+              >
                 <div className="py-1">
                   <button
                     onClick={() => {
                       setIsDarkMode(!isDarkMode);
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
                   >
                     {isDarkMode ? (
                       <>
-                        <Sun size={20} color="currentColor" />
+                        <Icon icon="mingcute:sun-fill" width={20} height={20} />
                         <span>Light Mode</span>
                       </>
                     ) : (
                       <>
-                        <Moon size={20} color="currentColor" />
+                        <Icon
+                          icon="mingcute:moon-fill"
+                          width={20}
+                          height={20}
+                        />
                         <span>Dark Mode</span>
                       </>
                     )}
@@ -481,30 +521,44 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
                   {/* Highlight Next Task Option */}
                   <div className="relative group">
-                    <button className="w-full flex items-center justify-between px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter">
+                    <button className="w-full flex items-center justify-between px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter">
                       <div className="flex items-center space-x-2">
-                        <StarShine size={20} color="currentColor" />
+                        <Icon
+                          icon="mingcute:fullscreen-fill"
+                          width={20}
+                          height={20}
+                        />
                         <span>Highlight next task</span>
                       </div>
                       <AltArrowRight size={15} color="currentColor" />
                     </button>
 
                     {/* Submenu */}
-                    <div className="absolute left-full top-0 ml-1 w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 hidden group-hover:block">
+                    <div
+                      className={`absolute ${
+                        isOpen
+                          ? "left-full top-0 ml-1"
+                          : "left-full -top-12 ml-1"
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 hidden group-hover:block`}
+                    >
                       <button
                         onClick={() => {
                           handleHighlightNextTask(true);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-gre-100 hover:rounded-t-lg font-inter ${
+                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-t-lg font-inter ${
                           highlightNextTask
-                            ? "text-pri-pin-500"
+                            ? "text-pri-pur-500"
                             : "text-neu-gre-700"
                         }`}
                       >
                         <span>Yes</span>
                         {highlightNextTask && (
-                          <Unread size={16} color="#FF87BD" className="ml-1" />
+                          <Unread
+                            size={16}
+                            color="currentColor"
+                            className="ml-1 text-pri-tea-500"
+                          />
                         )}
                       </button>
                       <button
@@ -512,15 +566,19 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           handleHighlightNextTask(false);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-gre-100 hover:rounded-b-lg font-inter ${
+                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-b-lg font-inter ${
                           !highlightNextTask
-                            ? "text-pri-pin-500"
+                            ? "text-pri-pur-500"
                             : "text-neu-gre-700"
                         }`}
                       >
                         <span>No</span>
                         {!highlightNextTask && (
-                          <Unread size={16} color="#FF87BD" className="ml-1" />
+                          <Unread
+                            size={16}
+                            color="currentColor"
+                            className="ml-1 text-pri-tea-500"
+                          />
                         )}
                       </button>
                     </div>

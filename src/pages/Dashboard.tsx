@@ -15,6 +15,8 @@ import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
 import { TaskProgress } from "../components/Dashboard/TaskProgress";
 import { TaskList } from "../components/Dashboard/TaskList";
 import { QuickActions } from "../components/Dashboard/QuickActions";
+import { PomodoroTimer } from "../components/Pomodoro/PomodoroTimer";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Import weather icons
 import sunIcon from "../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -278,6 +280,25 @@ export function Dashboard() {
     const savedState = localStorage.getItem("highlightNextTask");
     return savedState ? JSON.parse(savedState) : true;
   });
+
+  const [isTimerVisible, setIsTimerVisible] = useState(false);
+
+  useEffect(() => {
+    const handleHighlightNextTaskChange = (event: CustomEvent) => {
+      setHighlightNextTask(event.detail);
+    };
+
+    window.addEventListener(
+      "highlightNextTaskChanged",
+      handleHighlightNextTaskChange as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        "highlightNextTaskChanged",
+        handleHighlightNextTaskChange as EventListener
+      );
+    };
+  }, []);
 
   const isTask = (item: ListItem): item is Task => {
     return item.type === "task";
@@ -1196,7 +1217,7 @@ export function Dashboard() {
             ? "bg-sup-suc-400 bg-opacity-50"
             : isTask(item) && item.backgroundColor
             ? item.backgroundColor
-            : "bg-neu-700"
+            : "bg-neu-gre-200"
         } ${
           isNextTask
             ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
@@ -1449,19 +1470,22 @@ export function Dashboard() {
 
     @keyframes pulse-ring {
       0% {
-        box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.6);
+        box-shadow: 0 0 0 0 rgba(239, 112, 155, 0.6);
       }
       70% {
-        box-shadow: 0 0 0 12px rgba(52, 168, 83, 0);
+        box-shadow: 0 0 0 12px rgba(239, 112, 155, 0);
       }
       100% {
-        box-shadow: 0 0 0 0 rgba(52, 168, 83, 0);
+        box-shadow: 0 0 0 0 rgba(239, 112, 155, 0);
       }
     }
 
     .highlighted-task {
       animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      background: linear-gradient(90deg, hsla(208, 33%, 21%, 0.85) 0%, hsla(211, 36%, 46%, 0.85) 100%);
+      background: linear-gradient(90deg, theme(colors.pink-test.500) 0%, theme(colors.orange-test.500) 100%);
+      background: -moz-linear-gradient(90deg, theme(colors.pink-test.500) 0%, theme(colors.orange-test.500) 100%);
+      background: -webkit-linear-gradient(90deg, theme(colors.pink-test.500) 0%, theme(colors.orange-test.500) 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#EF709B,endColorstr=#FA9372,GradientType=1);
       position: relative;
     }
 
@@ -1469,7 +1493,7 @@ export function Dashboard() {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, hsla(145, 84%, 73%, 0.3) 0%, hsla(150, 61%, 48%, 0.3) 100%);
+      background: linear-gradient(90deg, rgba(239, 112, 155, 0.3) 0%, rgba(250, 147, 114, 0.3) 100%);
       border-radius: 0.5rem;
       z-index: 0;
     }
@@ -1657,7 +1681,7 @@ export function Dashboard() {
       <style>{globalStyles}</style>
       <PageTransition>
         <div className="p-8">
-          <div className="max-w-5xl mx-auto space-y-16">
+          <div className="max-w-4xl mx-auto space-y-16">
             <DashboardHeader
               dayOfWeek={dayOfWeek}
               currentDate={currentDate}
@@ -1665,37 +1689,54 @@ export function Dashboard() {
               weatherCondition={weatherCondition}
               onAddTask={handleAddTask}
               onAddSection={handleAddSection}
+              onTimerClick={() => setIsTimerVisible(true)}
+              isTimerActive={isTimerVisible}
             />
 
-            <div className="bg-neu-whi-100 max-w-4xl mx-auto rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
-              <TaskProgress
-                completionPercentage={completionPercentage}
-                completedPosition={completedPosition}
-                onCompletedPositionChange={setCompletedPosition}
-                onClearCompleted={handleClearCompleted}
-              />
+            <AnimatePresence mode="wait">
+              {isTimerVisible && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <PomodoroTimer onClose={() => setIsTimerVisible(false)} />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-              <QuickActions
-                onAddTask={handleAddTask}
-                onAddSection={handleAddSection}
-              />
-
-              {/* Tasks Box */}
-              <div className="bg-neu-whi-100 rounded-xl pt-8 pb-8">
-                <TaskList
-                  items={filteredAndSortedItems}
-                  isLoading={isLoading}
-                  highlightNextTask={highlightNextTask}
-                  editingTask={editingTask}
-                  onTaskCompletion={handleTaskCompletion}
-                  onTaskSelect={setSelectedTask}
-                  onTaskEdit={setEditingTask}
-                  onTaskDelete={handleDeleteTask}
-                  onSectionSelect={setSelectedSection}
-                  onSectionDelete={handleDeleteSection}
-                  onMoveItem={moveItem}
-                  isTask={isTask}
+            <div className="max-w-4xl mx-auto rounded-5xl p-[4px] bg-gradient-to-r from-[rgba(239,112,155,0.5)] to-[rgba(250,147,114,0.5)]">
+              <div className="bg-neu-whi-100 rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
+                <TaskProgress
+                  completionPercentage={completionPercentage}
+                  completedPosition={completedPosition}
+                  onCompletedPositionChange={setCompletedPosition}
+                  onClearCompleted={handleClearCompleted}
                 />
+
+                <QuickActions
+                  onAddTask={handleAddTask}
+                  onAddSection={handleAddSection}
+                />
+
+                {/* Tasks Box */}
+                <div className="bg-neu-whi-100 rounded-xl pt-8 pb-8">
+                  <TaskList
+                    items={filteredAndSortedItems}
+                    isLoading={isLoading}
+                    highlightNextTask={highlightNextTask}
+                    editingTask={editingTask}
+                    onTaskCompletion={handleTaskCompletion}
+                    onTaskSelect={setSelectedTask}
+                    onTaskEdit={setEditingTask}
+                    onTaskDelete={handleDeleteTask}
+                    onSectionSelect={setSelectedSection}
+                    onSectionDelete={handleDeleteSection}
+                    onMoveItem={moveItem}
+                    isTask={isTask}
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -207,6 +207,16 @@ module.exports = {
           800: "#965D1D",
           900: "#754716",
         },
+        "pink-test": {
+          500: "#EF709B",
+        },
+        "orange-test": {
+          500: "#FA9372",
+        },
+        "neu-blue": {
+          900: "#2A3441", // Dark blue-gray
+          800: "#4A6B8A", // Medium blue-gray
+        },
       },
       width: {
         xs: "30px",
@@ -239,6 +249,9 @@ module.exports = {
         "8xl": "182px",
         "9xl": "209px",
         "10xl": "240px",
+      },
+      backgroundImage: {
+        "blue-gradient": "linear-gradient(90deg, #2A3441 0%, #4A6B8A 100%)",
       },
     },
   },

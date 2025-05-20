@@ -1,18 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "../Sidebar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, Outlet } from "react-router-dom";
 
 export function Layout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    const savedState = localStorage.getItem("sidebarCollapsed");
+    // If there's a saved state, use it (inverted since we store collapsed state)
+    // If no saved state, default to expanded (true)
+    return savedState ? !JSON.parse(savedState) : true;
+  });
+
+  // Add effect to sync with localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("sidebarCollapsed");
+    if (savedState !== null) {
+      setIsSidebarOpen(!JSON.parse(savedState));
+    }
+  }, []);
+
   const location = useLocation();
+
+  const handleSidebarToggle = () => {
+    const newState = !isSidebarOpen;
+    setIsSidebarOpen(newState);
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(!newState));
+  };
 
   return (
     <div className="flex h-screen">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
+      <Sidebar isOpen={isSidebarOpen} onToggle={handleSidebarToggle} />
       <main className="flex-1 overflow-auto">
         <AnimatePresence mode="wait">
           <motion.div

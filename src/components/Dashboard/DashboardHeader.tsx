@@ -1,5 +1,8 @@
 import { Greeting } from "../Greeting/Greeting";
 import { MotivationalQuote } from "../Greeting/MotivationalQuote";
+import { TimerButton } from "../Button/TimerButton";
+import { Icon } from "@iconify/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Import weather icons
 import sunIcon from "../../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -16,6 +19,10 @@ interface DashboardHeaderProps {
   currentDate: string;
   temperature: number | null;
   weatherCondition: string | null;
+  onAddTask: (title: string, description: string) => void;
+  onAddSection: (title: string, time: string) => void;
+  onTimerClick: () => void;
+  isTimerActive: boolean;
 }
 
 const getWeatherIcon = (condition: string | null) => {
@@ -50,28 +57,56 @@ export const DashboardHeader = ({
   currentDate,
   temperature,
   weatherCondition,
+  onAddTask,
+  onAddSection,
+  onTimerClick,
+  isTimerActive,
 }: DashboardHeaderProps) => {
+  // Abbreviate the day of the week to 3 letters
+  const abbreviatedDay = dayOfWeek.substring(0, 3);
+
+  // Split the current date into day and month
+  const [month, day] = currentDate.split(" ");
+
   return (
-    <div className="rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 [background:hsla(173,72%,93%,1)] [background:linear-gradient(135deg,hsla(173,72%,93%,1)_0%,hsla(0,0%,100%,1)_100%)] [background:-moz-linear-gradient(135deg,hsla(173,72%,93%,1)_0%,hsla(0,0%,100%,1)_100%)] [background:-webkit-linear-gradient(135deg,hsla(173,72%,93%,1)_0%,hsla(0,0%,100%,1)_100%)] [filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#E0FAF7,endColorstr=#FFFFFF,GradientType=1)]">
-      <Greeting className="mb-2" />
-      <MotivationalQuote className="mb-6" />
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-4xl font-bold font-inter text-pri-tea-900">
-            {dayOfWeek}
-          </h1>
-          <span className="text-2xl font-inter text-pri-tea-700 uppercase">
-            {currentDate}
-          </span>
-        </div>
-        {temperature !== null && (
-          <div className="flex items-center gap-2">
-            {getWeatherIcon(weatherCondition)}
-            <span className="text-2xl font-inter text-pri-tea-900">
-              {temperature} °C
-            </span>
+    <div className="rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 bg-pink-test-500 [background:linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [background:-moz-linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [background:-webkit-linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#EF709B,endColorstr=#FA9372,GradientType=1)]">
+      <div className="flex justify-between items-start">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${dayOfWeek}-${currentDate}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <Greeting className="mb-2" />
+            <MotivationalQuote className="mb-4" />
+            <TimerButton onClick={onTimerClick} isActive={isTimerActive} />
+          </motion.div>
+        </AnimatePresence>
+        <div className="flex flex-col  items-center leading-none">
+          <div className="flex flex-col px-4 py-2 bg-neu-whi-100 rounded-5xl items-center leading-none mb-4">
+            <h1 className="text-md font-regular font-inter text-neu-gre-800 leading-none">
+              {abbreviatedDay}
+            </h1>
+            <div className="flex flex-col items-center leading-none">
+              <span className="text-6xl font-inter font-bold text-neu-gre-700 leading-none">
+                {day}
+              </span>
+              <span className="text-md font-inter font-regular text-neu-gre-800 leading-none">
+                {month}
+              </span>
+            </div>
           </div>
-        )}
+          {temperature !== null && (
+            <div className="flex flex-1 items-center gap-2">
+              {getWeatherIcon(weatherCondition)}
+              <span className="text-xl font-bold font-inter text-neu-gre-100 leading-none">
+                {temperature}°C
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

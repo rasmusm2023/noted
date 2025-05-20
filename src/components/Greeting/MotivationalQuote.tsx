@@ -116,7 +116,7 @@ export function MotivationalQuote({ className = "" }: MotivationalQuoteProps) {
 
   return (
     <div
-      className={`text-xl text-pri-tea-800 font-inter font-semibold ${className}`}
+      className={`text-lg text-pri-pur-900 font-inter font-regular ${className}`}
     >
       {quote}
     </div>

@@ -11,7 +11,10 @@ interface TaskModalProps {
 }
 
 const TASK_COLORS = [
-  { name: "Default", value: "bg-neu-800" },
+  {
+    name: "Default",
+    value: "bg-gradient-to-r from-pink-test-500 to-orange-test-500",
+  },
   { name: "Blue", value: "bg-pri-blue-500" },
   { name: "Green", value: "bg-sup-suc-500" },
   { name: "Yellow", value: "bg-sup-war-500" },
@@ -35,7 +38,8 @@ export function TaskModal({
   const [isDragging, setIsDragging] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentBackgroundColor, setCurrentBackgroundColor] = useState(
-    task.backgroundColor || "bg-neu-800"
+    task.backgroundColor ||
+      "bg-gradient-to-r from-pink-test-500 to-orange-test-500"
   );
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -136,7 +140,10 @@ export function TaskModal({
     console.log("Task changed in modal:", task);
     setEditedTitle(task.title);
     setSubtasks(task.subtasks || []);
-    setCurrentBackgroundColor(task.backgroundColor || "bg-neu-800");
+    setCurrentBackgroundColor(
+      task.backgroundColor ||
+        "bg-gradient-to-r from-pink-test-500 to-orange-test-500"
+    );
   }, [task]);
 
   // Handle escape key
@@ -213,7 +220,10 @@ export function TaskModal({
       setShowColorPicker(false);
     } catch (error) {
       console.error("Error updating task color:", error);
-      setCurrentBackgroundColor(task.backgroundColor || "bg-neu-800"); // Revert on error
+      setCurrentBackgroundColor(
+        task.backgroundColor ||
+          "bg-gradient-to-r from-pink-test-500 to-orange-test-500"
+      ); // Revert on error
     }
   };
 

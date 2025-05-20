@@ -15,7 +15,7 @@ export const SubtaskList = ({ subtasks }: SubtaskListProps) => {
         <div key={subtask.id} className="flex items-center space-x-2">
           <div
             className={`w-2 h-2 rounded-full ${
-              subtask.completed ? "bg-sup-suc-500" : "bg-neu-500"
+              subtask.completed ? "bg-sup-suc-500" : "bg-neu-gre-500"
             }`}
           />
           <span

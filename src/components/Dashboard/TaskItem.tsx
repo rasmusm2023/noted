@@ -44,7 +44,7 @@ export const TaskItem = ({
           ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)]"
           : task.backgroundColor
           ? task.backgroundColor
-          : "[background:linear-gradient(90deg,hsla(208,33%,21%,1)_0%,hsla(211,36%,46%,1)_100%)]"
+          : "bg-neu-gre-100"
       } ${
         isNextTask ? "highlighted-task" : ""
       } focus:outline-none focus:ring-2 focus:ring-pri-tea-500`}
@@ -60,7 +60,7 @@ export const TaskItem = ({
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
                 ? "text-neu-gre-900 hover:text-neu-gre-900 scale-95"
-                : "text-pri-tea-500 hover:text-sup-suc-500 hover:scale-95"
+                : "text-neu-gre-800 hover:text-sup-suc-500 hover:scale-95"
             } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 rounded-full p-1`}
             aria-label={`Mark task "${task.title}" as ${
               task.completed ? "incomplete" : "complete"
@@ -80,8 +80,8 @@ export const TaskItem = ({
                 isEditing ? "" : "transition-all duration-300"
               } ${
                 task.completed
-                  ? "text-neu-bla-800 scale-95"
-                  : "text-neu-whi-100"
+                  ? "text-neu-gre-800 scale-95"
+                  : "text-neu-gre-800"
               }`}
             >
               {isEditing ? (
@@ -112,15 +112,15 @@ export const TaskItem = ({
                 {task.subtasks.map((subtask) => (
                   <div key={subtask.id} className="flex items-center space-x-2">
                     <div
-                      className={`w-2 h-2 rounded-full ${
-                        subtask.completed ? "bg-pri-tea-500" : "bg-neu-gre-300"
+                      className={`w-3 h-3 rounded-full ${
+                        subtask.completed ? "bg-sup-suc-500" : "bg-neu-gre-600"
                       }`}
                     />
                     <span
                       className={`font-inter text-sm ${
                         subtask.completed
-                          ? "line-through text-neu-gre-400"
-                          : "text-neu-gre-300"
+                          ? "line-through text-neu-gre-600"
+                          : "text-neu-gre-700"
                       }`}
                     >
                       {subtask.title}
