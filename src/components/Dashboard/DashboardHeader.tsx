@@ -71,7 +71,7 @@ export const DashboardHeader = ({
   return (
     <div className="rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 relative">
       <div className="absolute inset-0 rounded-5xl bg-pink-test-500 [background:linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [background:-moz-linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [background:-webkit-linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#EF709B,endColorstr=#FA9372,GradientType=1)] opacity-75"></div>
-      <div className="flex justify-between items-start relative">
+      <div className="flex justify-between items-start relative h-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={`${dayOfWeek}-${currentDate}`}
@@ -79,10 +79,15 @@ export const DashboardHeader = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
+            className="flex flex-col h-full"
           >
-            <Greeting className="mb-2" />
-            <MotivationalQuote className="mb-4" />
-            <TimerButton onClick={onTimerClick} isActive={isTimerActive} />
+            <div className="flex-grow">
+              <Greeting />
+              <MotivationalQuote className="mb-8" />
+            </div>
+            <div className="mt-auto">
+              <TimerButton onClick={onTimerClick} isActive={isTimerActive} />
+            </div>
           </motion.div>
         </AnimatePresence>
         <div className="flex flex-col items-center leading-none">

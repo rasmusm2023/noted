@@ -31,12 +31,12 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
   return (
     <div className="grid grid-cols-1 gap-6">
       <div
-        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-orange-test-500/10 transition-colors ring-1 ring-orange-test-500/75 ${
+        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-pri-pur-500/10 transition-colors ring-1 ring-pri-pur-500/75 ${
           focusedInput === "task" ? "ring-2 ring-orange-test-500" : ""
         }`}
       >
         <div className="flex items-center space-x-4">
-          <div className="p-2 bg-orange-test-500 rounded-lg flex items-center justify-center">
+          <div className="p-2 bg-pri-pur-500 rounded-lg flex items-center justify-center">
             <Icon
               icon="mingcute:add-fill"
               width={32}

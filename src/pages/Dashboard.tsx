@@ -1470,22 +1470,22 @@ export function Dashboard() {
 
     @keyframes pulse-ring {
       0% {
-        box-shadow: 0 0 0 0 rgba(239, 112, 155, 0.6);
+        box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
       }
       70% {
-        box-shadow: 0 0 0 12px rgba(239, 112, 155, 0);
+        box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
       }
       100% {
-        box-shadow: 0 0 0 0 rgba(239, 112, 155, 0);
+        box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
       }
     }
 
     .highlighted-task {
-      animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      background: linear-gradient(90deg, theme(colors.pink-test.500) 0%, theme(colors.orange-test.500) 100%);
-      background: -moz-linear-gradient(90deg, theme(colors.pink-test.500) 0%, theme(colors.orange-test.500) 100%);
-      background: -webkit-linear-gradient(90deg, theme(colors.pink-test.500) 0%, theme(colors.orange-test.500) 100%);
-      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#EF709B,endColorstr=#FA9372,GradientType=1);
+      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      background: linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
+      background: -moz-linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
+      background: -webkit-linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#A78BFA,endColorstr=#6D28D9,GradientType=1);
       position: relative;
     }
 
@@ -1493,7 +1493,7 @@ export function Dashboard() {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, rgba(239, 112, 155, 0.3) 0%, rgba(250, 147, 114, 0.3) 100%);
+      background: linear-gradient(90deg, rgba(167, 139, 250, 0.3) 0%, rgba(109, 40, 217, 0.3) 100%);
       border-radius: 0.5rem;
       z-index: 0;
     }
