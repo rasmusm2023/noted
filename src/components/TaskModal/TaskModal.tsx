@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import type { Task, Subtask } from "../../types/task";
 import { Icon } from "@iconify/react";
+import { useAuth } from "../../contexts/AuthContext";
+import { goalService } from "../../services/goalService";
+import type { Goal } from "../../services/goalService";
 
 interface TaskModalProps {
   task: Task;
@@ -32,6 +35,7 @@ export function TaskModal({
   onUpdate,
   onDelete,
 }: TaskModalProps) {
+  const { currentUser } = useAuth();
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || []);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
@@ -40,6 +44,10 @@ export function TaskModal({
   const [currentBackgroundColor, setCurrentBackgroundColor] = useState(
     task.backgroundColor ||
       "bg-gradient-to-r from-pink-test-500 to-orange-test-500"
+  );
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | undefined>(
+    task.goalId
   );
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -375,6 +383,36 @@ export function TaskModal({
     }
   };
 
+  // Load goals when modal opens
+  useEffect(() => {
+    const loadGoals = async () => {
+      if (currentUser) {
+        try {
+          const userGoals = await goalService.getUserGoals(currentUser.uid);
+          setGoals(userGoals);
+        } catch (error) {
+          console.error("Error loading goals:", error);
+        }
+      }
+    };
+
+    if (isOpen) {
+      loadGoals();
+    }
+  }, [isOpen, currentUser]);
+
+  // Handle goal selection
+  const handleGoalChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const goalId = e.target.value || undefined;
+    setSelectedGoalId(goalId);
+    try {
+      await onUpdate(task.id, { goalId });
+    } catch (error) {
+      console.error("Error updating task goal:", error);
+      setSelectedGoalId(task.goalId); // Revert on error
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -503,6 +541,29 @@ export function TaskModal({
                 <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
               </button>
             </div>
+          </div>
+
+          {/* Add Goal Selection Dropdown */}
+          <div className="mb-6">
+            <label
+              htmlFor="goal-select"
+              className="block text-sm font-medium text-neu-300 mb-2"
+            >
+              Associated Goal
+            </label>
+            <select
+              id="goal-select"
+              value={selectedGoalId || ""}
+              onChange={handleGoalChange}
+              className="w-full px-3 py-2 bg-neu-700 text-neu-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+            >
+              <option value="">No Goal</option>
+              {goals.map((goal) => (
+                <option key={goal.id} value={goal.id}>
+                  {goal.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Subtasks Section */}

@@ -58,16 +58,16 @@ const menuSections: MenuSection[] = [
     title: "Progress",
     items: [
       {
-        id: "habits",
-        label: "Habits",
-        icon: () => <Icon icon="mingcute:heart-fill" width={24} height={24} />,
-        path: "/habits",
-      },
-      {
         id: "goals",
         label: "Goals",
         icon: () => <Icon icon="mingcute:trophy-fill" width={24} height={24} />,
         path: "/goals",
+      },
+      {
+        id: "habits",
+        label: "Habits",
+        icon: () => <Icon icon="mingcute:heart-fill" width={24} height={24} />,
+        path: "/habits",
       },
     ],
   },
@@ -385,20 +385,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 Progress
               </h2>
               <button
-                onClick={() => navigate("/habits")}
-                className={`w-full flex items-center ${
-                  isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
-                  location.pathname === "/habits"
-                    ? "bg-neu-gre-200 text-neu-gre-900"
-                    : ""
-                }`}
-              >
-                <Icon icon="mingcute:heart-fill" width={20} height={20} />
-                {isOpen && <span className="text-base">Habits</span>}
-              </button>
-
-              <button
                 onClick={() => navigate("/goals")}
                 className={`w-full flex items-center ${
                   isOpen ? "space-x-3" : "justify-center"
@@ -410,6 +396,19 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               >
                 <Icon icon="mingcute:star-fill" width={20} height={20} />
                 {isOpen && <span className="text-base">Goals</span>}
+              </button>
+              <button
+                onClick={() => navigate("/habits")}
+                className={`w-full flex items-center ${
+                  isOpen ? "space-x-3" : "justify-center"
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                  location.pathname === "/habits"
+                    ? "bg-neu-gre-200 text-neu-gre-900"
+                    : ""
+                }`}
+              >
+                <Icon icon="mingcute:heart-fill" width={20} height={20} />
+                {isOpen && <span className="text-base">Habits</span>}
               </button>
             </div>
 

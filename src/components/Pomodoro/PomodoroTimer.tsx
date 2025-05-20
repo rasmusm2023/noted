@@ -5,6 +5,7 @@ import timerCompleteSound from "../../assets/sounds/timer-complete.mp3";
 interface TimeInterval {
   label: string;
   minutes: number;
+  type: "work" | "break";
 }
 
 interface PomodoroTimerProps {
@@ -12,11 +13,10 @@ interface PomodoroTimerProps {
 }
 
 const timeIntervals: TimeInterval[] = [
-  { label: "Pomodoro", minutes: 25 },
-  { label: "Short Break", minutes: 5 },
-  { label: "Long Break", minutes: 15 },
-  { label: "1 Hour", minutes: 60 },
-  { label: "2 Hours", minutes: 120 },
+  { label: "Pomodoro", minutes: 25, type: "work" },
+  { label: "1 Hour", minutes: 60, type: "work" },
+  { label: "Short Break", minutes: 5, type: "break" },
+  { label: "Long Break", minutes: 15, type: "break" },
 ];
 
 export const PomodoroTimer = ({ onClose }: PomodoroTimerProps) => {
@@ -70,12 +70,22 @@ export const PomodoroTimer = ({ onClose }: PomodoroTimerProps) => {
   // Request notification permission
   const requestNotificationPermission = useCallback(async () => {
     try {
-      const permission = await Notification.requestPermission();
-      setHasPermission(permission === "granted");
+      if (hasPermission) {
+        // If notifications are enabled, revoke them
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          await registration.unregister();
+        }
+        setHasPermission(false);
+      } else {
+        // If notifications are disabled, request them
+        const permission = await Notification.requestPermission();
+        setHasPermission(permission === "granted");
+      }
     } catch (error) {
-      console.error("Error requesting notification permission:", error);
+      console.error("Error managing notification permission:", error);
     }
-  }, []);
+  }, [hasPermission]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -133,69 +143,109 @@ export const PomodoroTimer = ({ onClose }: PomodoroTimerProps) => {
       aria-modal="true"
       aria-label="Pomodoro Timer"
     >
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
-        aria-label="Close Timer"
-      >
-        <Icon icon="mingcute:close-fill" className="w-5 h-5" />
-      </button>
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <button
+          onClick={requestNotificationPermission}
+          className="p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
+          aria-label={
+            hasPermission ? "Disable notifications" : "Enable notifications"
+          }
+        >
+          <Icon
+            icon={
+              hasPermission
+                ? "mingcute:notification-off-fill"
+                : "mingcute:notification-fill"
+            }
+            className="w-5 h-5"
+          />
+        </button>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
+          aria-label="Close Timer"
+        >
+          <Icon icon="mingcute:close-fill" className="w-5 h-5" />
+        </button>
+      </div>
       <div className="flex flex-col items-center gap-6">
-        {/* Time Interval Selection */}
-        <div className="flex gap-4">
-          {timeIntervals.map((interval) => (
-            <button
-              key={interval.label}
-              onClick={() => setSelectedInterval(interval)}
-              className={`px-4 py-2 rounded-lg font-inter transition-all ${
-                selectedInterval.label === interval.label
-                  ? "bg-pink-test-500 text-neu-whi-100"
-                  : "bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200"
-              }`}
-            >
-              {interval.label}
-            </button>
-          ))}
-        </div>
+        {/* Main Timer Section */}
+        <div className="flex items-center justify-between w-full max-w-3xl">
+          {/* Work Timers */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm font-inter font-semibold text-neu-gre-700 mb-3">
+              Work
+            </h3>
+            {timeIntervals
+              .filter((interval) => interval.type === "work")
+              .map((interval) => (
+                <button
+                  key={interval.label}
+                  onClick={() => setSelectedInterval(interval)}
+                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left ${
+                    selectedInterval.label === interval.label
+                      ? "bg-orange-test-500 text-neu-whi-100"
+                      : "bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200"
+                  }`}
+                >
+                  {interval.label}
+                </button>
+              ))}
+          </div>
 
-        {/* Timer Display */}
-        <div className="text-6xl font-bold font-inter text-neu-gre-800">
-          {formatTime(timeLeft)}
-        </div>
+          {/* Timer Display and Controls */}
+          <div className="flex flex-col items-center gap-6">
+            <div className="text-6xl font-bold font-inter text-neu-gre-800">
+              {formatTime(timeLeft)}
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setIsRunning(!isRunning)}
+                className="p-4 rounded-full bg-orange-test-500 text-white hover:bg-orange-test-500/75 transition-colors"
+              >
+                <Icon
+                  icon={
+                    isRunning ? "mingcute:pause-fill" : "mingcute:play-fill"
+                  }
+                  width={24}
+                  height={24}
+                />
+              </button>
+              <button
+                onClick={() => {
+                  setTimeLeft(selectedInterval.minutes * 60);
+                  setIsRunning(false);
+                }}
+                className="p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
+                aria-label="Reset Timer"
+              >
+                <Icon icon="mingcute:back-2-fill" width={24} height={24} />
+              </button>
+            </div>
+          </div>
 
-        {/* Control Buttons */}
-        <div className="flex gap-4">
-          <button
-            onClick={() => setIsRunning(!isRunning)}
-            className="p-4 rounded-full bg-orange-test-500 text-white hover:bg-orange-test-500/75 transition-colors"
-          >
-            <Icon
-              icon={isRunning ? "mingcute:pause-fill" : "mingcute:play-fill"}
-              width={24}
-              height={24}
-            />
-          </button>
-          <button
-            onClick={() => {
-              setTimeLeft(selectedInterval.minutes * 60);
-              setIsRunning(false);
-            }}
-            className="p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
-            aria-label="Reset Timer"
-          >
-            <Icon icon="mingcute:back-2-fill" width={24} height={24} />
-          </button>
+          {/* Break Timers */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm font-inter font-semibold text-neu-gre-700 mb-3">
+              Break
+            </h3>
+            {timeIntervals
+              .filter((interval) => interval.type === "break")
+              .map((interval) => (
+                <button
+                  key={interval.label}
+                  onClick={() => setSelectedInterval(interval)}
+                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left ${
+                    selectedInterval.label === interval.label
+                      ? "bg-pink-test-500 text-neu-whi-100"
+                      : "bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200"
+                  }`}
+                >
+                  {interval.label}
+                </button>
+              ))}
+          </div>
         </div>
-
-        {/* Notification Permission Button */}
-        {!hasPermission && (
-          <button
-            onClick={requestNotificationPermission}
-            className="mt-4 px-4 py-2 rounded-lg bg-sup-sys-500 text-neu-whi-100 hover:bg-pri-blue-600 transition-colors font-inter"
-          >
-            Enable notifications
-          </button>
-        )}
       </div>
     </div>
   );

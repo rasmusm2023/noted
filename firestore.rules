@@ -6,7 +6,7 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
-
+    
     // Helper function to check if user owns the document
     function isOwner(userId) {
       return request.auth.uid == userId;
@@ -43,7 +43,11 @@ service cloud.firestore {
 
     // Tasks collection rules
     match /tasks/{taskId} {
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        (resource.data.goalId != null && exists(/databases/$(database)/documents/goals/$(resource.data.goalId)) && 
+        isOwner(get(/databases/$(database)/documents/goals/$(resource.data.goalId)).data.userId))
+      );
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
       allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
       // Allow batch operations for tasks
@@ -78,5 +82,23 @@ service cloud.firestore {
         isOwner(request.resource.data.userId)
       );
     }
+
+    // Goals collection rules
+    match /goals/{goalId} {
+      // Allow read if user is authenticated and owns the goal
+      allow read: if isAuthenticated() && (
+        !exists(resource) || 
+        isOwner(resource.data.userId)
+      );
+      
+      // Allow create if user is authenticated and sets themselves as owner
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      
+      // Allow update if user is authenticated and owns the goal
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      
+      // Allow delete if user is authenticated and owns the goal
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
   }
-} 
+}

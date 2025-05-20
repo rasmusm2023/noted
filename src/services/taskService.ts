@@ -11,6 +11,7 @@ import {
   writeBatch,
   serverTimestamp,
   orderBy,
+  Timestamp,
 } from "firebase/firestore";
 import type {
   Task,
@@ -155,7 +156,7 @@ export const taskService = {
   // Create a new task
   async createTask(
     userId: string,
-    taskData: Omit<Task, "id" | "userId" | "createdAt" | "updatedAt" | "order">
+    taskData: Omit<Task, "id" | "userId" | "createdAt" | "updatedAt">
   ): Promise<Task> {
     tracker.trackOperation({
       type: "write",
@@ -168,44 +169,22 @@ export const taskService = {
     console.log("Task data:", taskData);
 
     try {
-      // Get current tasks for the same date to determine the next order
-      const currentTasks = await this.getUserTasks(userId);
-      const tasksForSameDate = currentTasks.filter(
-        (task) => task.date === taskData.date
-      );
-
-      // Create a batch for the new task and affected tasks
-      const batch = writeBatch(db);
-
-      // Only update orders of tasks for the same date
-      tasksForSameDate.forEach((task) => {
-        const taskRef = doc(db, tasksCollection, task.id);
-        batch.update(taskRef, {
-          order: (task.order || 0) + 1,
-          updatedAt: new Date().toISOString(),
-        });
-      });
-
-      const now = new Date().toISOString();
-      const task: Omit<Task, "id"> = {
+      const now = new Date();
+      const newTask = {
         ...taskData,
         userId,
         completed: false,
-        createdAt: now,
-        updatedAt: now,
-        order: 0, // New task gets order 0 (top of the list)
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
       };
 
-      console.log("Full task object to be saved:", task);
+      console.log("Full task object to be saved:", newTask);
 
-      // Add the new task to the batch
-      const newTaskRef = doc(collection(db, tasksCollection));
-      batch.set(newTaskRef, task);
-
-      // Commit all changes
-      await batch.commit();
-
-      const createdTask = { ...task, id: newTaskRef.id };
+      const docRef = await addDoc(collection(db, tasksCollection), newTask);
+      const createdTask = {
+        ...newTask,
+        id: docRef.id,
+      } as Task;
       console.log("Task created successfully:", createdTask);
       return createdTask;
     } catch (error) {
@@ -245,6 +224,8 @@ export const taskService = {
         return {
           id: doc.id,
           ...data,
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
         } as Task;
       });
 
@@ -266,32 +247,12 @@ export const taskService = {
 
     try {
       const taskRef = doc(db, tasksCollection, taskId);
-      const now = new Date().toISOString();
-
-      // If subtasks are being updated, ensure they have proper order
-      if (updates.subtasks) {
-        updates.subtasks = updates.subtasks.map((subtask, index) => ({
-          ...subtask,
-          order: index,
-        }));
-      }
-
-      // Only include fields that are actually being updated
+      const now = new Date();
       const updateData: Partial<Task> = {
         ...updates,
-        updatedAt: now,
+        updatedAt: now.toISOString(),
       };
-
-      // Remove undefined values to avoid unnecessary updates
-      (Object.keys(updateData) as Array<keyof Task>).forEach((key) => {
-        if (updateData[key] === undefined) {
-          delete updateData[key];
-        }
-      });
-
-      console.log("Updating task with data:", updateData);
       await updateDoc(taskRef, updateData);
-      console.log("Task updated successfully");
     } catch (error) {
       console.error("Error updating task:", error);
       throw error;
@@ -740,6 +701,32 @@ export const taskService = {
       } catch (error) {
         console.error("Error moving incomplete task:", task.id, error);
       }
+    }
+  },
+
+  async getTasksByGoal(goalId: string): Promise<Task[]> {
+    tracker.trackOperation({
+      type: "read",
+      collection: tasksCollection,
+      operation: "getByGoal",
+      details: { goalId },
+    });
+
+    try {
+      const tasksRef = collection(db, tasksCollection);
+      const q = query(tasksRef, where("goalId", "==", goalId));
+      const querySnapshot = await getDocs(q);
+
+      return querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+        } as Task;
+      });
+    } catch (error) {
+      console.error("Error in getTasksByGoal:", error);
+      throw error;
     }
   },
 };

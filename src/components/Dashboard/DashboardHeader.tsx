@@ -105,7 +105,7 @@ export const DashboardHeader = ({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.5 }}
-                className="text-6xl font-inter font-bold text-neu-gre-700 leading-none"
+                className="text-6xl font-inter font-semibold text-neu-gre-700 leading-none"
               >
                 {day}
               </motion.span>

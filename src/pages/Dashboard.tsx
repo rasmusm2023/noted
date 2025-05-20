@@ -1715,10 +1715,7 @@ export function Dashboard() {
                   onClearCompleted={handleClearCompleted}
                 />
 
-                <QuickActions
-                  onAddTask={handleAddTask}
-                  onAddSection={handleAddSection}
-                />
+                <QuickActions onAddTask={handleAddTask} />
 
                 {/* Tasks Box */}
                 <div className="bg-neu-whi-100 rounded-xl pt-8 pb-8">

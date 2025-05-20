@@ -23,6 +23,7 @@ export interface Task extends BaseItem {
   subtasks?: Subtask[];
   shouldClose?: boolean; // Optional property to control modal closing
   backgroundColor?: string; // Optional property for task background color
+  goalId?: string; // Optional property to link task to a goal
 }
 
 export interface SectionItem extends BaseItem {
