@@ -1707,7 +1707,7 @@ export function Dashboard() {
             </AnimatePresence>
 
             <div className="max-w-4xl mx-auto rounded-5xl p-[4px] bg-gradient-to-r from-[rgba(239,112,155,0.5)] to-[rgba(250,147,114,0.5)]">
-              <div className="bg-neu-whi-100 rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
+              <div className="bg-neu-whi-100 rounded-5xl pl-16 pr-16 pt-16 pb-16 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
                 <TaskProgress
                   completionPercentage={completionPercentage}
                   completedPosition={completedPosition}

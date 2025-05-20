@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 
 const morningGreetings = [
   "Good morning,",
@@ -33,7 +33,7 @@ interface GreetingProps {
 
 export function Greeting({ className = "" }: GreetingProps) {
   const { currentUser } = useAuth();
-  const [isFirstLogin, setIsFirstLogin] = useState(true);
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [greeting] = useState(() => {
     if (isFirstLogin) {
@@ -68,12 +68,16 @@ export function Greeting({ className = "" }: GreetingProps) {
           const data = userDoc.data();
           setFirstName(data.firstName || "");
 
-          // Check if this is the first login by comparing creation time with last login time
-          const creationTime = new Date(data.createdAt).getTime();
-          const lastLoginTime = new Date(
-            currentUser.metadata.lastSignInTime || ""
-          ).getTime();
-          setIsFirstLogin(Math.abs(lastLoginTime - creationTime) < 60000); // Within 1 minute
+          // Check if this is the first login by checking if hasLoggedInBefore exists
+          if (!data.hasLoggedInBefore) {
+            setIsFirstLogin(true);
+            // Update the user document to mark that they have logged in
+            await updateDoc(doc(db, "users", currentUser.uid), {
+              hasLoggedInBefore: true,
+            });
+          } else {
+            setIsFirstLogin(false);
+          }
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
