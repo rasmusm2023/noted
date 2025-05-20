@@ -1,4 +1,3 @@
-import { QuickActions } from "./QuickActions";
 import { Greeting } from "../Greeting/Greeting";
 import { MotivationalQuote } from "../Greeting/MotivationalQuote";
 
@@ -17,8 +16,6 @@ interface DashboardHeaderProps {
   currentDate: string;
   temperature: number | null;
   weatherCondition: string | null;
-  onAddTask: (title: string, description: string) => void;
-  onAddSection: (title: string, time: string) => void;
 }
 
 const getWeatherIcon = (condition: string | null) => {
@@ -53,33 +50,29 @@ export const DashboardHeader = ({
   currentDate,
   temperature,
   weatherCondition,
-  onAddTask,
-  onAddSection,
 }: DashboardHeaderProps) => {
   return (
-    <div className="bg-neu-gre-200 rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
+    <div className="rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 [background:hsla(173,72%,93%,1)] [background:linear-gradient(135deg,hsla(173,72%,93%,1)_0%,hsla(0,0%,100%,1)_100%)] [background:-moz-linear-gradient(135deg,hsla(173,72%,93%,1)_0%,hsla(0,0%,100%,1)_100%)] [background:-webkit-linear-gradient(135deg,hsla(173,72%,93%,1)_0%,hsla(0,0%,100%,1)_100%)] [filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#E0FAF7,endColorstr=#FFFFFF,GradientType=1)]">
       <Greeting className="mb-2" />
       <MotivationalQuote className="mb-6" />
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-4xl font-bold font-outfit text-neu-gre-900">
+          <h1 className="text-4xl font-bold font-outfit text-pri-tea-900">
             {dayOfWeek}
           </h1>
-          <span className="text-2xl font-outfit text-neu-gre-600 uppercase">
+          <span className="text-2xl font-outfit text-pri-tea-700 uppercase">
             {currentDate}
           </span>
         </div>
         {temperature !== null && (
           <div className="flex items-center gap-2">
             {getWeatherIcon(weatherCondition)}
-            <span className="text-2xl font-outfit text-neu-bla-400">
+            <span className="text-2xl font-outfit text-pri-tea-900">
               {temperature} °C
             </span>
           </div>
         )}
       </div>
-
-      <QuickActions onAddTask={onAddTask} onAddSection={onAddSection} />
     </div>
   );
 };

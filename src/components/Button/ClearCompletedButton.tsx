@@ -7,7 +7,7 @@ interface ClearCompletedButtonProps {
 
 export const ClearCompletedButton = ({
   onClearCompleted,
-  className = "px-4 py-2 bg-neu-whi-100 text-neu-bla-800 border border-neu-bla-800 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500",
+  className = "px-4 py-2 bg-pri-tea-100 text-pri-tea-900 border border-pri-tea-900 rounded-lg hover:bg-pri-tea-200 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500",
 }: ClearCompletedButtonProps) => {
   return (
     <button onClick={onClearCompleted} className={className}>

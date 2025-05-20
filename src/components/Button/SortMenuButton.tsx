@@ -33,7 +33,7 @@ export const SortMenuButton = ({
     <div className="relative" ref={sortMenuRef}>
       <button
         onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-        className="px-4 py-2 bg-neu-whi-100 text-neu-bla-800 border border-neu-bla-800 rounded-lg hover:bg-neu-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+        className="px-4 py-2 bg-pri-tea-100 text-pri-tea-900 border border-pri-tea-900 rounded-lg hover:bg-pri-tea-200 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500"
       >
         {completedPosition === "mixed" ? (
           <Icon
@@ -74,10 +74,10 @@ export const SortMenuButton = ({
                 localStorage.setItem("completedPosition", "mixed");
                 setIsSortMenuOpen(false);
               }}
-              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
                 completedPosition === "mixed"
-                  ? "text-pri-blue-500"
-                  : "text-neu-bla-800 hover:bg-neu-600"
+                  ? "text-pri-tea-500"
+                  : "text-neu-bla-800 hover:bg-pri-tea-100"
               }`}
             >
               <Icon
@@ -94,10 +94,10 @@ export const SortMenuButton = ({
                 localStorage.setItem("completedPosition", "top");
                 setIsSortMenuOpen(false);
               }}
-              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
                 completedPosition === "top"
-                  ? "text-pri-blue-500"
-                  : "text-neu-bla-800 hover:bg-neu-600"
+                  ? "text-pri-tea-500"
+                  : "text-neu-bla-800 hover:bg-pri-tea-100"
               }`}
             >
               <Icon
@@ -114,10 +114,10 @@ export const SortMenuButton = ({
                 localStorage.setItem("completedPosition", "bottom");
                 setIsSortMenuOpen(false);
               }}
-              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 ${
+              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
                 completedPosition === "bottom"
-                  ? "text-pri-blue-500"
-                  : "text-neu-bla-800 hover:bg-neu-600"
+                  ? "text-pri-tea-500"
+                  : "text-neu-bla-800 hover:bg-pri-tea-100"
               }`}
             >
               <Icon

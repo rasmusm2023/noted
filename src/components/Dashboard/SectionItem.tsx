@@ -15,19 +15,19 @@ export const SectionItem = ({
   return (
     <div
       className={`p-4 ${
-        section.backgroundColor || "bg-neu-900"
-      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
+        section.backgroundColor || "bg-pri-tea-100"
+      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-tea-500`}
       tabIndex={0}
       onClick={() => onSelect(section)}
     >
       <div className="flex-1">
-        <h3 className="text-lg font-outfit font-semibold text-neu-300">
+        <h3 className="text-lg font-outfit font-semibold text-pri-tea-900">
           {section.text}
         </h3>
       </div>
       <div className="mx-4">
-        <h3 className="text-base font-outfit font-semibold text-neu-400">
-          {section.time.replace(":", ".")}
+        <h3 className="text-base font-outfit font-semibold text-pri-tea-700">
+          {section.time ? section.time.replace(":", ".") : ""}
         </h3>
       </div>
       <div className="flex items-center space-x-2">

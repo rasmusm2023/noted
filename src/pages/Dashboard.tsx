@@ -14,6 +14,7 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
 import { TaskProgress } from "../components/Dashboard/TaskProgress";
 import { TaskList } from "../components/Dashboard/TaskList";
+import { QuickActions } from "../components/Dashboard/QuickActions";
 
 // Import weather icons
 import sunIcon from "../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -290,8 +291,8 @@ export function Dashboard() {
   const parseDateString = (dateStr: string): Date => {
     console.log("Parsing date string:", dateStr);
 
-    // If it's an ISO string, parse it directly
-    if (dateStr.includes("T")) {
+    // If it's an ISO string or YYYY-MM-DD format, parse it directly
+    if (dateStr.includes("T") || dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
       return new Date(dateStr);
     }
 
@@ -1448,19 +1449,34 @@ export function Dashboard() {
 
     @keyframes pulse-ring {
       0% {
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2);
+        box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.6);
       }
       70% {
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
+        box-shadow: 0 0 0 12px rgba(52, 168, 83, 0);
       }
       100% {
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+        box-shadow: 0 0 0 0 rgba(52, 168, 83, 0);
       }
     }
 
     .highlighted-task {
-      animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.02) 100%);
+      animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      background: linear-gradient(90deg, hsla(208, 33%, 21%, 0.85) 0%, hsla(211, 36%, 46%, 0.85) 100%);
+      position: relative;
+    }
+
+    .highlighted-task::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, hsla(145, 84%, 73%, 0.3) 0%, hsla(150, 61%, 48%, 0.3) 100%);
+      border-radius: 0.5rem;
+      z-index: 0;
+    }
+
+    .highlighted-task > * {
+      position: relative;
+      z-index: 1;
     }
 
     @keyframes completeTask {
@@ -1641,7 +1657,7 @@ export function Dashboard() {
       <style>{globalStyles}</style>
       <PageTransition>
         <div className="p-8">
-          <div className="max-w-5xl mx-auto space-y-8">
+          <div className="max-w-5xl mx-auto space-y-16">
             <DashboardHeader
               dayOfWeek={dayOfWeek}
               currentDate={currentDate}
@@ -1651,7 +1667,7 @@ export function Dashboard() {
               onAddSection={handleAddSection}
             />
 
-            <div className="bg-neu-gre-200 rounded-xl pl-16 pr-16 pt-8 pb-8 shadow-lg">
+            <div className="bg-neu-whi-100 max-w-4xl mx-auto rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
               <TaskProgress
                 completionPercentage={completionPercentage}
                 completedPosition={completedPosition}
@@ -1659,8 +1675,13 @@ export function Dashboard() {
                 onClearCompleted={handleClearCompleted}
               />
 
+              <QuickActions
+                onAddTask={handleAddTask}
+                onAddSection={handleAddSection}
+              />
+
               {/* Tasks Box */}
-              <div className="bg-transparent rounded-xl pt-8 pb-8">
+              <div className="bg-neu-whi-100 rounded-xl pt-8 pb-8">
                 <TaskList
                   items={filteredAndSortedItems}
                   isLoading={isLoading}

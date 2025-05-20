@@ -469,16 +469,16 @@ export function Next7Days() {
     processData();
   };
 
-  // Add this function before loadData
+  // Helper function to parse date strings
   const parseDateString = (dateStr: string): Date => {
     console.log("Parsing date string:", dateStr);
 
-    // If it's an ISO string, parse it directly
-    if (dateStr.includes("T")) {
+    // If it's an ISO string or YYYY-MM-DD format, parse it directly
+    if (dateStr.includes("T") || dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
       return new Date(dateStr);
     }
 
-    // Handle format "DD/MM/YYYY, HH:mm:ss"
+    // Handle format "DD/MM/YYYY, HH:mm:ss" or "YYYY-MM-DD, HH:mm:ss"
     const [datePart, timePart] = dateStr.split(", ");
     if (!datePart || !timePart) {
       console.warn("Invalid date format:", dateStr);
@@ -486,8 +486,32 @@ export function Next7Days() {
     }
 
     console.log("Date parts:", { datePart, timePart });
+
+    // Check if datePart is in YYYY-MM-DD format
+    if (datePart.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = datePart.split("-");
+      const [hours, minutes] = timePart.split(":");
+
+      console.log("Parsed components:", { day, month, year, hours, minutes });
+
+      // Create date in local timezone
+      const date = new Date();
+      date.setFullYear(parseInt(year));
+      date.setMonth(parseInt(month) - 1); // Months are 0-based
+      date.setDate(parseInt(day));
+      date.setHours(parseInt(hours));
+      date.setMinutes(parseInt(minutes));
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+
+      console.log("Parsed date:", date.toISOString());
+      return date;
+    }
+
+    // Handle DD/MM/YYYY format
     const [day, month, year] = datePart.split("/");
     const [hours, minutes] = timePart.split(":");
+
     console.log("Parsed components:", { day, month, year, hours, minutes });
 
     // Create date in local timezone

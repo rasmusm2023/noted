@@ -86,7 +86,9 @@ export function Greeting({ className = "" }: GreetingProps) {
   if (!currentUser || !firstName) return null;
 
   return (
-    <div className={`text-lg font-semibold text-neu-bla-500 ${className}`}>
+    <div
+      className={`text-lg font-semibold font-outfit text-neu-bla-500 ${className}`}
+    >
       <span>{greeting} </span>
       <span>{firstName}</span>
     </div>

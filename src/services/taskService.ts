@@ -574,7 +574,7 @@ export const taskService = {
       updatedAt: now,
       scheduledTime: sectionData.scheduledTime,
       order: 0, // New sections always get order 0
-      backgroundColor: "bg-neu-800", // Add default background color
+      backgroundColor: "bg-pri-tea-100", // Add default background color
     };
 
     console.log("Full section object to be saved:", section);

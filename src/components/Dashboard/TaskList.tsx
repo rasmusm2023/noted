@@ -149,7 +149,7 @@ const DraggableItem = ({
       }}
       className={`transition-all duration-200 ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
-      } ${isOver && canDrop ? "bg-blue-500/5" : ""}`}
+      } ${isOver && canDrop ? "bg-pri-tea-500/5" : ""}`}
       role="button"
       tabIndex={0}
       aria-grabbed={isDragging}
@@ -222,7 +222,7 @@ export const TaskList = ({
           <p className="text-lg mb-2">There are no tasks for today</p>
           <p className="text-sm font-outfit">Add a task to get started</p>
         </div>
-        <div className="p-4 rounded-lg border-2 border-dashed border-neu-700 flex items-center justify-between">
+        <div className="p-4 rounded-lg border-2 border-dashed border-pri-tea-300 flex items-center justify-between">
           <div className="flex items-center space-x-4 flex-1">
             <div className="flex items-center justify-center h-full">
               <div className="w-8 h-8 rounded-full border-2 border-dashed border-neu-600"></div>

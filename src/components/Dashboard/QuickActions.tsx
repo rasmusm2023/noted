@@ -111,20 +111,20 @@ export const QuickActions = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div
-        className={`p-6 bg-pri-pin-200 rounded-lg hover:bg-pri-pin-400 transition-colors border border-neu-gre-300 ${
-          focusedInput === "task" ? "ring-2 ring-pri-pin-800" : ""
+        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-pri-tea-100 transition-colors border border-pri-tea-300 ${
+          focusedInput === "task" ? "ring-2 ring-pri-tea-400" : ""
         }`}
       >
         <div className="flex items-center space-x-4">
-          <div className="p-2 bg-pri-pin-900 rounded-lg flex items-center justify-center">
+          <div className="p-2 bg-pri-tea-400 rounded-lg flex items-center justify-center">
             <Icon
               icon="mingcute:add-fill"
               width={32}
               height={32}
-              color="#FF87BD"
+              color="#E0FAF7"
             />
           </div>
-          <div className="text-left font-outfit text-md flex-1">
+          <div className="text-left font-outfit text-base flex-1">
             <input
               ref={taskInputRef}
               type="text"
@@ -134,10 +134,10 @@ export const QuickActions = ({
               onFocus={() => setFocusedInput("task")}
               onBlur={() => setFocusedInput(null)}
               placeholder="Add new task..."
-              className="w-full bg-transparent font-semibold text-neu-gre-900 placeholder-neu-bla-400 focus:outline-none"
+              className="w-full bg-transparent font-semibold text-pri-tea-900 placeholder-neu-gre-500 focus:outline-none"
               autoFocus
             />
-            <p className="text-neu-gre-800 text-sm font-outfit mt-2">
+            <p className="text-neu-gre-500 text-sm font-outfit mt-2">
               Press Enter to add
             </p>
           </div>
@@ -145,21 +145,21 @@ export const QuickActions = ({
       </div>
 
       <div
-        className={`p-6 bg-pri-pin-200 rounded-lg hover:bg-neu-gre-100 transition-colors border border-neu-gre-300 ${
-          focusedInput === "section" ? "ring-2 ring-pri-pin-500" : ""
+        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-pri-tea-100 transition-colors border border-pri-tea-300 ${
+          focusedInput === "section" ? "ring-2 ring-pri-tea-400" : ""
         }`}
       >
         <div className="flex items-center">
-          <div className="p-2 bg-pri-pin-800 rounded-lg flex items-center justify-center">
+          <div className="p-2 bg-pri-tea-400 rounded-lg flex items-center justify-center">
             <Icon
               icon="mingcute:dividing-line-fill"
               width={32}
               height={32}
-              color="#FF87BD"
+              color="#E0FAF7"
             />
           </div>
           <div className="flex-1 ml-4 mr-4">
-            <div className="flex items-center text-md font-outfit">
+            <div className="flex items-center text-base font-outfit">
               <input
                 ref={sectionInputRef}
                 type="text"
@@ -170,7 +170,7 @@ export const QuickActions = ({
                 onBlur={() => setFocusedInput(null)}
                 onClick={(e) => e.stopPropagation()}
                 placeholder="Add a section..."
-                className="flex-1 bg-transparent text-md font-semibold text-neu-bla-800 placeholder-neu-bla-400 focus:outline-none"
+                className="w-full bg-transparent text-base font-semibold text-pri-tea-900 placeholder-neu-gre-500 focus:outline-none"
               />
               <input
                 type="text"
@@ -179,10 +179,10 @@ export const QuickActions = ({
                 onKeyDown={handleSectionKeyPress}
                 placeholder="09.00"
                 maxLength={5}
-                className="w-16 bg-transparent text-md font-semibold text-neu-bla-800 placeholder-neu-bla-400 focus:outline-none text-right"
+                className="w-full bg-transparent text-md font-semibold text-pri-tea-900 placeholder-neu-gre-500 focus:outline-none text-right"
               />
             </div>
-            <p className="text-neu-gre-800 font-outfit text-sm mt-2">
+            <p className="text-neu-gre-500 font-outfit text-sm mt-2">
               Press Enter to add
             </p>
           </div>
