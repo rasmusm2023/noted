@@ -152,7 +152,7 @@ export const SectionCreationInput = ({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder="Add a section..."
-            className="w-[calc(100%-4rem)] bg-transparent text-base font-outfit font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+            className="w-[calc(100%-4rem)] bg-transparent text-base font-inter font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
           />
           <input
             ref={timeInputRef}

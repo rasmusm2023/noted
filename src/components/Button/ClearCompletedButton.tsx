@@ -17,7 +17,7 @@ export const ClearCompletedButton = ({
         height={20}
         color="currentColor"
       />
-      <span className="text-base font-outfit">Clear completed</span>
+      <span className="text-base font-inter">Clear completed</span>
     </button>
   );
 };

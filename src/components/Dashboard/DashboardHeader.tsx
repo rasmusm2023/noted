@@ -57,17 +57,17 @@ export const DashboardHeader = ({
       <MotivationalQuote className="mb-6" />
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-4xl font-bold font-outfit text-pri-tea-900">
+          <h1 className="text-4xl font-bold font-inter text-pri-tea-900">
             {dayOfWeek}
           </h1>
-          <span className="text-2xl font-outfit text-pri-tea-700 uppercase">
+          <span className="text-2xl font-inter text-pri-tea-700 uppercase">
             {currentDate}
           </span>
         </div>
         {temperature !== null && (
           <div className="flex items-center gap-2">
             {getWeatherIcon(weatherCondition)}
-            <span className="text-2xl font-outfit text-pri-tea-900">
+            <span className="text-2xl font-inter text-pri-tea-900">
               {temperature} °C
             </span>
           </div>

@@ -21,12 +21,12 @@ export const SectionItem = ({
       onClick={() => onSectionClick(section)}
     >
       <div className="flex-1">
-        <h3 className="text-md font-outfit font-semibold text-neu-300">
+        <h3 className="text-md font-inter font-semibold text-neu-300">
           {section.text}
         </h3>
       </div>
       <div className="mx-4">
-        <h3 className="text-base font-outfit font-semibold text-neu-400">
+        <h3 className="text-base font-inter font-semibold text-neu-400">
           {section.time.replace(":", ".")}
         </h3>
       </div>

@@ -1102,12 +1102,12 @@ export function Dashboard() {
       onClick={() => setSelectedSection(item)}
     >
       <div className="flex-1">
-        <h3 className="text-lg font-outfit font-semibold text-neu-300">
+        <h3 className="text-lg font-inter font-semibold text-neu-300">
           {item.text}
         </h3>
       </div>
       <div className="mx-4">
-        <h3 className="text-base font-outfit font-semibold text-neu-400">
+        <h3 className="text-base font-inter font-semibold text-neu-400">
           {formatTime(item.time)}
         </h3>
       </div>
@@ -1235,7 +1235,7 @@ export function Dashboard() {
           <div className="flex-1 flex items-center">
             <div className="flex-1">
               <h3
-                className={`text-base font-outfit font-regular ${
+                className={`text-base font-inter font-regular ${
                   editingTask?.id === item.id
                     ? ""
                     : "transition-all duration-300"
@@ -1267,7 +1267,7 @@ export function Dashboard() {
                       });
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-transparent text-base font-outfit font-regular text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500"
+                    className="w-full bg-transparent text-base font-inter font-regular text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500"
                     autoFocus
                   />
                 ) : (
@@ -1287,7 +1287,7 @@ export function Dashboard() {
                         }`}
                       />
                       <span
-                        className={`font-outfit text-sm ${
+                        className={`font-inter text-sm ${
                           subtask.completed
                             ? "line-through text-neu-400"
                             : "text-neu-400"

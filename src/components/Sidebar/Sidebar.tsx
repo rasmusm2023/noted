@@ -283,7 +283,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="relative" ref={profileMenuRef}>
             <button
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              className="w-full flex items-center space-x-3 p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit"
+              className="w-full flex items-center space-x-3 p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter"
             >
               <img
                 src={avatars[(userDetails.selectedAvatar || 1) - 1].src}
@@ -311,7 +311,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       navigate("/account");
                       setIsProfileMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
                   >
                     <User size={20} color="currentColor" />
                     <span>Account</span>
@@ -321,7 +321,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       logout();
                       setIsProfileMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
                   >
                     <Logout size={20} color="currentColor" />
                     <span>Logout</span>
@@ -344,7 +344,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               )}
               <button
                 onClick={() => navigate("/")}
-                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                   location.pathname === "/"
                     ? "bg-neu-gre-100 text-neu-gre-900"
                     : ""
@@ -360,7 +360,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
               <button
                 onClick={() => navigate("/next7days")}
-                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                   location.pathname === "/next7days"
                     ? "bg-neu-gre-100 text-neu-gre-900"
                     : ""
@@ -380,7 +380,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               )}
               <button
                 onClick={() => navigate("/habits")}
-                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                   location.pathname === "/habits"
                     ? "bg-neu-gre-100 text-neu-gre-900"
                     : ""
@@ -392,7 +392,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
               <button
                 onClick={() => navigate("/goals")}
-                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                   location.pathname === "/goals"
                     ? "bg-neu-gre-100 text-neu-gre-900"
                     : ""
@@ -425,7 +425,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   <button
                     key={list.id}
                     onClick={() => navigate(`/list/${list.id}`)}
-                    className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit ${
+                    className={`w-full flex items-center space-x-3 p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
                       location.pathname === `/list/${list.id}`
                         ? "bg-neu-gre-100 text-neu-gre-900"
                         : ""
@@ -449,7 +449,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="relative" ref={settingsMenuRef}>
             <button
               onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
-              className="w-full flex items-center text-base font-medium space-x-3 p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-outfit"
+              className="w-full flex items-center text-base font-medium space-x-3 p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter"
             >
               <Icon icon="mingcute:settings-3-fill" width={24} height={24} />
               {isOpen && <span>Settings</span>}
@@ -464,7 +464,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       setIsDarkMode(!isDarkMode);
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
                   >
                     {isDarkMode ? (
                       <>
@@ -481,7 +481,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
                   {/* Highlight Next Task Option */}
                   <div className="relative group">
-                    <button className="w-full flex items-center justify-between px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-outfit">
+                    <button className="w-full flex items-center justify-between px-4 py-2 text-sm text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter">
                       <div className="flex items-center space-x-2">
                         <StarShine size={20} color="currentColor" />
                         <span>Highlight next task</span>
@@ -496,7 +496,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           handleHighlightNextTask(true);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-gre-100 hover:rounded-t-lg font-outfit ${
+                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-gre-100 hover:rounded-t-lg font-inter ${
                           highlightNextTask
                             ? "text-pri-pin-500"
                             : "text-neu-gre-700"
@@ -512,7 +512,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           handleHighlightNextTask(false);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-gre-100 hover:rounded-b-lg font-outfit ${
+                        className={`w-full flex items-center px-2 py-2 text-sm hover:bg-neu-gre-100 hover:rounded-b-lg font-inter ${
                           !highlightNextTask
                             ? "text-pri-pin-500"
                             : "text-neu-gre-700"

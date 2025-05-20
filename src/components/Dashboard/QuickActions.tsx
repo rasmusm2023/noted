@@ -124,7 +124,7 @@ export const QuickActions = ({
               color="#E0FAF7"
             />
           </div>
-          <div className="text-left font-outfit text-base flex-1">
+          <div className="text-left font-inter text-base flex-1">
             <input
               ref={taskInputRef}
               type="text"
@@ -137,7 +137,7 @@ export const QuickActions = ({
               className="w-full bg-transparent font-semibold text-pri-tea-900 placeholder-neu-gre-500 focus:outline-none"
               autoFocus
             />
-            <p className="text-neu-gre-500 text-sm font-outfit mt-2">
+            <p className="text-neu-gre-500 text-sm font-inter mt-2">
               Press Enter to add
             </p>
           </div>
@@ -159,7 +159,7 @@ export const QuickActions = ({
             />
           </div>
           <div className="flex-1 ml-4 mr-4">
-            <div className="flex items-center text-base font-outfit">
+            <div className="flex items-center text-base font-inter">
               <input
                 ref={sectionInputRef}
                 type="text"
@@ -182,7 +182,7 @@ export const QuickActions = ({
                 className="w-full bg-transparent text-md font-semibold text-pri-tea-900 placeholder-neu-gre-500 focus:outline-none text-right"
               />
             </div>
-            <p className="text-neu-gre-500 font-outfit text-sm mt-2">
+            <p className="text-neu-gre-500 font-inter text-sm mt-2">
               Press Enter to add
             </p>
           </div>

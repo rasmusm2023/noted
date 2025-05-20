@@ -218,9 +218,9 @@ export const TaskList = ({
   if (items.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="text-center font-outfit text-neu-400 py-8">
+        <div className="text-center font-inter text-neu-400 py-8">
           <p className="text-lg mb-2">There are no tasks for today</p>
-          <p className="text-sm font-outfit">Add a task to get started</p>
+          <p className="text-sm font-inter">Add a task to get started</p>
         </div>
         <div className="p-4 rounded-lg border-2 border-dashed border-pri-tea-300 flex items-center justify-between">
           <div className="flex items-center space-x-4 flex-1">

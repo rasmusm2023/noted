@@ -89,7 +89,7 @@ export const TaskItem = ({
         <div className="flex-1 flex items-center">
           <div className="flex-1">
             <h3
-              className={`text-base font-outfit font-regular transition-all duration-300 ${
+              className={`text-base font-inter font-regular transition-all duration-300 ${
                 task.completed ? "text-neu-100 scale-95" : "text-neu-100"
               }`}
             >
@@ -119,7 +119,7 @@ export const TaskItem = ({
                     });
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-transparent text-base font-outfit font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
+                  className="w-full bg-transparent text-base font-inter font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
                   autoFocus
                 />
               ) : (

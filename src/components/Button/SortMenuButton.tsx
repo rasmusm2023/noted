@@ -57,7 +57,7 @@ export const SortMenuButton = ({
             color="currentColor"
           />
         )}
-        <span className="text-base font-outfit">
+        <span className="text-base font-inter">
           {completedPosition === "mixed"
             ? "Custom Order"
             : completedPosition === "top"
@@ -74,7 +74,7 @@ export const SortMenuButton = ({
                 localStorage.setItem("completedPosition", "mixed");
                 setIsSortMenuOpen(false);
               }}
-              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
+              className={`w-full font-inter text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
                 completedPosition === "mixed"
                   ? "text-pri-tea-500"
                   : "text-neu-bla-800 hover:bg-pri-tea-100"
@@ -94,7 +94,7 @@ export const SortMenuButton = ({
                 localStorage.setItem("completedPosition", "top");
                 setIsSortMenuOpen(false);
               }}
-              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
+              className={`w-full font-inter text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
                 completedPosition === "top"
                   ? "text-pri-tea-500"
                   : "text-neu-bla-800 hover:bg-pri-tea-100"
@@ -114,7 +114,7 @@ export const SortMenuButton = ({
                 localStorage.setItem("completedPosition", "bottom");
                 setIsSortMenuOpen(false);
               }}
-              className={`w-full font-outfit text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
+              className={`w-full font-inter text-left px-4 py-2 text-base flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 ${
                 completedPosition === "bottom"
                   ? "text-pri-tea-500"
                   : "text-neu-bla-800 hover:bg-pri-tea-100"

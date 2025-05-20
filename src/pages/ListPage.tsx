@@ -173,7 +173,7 @@ export function ListPage() {
   }
 
   return (
-    <div className="p-8 font-outfit">
+    <div className="p-8 font-inter">
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           {isEditingName ? (
@@ -196,7 +196,7 @@ export function ListPage() {
           )}
           <button
             onClick={handleDeleteList}
-            className="px-6 py-2 bg-sup-err-400 text-sup-err-100 rounded-lg hover:bg-sup-err-500 transition-colors font-outfit"
+            className="px-6 py-2 bg-sup-err-400 text-sup-err-100 rounded-lg hover:bg-sup-err-500 transition-colors font-inter"
           >
             Delete List
           </button>
@@ -213,11 +213,11 @@ export function ListPage() {
                 if (e.key === "Escape") setNewItemText("");
               }}
               placeholder="Add new item..."
-              className="flex-1 px-4 py-2 bg-neu-800 text-neu-100 rounded-lg border-2 border-neu-600 placeholder-neu-600 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent font-outfit"
+              className="flex-1 px-4 py-2 bg-neu-800 text-neu-100 rounded-lg border-2 border-neu-600 placeholder-neu-600 focus:outline-none focus:ring-2 focus:ring-pri-blue-500 focus:border-transparent font-inter"
             />
             <button
               type="submit"
-              className="px-6 py-2 bg-pri-blue-500 text-neu-100 rounded-lg hover:bg-pri-blue-600 transition-colors font-outfit"
+              className="px-6 py-2 bg-pri-blue-500 text-neu-100 rounded-lg hover:bg-pri-blue-600 transition-colors font-inter"
             >
               Add Item
             </button>
@@ -237,7 +237,7 @@ export function ListPage() {
                 className="w-5 h-5 rounded border-2 border-neu-600 text-pri-blue-500 focus:ring-2 focus:ring-pri-blue-500"
               />
               <span
-                className={`flex-1 font-outfit ${
+                className={`flex-1 font-inter ${
                   item.completed ? "text-neu-500" : "text-neu-100"
                 }`}
               >
@@ -245,7 +245,7 @@ export function ListPage() {
               </span>
               <button
                 onClick={() => handleDeleteItem(item.id)}
-                className="text-sup-err-400 hover:text-sup-err-300 transition-colors font-outfit"
+                className="text-sup-err-400 hover:text-sup-err-300 transition-colors font-inter"
               >
                 Delete
               </button>

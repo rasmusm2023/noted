@@ -397,7 +397,7 @@ export function TaskModal({
                   }
                 }}
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 bg-transparent text-lg font-outfit font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-1"
+                className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-1"
                 rows={1}
                 style={{ height: "auto" }}
               />
@@ -423,7 +423,7 @@ export function TaskModal({
                     onKeyDown={handleColorPickerKeyDown}
                   >
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-outfit text-neu-300">
+                      <span className="text-sm font-inter text-neu-300">
                         Select color
                       </span>
                       <button
@@ -503,12 +503,12 @@ export function TaskModal({
                   icon="mingcute:more-2-fill"
                   className="text-neu-400 w-5 h-5"
                 />
-                <h3 className="text-md font-medium font-outfit text-neu-200">
+                <h3 className="text-md font-medium font-inter text-neu-200">
                   Subtasks
                 </h3>
               </div>
             </div>
-            <p className="text-sm font-outfit text-neu-400 mb-4">
+            <p className="text-sm font-inter text-neu-400 mb-4">
               Break down large tasks into smaller, manageable steps with
               subtasks
             </p>
@@ -532,7 +532,7 @@ export function TaskModal({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="Add a subtask..."
-                  className="flex-1 bg-transparent py-2 font-outfit text-base text-neu-100 placeholder-neu-400 focus:outline-none"
+                  className="flex-1 bg-transparent py-2 font-inter text-base text-neu-100 placeholder-neu-400 focus:outline-none"
                   tabIndex={0}
                 />
               </div>
@@ -582,7 +582,7 @@ export function TaskModal({
                       )}
                     </button>
                     <span
-                      className={`font-outfit text-base ${
+                      className={`font-inter text-base ${
                         subtask.completed
                           ? "line-through text-neu-400"
                           : "text-neu-100"

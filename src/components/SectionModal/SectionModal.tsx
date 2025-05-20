@@ -301,7 +301,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                 onChange={handleTitleChange}
                 onKeyDown={handleTitleKeyDown}
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 bg-transparent text-lg font-outfit font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-1"
+                className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-1"
                 rows={1}
                 style={{ height: "auto" }}
               />
@@ -327,7 +327,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                     onKeyDown={handleColorPickerKeyDown}
                   >
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-outfit text-neu-300">
+                      <span className="text-sm font-inter text-neu-300">
                         Select color
                       </span>
                       <button
@@ -406,7 +406,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                 className="text-neu-400 w-6 h-6"
               />
               <div className="flex-1">
-                <label className="block text-md font-medium font-outfit text-neu-200 mb-2">
+                <label className="block text-md font-medium font-inter text-neu-200 mb-2">
                   Time
                 </label>
                 <input
@@ -417,7 +417,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                   onKeyDown={handleTimeKeyDown}
                   placeholder="09.00"
                   maxLength={5}
-                  className="w-24 bg-transparent text-base font-outfit font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                  className="w-24 bg-transparent text-base font-inter font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
                 />
               </div>
             </div>

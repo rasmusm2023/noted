@@ -51,9 +51,9 @@ export const TaskCreationInput = ({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder="Add new task..."
-            className="w-full bg-transparent text-base font-outfit font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+            className="w-full bg-transparent text-base font-inter font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
           />
-          <p className="text-sm font-outfit text-neu-600 mt-2">
+          <p className="text-sm font-inter text-neu-600 mt-2">
             Press Enter to add
           </p>
         </div>

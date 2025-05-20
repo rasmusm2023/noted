@@ -4,48 +4,48 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        outfit: ["Outfit", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
       },
       fontSize: {
         xs: [
           "11px",
-          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "outfit" },
+          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "inter" },
         ],
         sm: [
           "13px",
-          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "outfit" },
+          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "inter" },
         ],
         base: [
           "15px",
-          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "outfit" },
+          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "inter" },
         ],
         md: [
           "17px",
-          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "outfit" },
+          { lineHeight: "130%", letterSpacing: "2%", fontFamily: "inter" },
         ],
         lg: [
           "20px",
-          { lineHeight: "150%", letterSpacing: "3%", fontFamily: "outfit" },
+          { lineHeight: "150%", letterSpacing: "3%", fontFamily: "inter" },
         ],
         xl: [
           "23px",
-          { lineHeight: "150%", letterSpacing: "3%", fontFamily: "outfit" },
+          { lineHeight: "150%", letterSpacing: "3%", fontFamily: "inter" },
         ],
         "2xl": [
           "26px",
-          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "outfit" },
+          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "inter" },
         ],
         "3xl": [
           "30px",
-          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "outfit" },
+          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "inter" },
         ],
         "4xl": [
           "34px",
-          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "outfit" },
+          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "inter" },
         ],
         "5xl": [
           "39px",
-          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "outfit" },
+          { lineHeight: "175%", letterSpacing: "3%", fontFamily: "inter" },
         ],
       },
       borderRadius: {

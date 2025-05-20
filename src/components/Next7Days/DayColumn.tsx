@@ -50,14 +50,14 @@ export const DayColumn = ({
       {/* Add Today/Tomorrow label */}
       {isToday && (
         <div>
-          <span className="inline-block px-4 py-1 bg-pri-blue-500 text-neu-100 text-base font-outfit font-medium rounded-t-md">
+          <span className="inline-block px-4 py-1 bg-pri-blue-500 text-neu-100 text-base font-inter font-medium rounded-t-md">
             Today
           </span>
         </div>
       )}
       {isTomorrow && (
         <div>
-          <span className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-100 text-base font-outfit font-medium rounded-t-md">
+          <span className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-100 text-base font-inter font-medium rounded-t-md">
             Tomorrow
           </span>
         </div>
@@ -71,12 +71,12 @@ export const DayColumn = ({
       >
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-outfit font-semibold text-neu-100">
+            <h2 className="text-lg font-inter font-semibold text-neu-100">
               {day.date.toLocaleDateString("en-US", {
                 weekday: "long",
               })}
             </h2>
-            <p className="text-base font-outfit text-neu-400">
+            <p className="text-base font-inter text-neu-400">
               {day.date
                 .toLocaleDateString("en-US", {
                   month: "short",
@@ -105,7 +105,7 @@ export const DayColumn = ({
               <div className="text-neu-400">Loading tasks...</div>
             ) : day.items.length === 0 ? (
               <div className="text-center text-neu-600 py-4">
-                <p className="text-sm font-outfit">No tasks for this day</p>
+                <p className="text-sm font-inter">No tasks for this day</p>
               </div>
             ) : (
               sortItems(day.items).map((item, index) => {

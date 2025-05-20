@@ -76,7 +76,7 @@ export const TaskItem = ({
         <div className="flex-1 flex items-center">
           <div className="flex-1">
             <h3
-              className={`text-base font-outfit font-regular ${
+              className={`text-base font-inter font-regular ${
                 isEditing ? "" : "transition-all duration-300"
               } ${
                 task.completed
@@ -100,7 +100,7 @@ export const TaskItem = ({
                     onEdit({ ...task, title: editingTitle });
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-transparent text-base font-outfit font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-tea-500"
+                  className="w-full bg-transparent text-base font-inter font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-tea-500"
                   autoFocus
                 />
               ) : (
@@ -117,7 +117,7 @@ export const TaskItem = ({
                       }`}
                     />
                     <span
-                      className={`font-outfit text-sm ${
+                      className={`font-inter text-sm ${
                         subtask.completed
                           ? "line-through text-neu-gre-400"
                           : "text-neu-gre-300"

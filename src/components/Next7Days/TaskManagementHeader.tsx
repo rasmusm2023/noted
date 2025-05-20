@@ -19,7 +19,7 @@ export const TaskManagementHeader = ({
     <div className="flex-none pt-8 pb-8 bg-neu-900/30 backdrop-blur-md sticky top-0 z-10">
       <div className="max-w-[2000px] mx-auto">
         <div className="flex items-center justify-between pl-8 pr-8">
-          <h1 className="text-4xl font-bold font-outfit text-neu-100">
+          <h1 className="text-4xl font-bold font-inter text-neu-100">
             Next 7 Days
           </h1>
           <div className="bg-neu-800 rounded-lg p-2">
@@ -32,7 +32,7 @@ export const TaskManagementHeader = ({
                   icon="mingcute:chart-fill"
                   className="w-5 h-5 text-gray-400"
                 />
-                <span className="text-base font-outfit">Stats</span>
+                <span className="text-base font-inter">Stats</span>
               </button>
 
               <SortMenuButton

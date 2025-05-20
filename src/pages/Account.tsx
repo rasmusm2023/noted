@@ -82,7 +82,7 @@ export function Account() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neu-900 p-8 font-outfit">
+      <div className="min-h-screen bg-neu-900 p-8 font-inter">
         <div className="max-w-2xl mx-auto">
           <div className="text-neu-400">Loading account details...</div>
         </div>
@@ -92,7 +92,7 @@ export function Account() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-neu-900 p-8 font-outfit">
+      <div className="min-h-screen bg-neu-900 p-8 font-inter">
         <div className="max-w-2xl mx-auto">
           <div className="bg-sup-err-400 text-sup-err-100 p-4 rounded-lg">
             {error}
@@ -103,7 +103,7 @@ export function Account() {
   }
 
   return (
-    <div className="min-h-screen bg-neu-900 p-8 font-outfit">
+    <div className="min-h-screen bg-neu-900 p-8 font-inter">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl font-bold text-pri-blue-100 mb-8">
           Account Details

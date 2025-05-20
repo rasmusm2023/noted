@@ -93,10 +93,10 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-neu-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-outfit">
+    <div className="min-h-screen bg-neu-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-inter">
       <div className="w-full max-w-lg space-y-8">
         <div>
-          <h2 className="text-center text-5xl font-bold text-pri-blue-100 font-outfit">
+          <h2 className="text-center text-5xl font-bold text-pri-blue-100 font-inter">
             {isLogin ? "Sign in to your account" : "Create a new account"}
           </h2>
         </div>
@@ -112,7 +112,7 @@ export function Login() {
                 <div>
                   <label
                     htmlFor="first-name"
-                    className="block text-sm font-medium text-neu-300 mb-2 font-outfit"
+                    className="block text-sm font-medium text-neu-300 mb-2 font-inter"
                   >
                     First Name
                   </label>
@@ -130,7 +130,7 @@ export function Login() {
                 <div>
                   <label
                     htmlFor="last-name"
-                    className="block text-sm font-medium text-neu-300 mb-2 font-outfit"
+                    className="block text-sm font-medium text-neu-300 mb-2 font-inter"
                   >
                     Last Name
                   </label>
@@ -150,7 +150,7 @@ export function Login() {
             <div>
               <label
                 htmlFor="email-address"
-                className="block text-sm font-medium text-neu-300 mb-2 font-outfit"
+                className="block text-sm font-medium text-neu-300 mb-2 font-inter"
               >
                 Email
               </label>
@@ -174,7 +174,7 @@ export function Login() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-neu-300 mb-2 font-outfit"
+                className="block text-sm font-medium text-neu-300 mb-2 font-inter"
               >
                 Password
               </label>
@@ -214,7 +214,7 @@ export function Login() {
                 setError("");
                 setEmailWarning("");
               }}
-              className="w-full text-center text-neu-500 hover:text-pri-blue-500 transition-colors font-outfit"
+              className="w-full text-center text-neu-500 hover:text-pri-blue-500 transition-colors font-inter"
             >
               {isLogin
                 ? "New here? Sign up"
