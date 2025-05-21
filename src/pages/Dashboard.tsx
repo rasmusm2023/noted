@@ -310,8 +310,6 @@ export function Dashboard() {
 
   // Helper function to parse date strings
   const parseDateString = (dateStr: string): Date => {
-    console.log("Parsing date string:", dateStr);
-
     // If it's an ISO string or YYYY-MM-DD format, parse it directly
     if (dateStr.includes("T") || dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
       return new Date(dateStr);
@@ -324,10 +322,8 @@ export function Dashboard() {
       return new Date(); // Return current date as fallback
     }
 
-    console.log("Date parts:", { datePart, timePart });
     const [day, month, year] = datePart.split("/");
     const [hours, minutes] = timePart.split(":");
-    console.log("Parsed components:", { day, month, year, hours, minutes });
 
     // Create date in local timezone
     const date = new Date();
@@ -339,7 +335,6 @@ export function Dashboard() {
     date.setSeconds(0);
     date.setMilliseconds(0);
 
-    console.log("Parsed date:", date.toISOString());
     return date;
   };
 
@@ -524,11 +519,8 @@ export function Dashboard() {
 
     try {
       setIsLoading(true);
-      console.log("Fetching tasks and sections...");
       const tasks = await taskService.getUserTasks(currentUser.uid);
       const sections = await taskService.getUserSections(currentUser.uid);
-
-      console.log("Raw data loaded:", { tasks, sections });
 
       // Set today to midnight for consistent comparison
       const today = new Date();
@@ -541,12 +533,6 @@ export function Dashboard() {
 
         const taskDateStr = taskDate.toISOString().split("T")[0];
         const todayStr = today.toISOString().split("T")[0];
-
-        console.log("Comparing task dates:", {
-          taskDateStr,
-          todayStr,
-          taskTitle: task.title,
-        });
 
         return taskDateStr === todayStr;
       });
@@ -561,16 +547,8 @@ export function Dashboard() {
         const sectionDateStr = sectionDate.toISOString().split("T")[0];
         const todayStr = today.toISOString().split("T")[0];
 
-        console.log("Comparing section dates:", {
-          sectionDateStr,
-          todayStr,
-          sectionText: section.text,
-        });
-
         return sectionDateStr === todayStr;
       });
-
-      console.log("Filtered data:", { todaysTasks, todaysSections });
 
       // Convert tasks to new format
       const tasksWithType = todaysTasks.map((task) => ({
@@ -610,7 +588,6 @@ export function Dashboard() {
         return 0;
       });
 
-      console.log("Final items to display:", allItems);
       setItems(allItems);
     } catch (error) {
       console.error("Error loading data:", error);
@@ -727,8 +704,6 @@ export function Dashboard() {
     }
 
     try {
-      console.log("Creating new task:", { title, description });
-
       // Add today's date at noon for the new task
       const today = new Date();
       today.setHours(12, 0, 0, 0);
@@ -741,9 +716,7 @@ export function Dashboard() {
         date: today.toISOString(),
       });
 
-      console.log("Task created successfully:", newTask);
       setItems((prevItems) => [newTask, ...prevItems]);
-      console.log("Updated items state with new task");
     } catch (error) {
       console.error("Error creating task:", error);
     }
@@ -1555,13 +1528,6 @@ export function Dashboard() {
 
   // Update the moveItem function
   const moveItem = async (dragIndex: number, hoverIndex: number) => {
-    console.log("=== Move Item Operation ===");
-    console.log("Original Indices:", { dragIndex, hoverIndex });
-    console.log(
-      "Original Items:",
-      items.map((item) => ({ id: item.id, order: item.order }))
-    );
-
     // Get the actual indices in the original items array
     const draggedItem = filteredAndSortedItems[dragIndex];
     const originalDragIndex = items.findIndex(
@@ -1572,31 +1538,16 @@ export function Dashboard() {
       (item) => item.id === targetItem.id
     );
 
-    console.log("Found Indices:", {
-      draggedItem: { id: draggedItem.id, originalIndex: originalDragIndex },
-      targetItem: { id: targetItem.id, originalIndex: originalHoverIndex },
-    });
-
     // Create new array with reordered items
     const newItems = [...items];
     const [movedItem] = newItems.splice(originalDragIndex, 1);
     newItems.splice(originalHoverIndex, 0, movedItem);
-
-    console.log(
-      "After Splice:",
-      newItems.map((item) => ({ id: item.id, order: item.order }))
-    );
 
     // Update orders to ensure they are sequential
     const updatedItems = newItems.map((item, index) => ({
       ...item,
       order: index,
     }));
-
-    console.log(
-      "Final Updated Items:",
-      updatedItems.map((item) => ({ id: item.id, order: item.order }))
-    );
 
     setItems(updatedItems);
 
@@ -1606,24 +1557,13 @@ export function Dashboard() {
         const taskUpdates = updatedItems.filter(isTask) as Task[];
         const sectionUpdates = updatedItems.filter(isSection) as SectionItem[];
 
-        console.log("Saving to database:", {
-          taskUpdates,
-          sectionUpdates,
-        });
-
         await Promise.all([
           taskService.updateTaskOrder(taskUpdates),
           taskService.updateSectionOrder(sectionUpdates),
         ]);
-
-        console.log("Database update successful");
       }
     } catch (error) {
       console.error("Error saving item order:", error);
-      console.log(
-        "Reverting to original state:",
-        items.map((item) => ({ id: item.id, order: item.order }))
-      );
       setItems(items); // Revert on error
     }
   };

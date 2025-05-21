@@ -7,7 +7,14 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 
 interface AuthContextType {
   currentUser: User | null;
@@ -32,28 +39,58 @@ export function useAuth() {
   return context;
 }
 
+// Helper function to determine if we're in CET or CEST
+function getCETTimeZone(): string {
+  const now = new Date();
+  const jan = new Date(now.getFullYear(), 0, 1);
+  const jul = new Date(now.getFullYear(), 6, 1);
+  const standardOffset = -60; // CET is UTC+1
+  const summerOffset = -120; // CEST is UTC+2
+
+  const currentOffset = now.getTimezoneOffset();
+  const isSummer = currentOffset === summerOffset;
+
+  return isSummer ? "CEST" : "CET";
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log("Current user details:", {
-          email: user.email,
-          uid: user.uid,
-          emailVerified: user.emailVerified,
-          lastSignInTime: user.metadata.lastSignInTime,
-        });
+        // Check if this user needs timezone update
+        const db = getFirestore();
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userData = userDoc.data();
+
+        console.log("=== User Authentication Status ===");
+        console.log(`User logged in: ${user.email}`);
+        console.log(`User ID: ${user.uid}`);
+        console.log(`Current timezone: ${userData?.timezone || "Not set"}`);
+
+        if (userDoc.exists() && !userData?.timezone) {
+          const timezone = getCETTimeZone();
+          console.log(`Setting timezone for user ${user.email} to ${timezone}`);
+          await setDoc(
+            doc(db, "users", user.uid),
+            {
+              timezone: timezone,
+            },
+            { merge: true }
+          );
+          console.log("Timezone updated successfully");
+        }
+      } else {
+        console.log("=== User Authentication Status ===");
+        console.log("No user logged in");
       }
       setCurrentUser(user);
       setLoading(false);
     });
 
-    return () => {
-      console.log("Cleaning up auth state listener");
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   async function login(
@@ -61,13 +98,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string
   ): Promise<UserCredential> {
     try {
-      console.log("Attempting login for:", email);
+      console.log(`Attempting login for user: ${email}`);
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
-      console.log("Login successful for:", userCredential.user.email);
+      console.log("Login successful");
       return userCredential;
     } catch (error: any) {
       console.error("Login error:", error.code, error.message);
@@ -82,11 +119,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     lastName: string
   ): Promise<UserCredential> {
     try {
-      console.log("Attempting signup for:", email);
+      console.log(`Creating new account for: ${email}`);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
+      );
+
+      // Get the appropriate timezone
+      const timezone = getCETTimeZone();
+      console.log(
+        `Setting default timezone for new user ${email} to ${timezone}`
       );
 
       // Initialize Firestore and store user profile data
@@ -96,9 +139,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         firstName: firstName,
         lastName: lastName,
         createdAt: new Date().toISOString(),
+        timezone: timezone,
       });
+      console.log("User profile created successfully");
 
-      console.log("Signup successful for:", userCredential.user.email);
       return userCredential;
     } catch (error: any) {
       console.error("Signup error:", error.code, error.message);
@@ -108,7 +152,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function logout() {
     try {
-      console.log("Attempting logout");
+      if (currentUser) {
+        console.log(`Logging out user: ${currentUser.email}`);
+      }
       await signOut(auth);
       console.log("Logout successful");
     } catch (error: any) {
