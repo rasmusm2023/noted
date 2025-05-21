@@ -394,7 +394,7 @@ export function TaskModal({
     >
       <div
         ref={modalRef}
-        className="bg-neu-800 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative animate-scaleIn"
+        className="bg-neu-whi-200 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
