@@ -136,13 +136,13 @@ export const DraggableItem = ({
     if (dropPosition === "before") {
       return {
         ...baseStyle,
-        borderTop: "2px solid #3b82f6",
+        borderTop: "2px solid theme(colors.pri-pur.500)",
         marginTop: "2px",
       };
     } else if (dropPosition === "after") {
       return {
         ...baseStyle,
-        borderBottom: "2px solid #3b82f6",
+        borderBottom: "2px solid theme(colors.pri-pur.500)",
         marginBottom: "2px",
       };
     }
@@ -159,7 +159,7 @@ export const DraggableItem = ({
       }}
       className={`transition-all duration-200 ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
-      } ${isOver && canDrop ? "bg-blue-500/5" : ""}`}
+      } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
       role="button"
       tabIndex={0}
       aria-grabbed={isDragging}

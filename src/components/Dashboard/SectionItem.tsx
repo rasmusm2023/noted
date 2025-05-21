@@ -15,8 +15,8 @@ export const SectionItem = ({
   return (
     <div
       className={`p-4 ${
-        section.backgroundColor || "bg-pink-test-500/25"
-      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-tea-500`}
+        section.backgroundColor || "bg-sec-rose-500/25"
+      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-pur-500`}
       tabIndex={0}
       onClick={() => onSelect(section)}
     >

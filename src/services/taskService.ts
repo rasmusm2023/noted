@@ -176,6 +176,7 @@ export const taskService = {
         completed: false,
         createdAt: now.toISOString(),
         updatedAt: now.toISOString(),
+        backgroundColor: taskData.backgroundColor || "bg-task-stone-100", // Add default background color
       };
 
       const docRef = await addDoc(collection(db, tasksCollection), newTask);

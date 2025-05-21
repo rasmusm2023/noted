@@ -33,7 +33,7 @@ export const SortMenuButton = ({
     <div className="relative" ref={sortMenuRef}>
       <button
         onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-        className="px-4 py-4 bg-orange-test-500/25 text-neu-gre-700 border border-pri-tea-900 rounded-lg hover:bg-orange-test-500/50 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500"
+        className="px-4 py-4 bg-sec-pea-500/25 text-neu-gre-700 border border-sec-rose-900 rounded-lg hover:bg-sec-pea-500/50 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sec-rose-500"
       >
         {completedPosition === "mixed" ? (
           <Icon

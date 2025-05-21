@@ -276,7 +276,7 @@ export const PomodoroTimer = ({
                   onClick={() => setSelectedInterval(interval)}
                   className={`px-4 py-2 rounded-lg font-inter transition-all text-left ${
                     selectedInterval.label === interval.label
-                      ? "bg-orange-test-500 text-neu-whi-100"
+                      ? "bg-sec-rose-500 text-neu-whi-100"
                       : "bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200"
                   }`}
                 >
@@ -293,7 +293,7 @@ export const PomodoroTimer = ({
             <div className="flex gap-4">
               <button
                 onClick={handleStart}
-                className="p-4 rounded-full bg-orange-test-500 text-white hover:bg-orange-test-500/75 transition-colors"
+                className="p-4 rounded-full bg-sec-pea-500 text-white hover:bg-sec-pea-500/75 transition-colors"
               >
                 <Icon icon="mingcute:play-fill" width={24} height={24} />
               </button>

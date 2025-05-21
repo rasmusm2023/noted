@@ -50,14 +50,14 @@ export const DayColumn = ({
       {/* Add Today/Tomorrow label */}
       {isToday && (
         <div>
-          <span className="inline-block px-4 py-1 bg-pri-blue-500 text-neu-100 text-base font-inter font-medium rounded-t-md">
+          <span className="inline-block px-4 py-1 bg-neu-gre-800 text-neu-whi-100 text-base font-inter font-medium rounded-t-md">
             Today
           </span>
         </div>
       )}
       {isTomorrow && (
         <div>
-          <span className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-100 text-base font-inter font-medium rounded-t-md">
+          <span className="inline-block px-4 py-1 bg-neu-gre-800 text-neu-whi-100 text-base font-inter font-medium rounded-t-md">
             Tomorrow
           </span>
         </div>

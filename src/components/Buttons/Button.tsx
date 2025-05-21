@@ -13,10 +13,10 @@ export const Button = ({
 }: ButtonProps) => {
   const baseStyles = "px-4 py-2 rounded-md font-medium transition-colors";
   const variantStyles = {
-    primary: "bg-pri-blue-500 text-neu-100 hover:bg-pri-blue-600",
+    primary: "bg-pri-pur-500 text-neu-100 hover:bg-pri-pur-600",
     secondary: "bg-neu-300 text-neu-100 hover:bg-neu-400",
     outline:
-      "border-2 border-pri-blue-500 text-pri-blue-500 hover:bg-pri-blue-100",
+      "border-2 border-pri-pur-500 text-pri-pur-500 hover:bg-pri-pur-100",
   };
 
   return (

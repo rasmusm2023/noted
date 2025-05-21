@@ -9,6 +9,7 @@ import { AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ListProvider } from "./contexts/ListContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { Layout } from "./components/Layout/Layout";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
@@ -87,8 +88,10 @@ function App() {
     <Router>
       <AuthProvider>
         <ListProvider>
-          <MidnightTaskMover />
-          <AnimatedRoutes />
+          <ThemeProvider>
+            <MidnightTaskMover />
+            <AnimatedRoutes />
+          </ThemeProvider>
         </ListProvider>
       </AuthProvider>
     </Router>

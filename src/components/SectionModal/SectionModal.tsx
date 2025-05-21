@@ -3,15 +3,17 @@ import { Icon } from "@iconify/react";
 import type { SectionItem } from "../../types/task";
 
 const SECTION_COLORS = [
-  { name: "Default", value: "bg-neu-800" },
-  { name: "Blue", value: "bg-pri-blue-500" },
+  {
+    name: "Default",
+    value: "bg-neu-gre-100",
+  },
+  { name: "Purple", value: "bg-pri-pur-500" },
   { name: "Green", value: "bg-sup-suc-500" },
   { name: "Yellow", value: "bg-sup-war-500" },
   { name: "Red", value: "bg-sup-err-500" },
-  { name: "Purple", value: "bg-purple-500" },
-  { name: "Pink", value: "bg-pink-500" },
-  { name: "Orange", value: "bg-orange-500" },
-  { name: "Teal", value: "bg-teal-500" },
+  { name: "Rose", value: "bg-sec-rose-500" },
+  { name: "Peach", value: "bg-sec-pea-500" },
+  { name: "Orange", value: "bg-orange-test-500" },
 ];
 
 interface SectionModalProps {
@@ -209,7 +211,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
       setIsColorPickerOpen(false);
     } catch (error) {
       console.error("Error updating section color:", error);
-      setCurrentBackgroundColor(section.backgroundColor || "bg-neu-800"); // Revert on error
+      setCurrentBackgroundColor(section.backgroundColor || "bg-neu-gre-800"); // Revert on error
     }
   };
 
@@ -285,7 +287,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
     >
       <div
         ref={modalRef}
-        className="bg-neu-800 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative animate-scaleIn"
+        className="bg-neu-gre-800 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative animate-scaleIn"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
@@ -293,7 +295,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
             <div className="flex items-center space-x-3 flex-1">
               <Icon
                 icon="mingcute:pencil-3-fill"
-                className="text-neu-400 w-6 h-6"
+                className="text-neu-gre-400 w-6 h-6"
               />
               <textarea
                 ref={titleTextareaRef}
@@ -301,7 +303,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                 onChange={handleTitleChange}
                 onKeyDown={handleTitleKeyDown}
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-1"
+                className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-whi-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-1"
                 rows={1}
                 style={{ height: "auto" }}
               />
@@ -314,20 +316,20 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                     e.stopPropagation();
                     setIsColorPickerOpen(!isColorPickerOpen);
                   }}
-                  className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center"
+                  className="p-2 text-neu-gre-400 hover:text-neu-whi-100 transition-colors flex items-center justify-center"
                   aria-label="Change section background color"
                 >
                   <div
-                    className={`w-6 h-6 rounded-md border-[2px] border-neu-500 ${currentBackgroundColor}`}
+                    className={`w-6 h-6 rounded-md border-[2px] border-neu-gre-500 ${currentBackgroundColor}`}
                   />
                 </button>
                 {isColorPickerOpen && (
                   <div
-                    className="absolute right-0 mt-3 p-4 bg-neu-700 rounded-lg shadow-lg z-10 w-48"
+                    className="absolute right-0 mt-3 p-4 bg-neu-gre-700 rounded-lg shadow-lg z-10 w-48"
                     onKeyDown={handleColorPickerKeyDown}
                   >
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-inter text-neu-300">
+                      <span className="text-sm font-inter text-neu-gre-300">
                         Select color
                       </span>
                       <button
@@ -336,7 +338,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                           e.stopPropagation();
                           setIsColorPickerOpen(false);
                         }}
-                        className="p-1 text-neu-400 hover:text-neu-100 transition-colors"
+                        className="p-1 text-neu-gre-400 hover:text-neu-whi-100 transition-colors"
                         aria-label="Close color picker"
                       >
                         <Icon
@@ -362,9 +364,9 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                           }}
                           className={`w-6 h-6 rounded-md ${
                             color.value
-                          } ring-1 ring-neu-600 ${
+                          } ring-1 ring-neu-gre-600 ${
                             currentBackgroundColor === color.value
-                              ? "ring-2 ring-pri-blue-500"
+                              ? "ring-2 ring-pri-pur-500"
                               : ""
                           }`}
                           aria-label={`Select ${color.name} color`}
@@ -380,7 +382,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                   e.stopPropagation();
                   onDelete(section.id);
                 }}
-                className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center"
+                className="p-2 text-neu-gre-400 hover:text-red-500 transition-colors flex items-center justify-center"
                 aria-label="Delete section"
               >
                 <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
@@ -391,7 +393,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                   e.stopPropagation();
                   handleClose();
                 }}
-                className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center"
+                className="p-2 text-neu-gre-400 hover:text-neu-whi-100 transition-colors flex items-center justify-center"
                 aria-label="Close modal"
               >
                 <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
@@ -403,10 +405,10 @@ export const SectionModal: React.FC<SectionModalProps> = ({
             <div className="flex items-center space-x-3">
               <Icon
                 icon="mingcute:alarm-2-fill"
-                className="text-neu-400 w-6 h-6"
+                className="text-neu-gre-400 w-6 h-6"
               />
               <div className="flex-1">
-                <label className="block text-md font-medium font-inter text-neu-200 mb-2">
+                <label className="block text-md font-medium font-inter text-neu-gre-200 mb-2">
                   Time
                 </label>
                 <input
@@ -417,7 +419,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                   onKeyDown={handleTimeKeyDown}
                   placeholder="09.00"
                   maxLength={5}
-                  className="w-24 bg-transparent text-base font-inter font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
+                  className="w-24 bg-transparent text-base font-inter font-semibold text-neu-whi-100 placeholder-neu-gre-400 focus:outline-none"
                 />
               </div>
             </div>

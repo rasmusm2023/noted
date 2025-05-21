@@ -25,7 +25,9 @@ export const SubtaskList = ({ subtasks }: SubtaskListProps) => {
           />
           <span
             className={`font-inter text-sm ${
-              subtask.completed ? "line-through text-neu-400" : "text-neu-400"
+              subtask.completed
+                ? "line-through text-neu-gre-400"
+                : "text-neu-gre-400"
             }`}
           >
             {subtask.title}

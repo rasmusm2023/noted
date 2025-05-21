@@ -15,17 +15,50 @@ interface TaskModalProps {
 
 const TASK_COLORS = [
   {
-    name: "Default",
-    value: "bg-neu-gre-100",
+    name: "Stone",
+    value: "bg-task-stone-100",
+    hover: "hover:bg-task-stone-hover",
   },
-  { name: "Blue", value: "bg-pri-blue-500" },
-  { name: "Green", value: "bg-sup-suc-500" },
-  { name: "Yellow", value: "bg-sup-war-500" },
-  { name: "Red", value: "bg-sup-err-500" },
-  { name: "Purple", value: "bg-purple-500" },
-  { name: "Pink", value: "bg-pink-500" },
-  { name: "Orange", value: "bg-orange-500" },
-  { name: "Teal", value: "bg-teal-500" },
+  {
+    name: "Sky",
+    value: "bg-task-sky-100",
+    hover: "hover:bg-task-sky-hover",
+  },
+  {
+    name: "Emerald",
+    value: "bg-task-emerald-100",
+    hover: "hover:bg-task-emerald-hover",
+  },
+  {
+    name: "Amber",
+    value: "bg-task-amber-100",
+    hover: "hover:bg-task-amber-hover",
+  },
+  {
+    name: "Rose",
+    value: "bg-task-rose-100",
+    hover: "hover:bg-task-rose-hover",
+  },
+  {
+    name: "Lilac",
+    value: "bg-task-lilac-100",
+    hover: "hover:bg-task-lilac-hover",
+  },
+  {
+    name: "Peach",
+    value: "bg-task-peach-100",
+    hover: "hover:bg-task-peach-hover",
+  },
+  {
+    name: "Mint",
+    value: "bg-task-mint-100",
+    hover: "hover:bg-task-mint-hover",
+  },
+  {
+    name: "Steel",
+    value: "bg-task-steel-100",
+    hover: "hover:bg-task-steel-hover",
+  },
 ];
 
 export function TaskModal({

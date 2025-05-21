@@ -45,11 +45,24 @@ export const TaskItem = ({
         task.completed
           ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)]"
           : task.backgroundColor
-          ? task.backgroundColor
-          : "bg-neu-gre-100"
+          ? `${task.backgroundColor} ${
+              task.backgroundColor.includes("bg-task-")
+                ? `dark:${task.backgroundColor
+                    .replace("bg-task-", "bg-task-")
+                    .replace("-100", "-dark")} hover:${task.backgroundColor
+                    .replace("bg-task-", "hover:bg-task-")
+                    .replace(
+                      "-100",
+                      "-hover"
+                    )} dark:hover:${task.backgroundColor
+                    .replace("bg-task-", "hover:bg-task-")
+                    .replace("-100", "-dark-hover")}`
+                : task.backgroundColor
+            }`
+          : "bg-neu-gre-100 dark:bg-neu-gre-800"
       } ${
         isNextTask ? "highlighted-task" : ""
-      } focus:outline-none focus:ring-2 focus:ring-pri-tea-500`}
+      } focus:outline-none focus:ring-2 focus:ring-pri-pur-500`}
       onClick={() => onSelect(task)}
     >
       <div className="flex items-center space-x-4 flex-1">
@@ -61,9 +74,9 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
-                ? "text-neu-gre-900 hover:text-neu-gre-900 scale-95"
-                : "text-neu-gre-800 hover:text-sup-suc-500 hover:scale-95"
-            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 rounded-full p-1`}
+                ? "text-neu-gre-900 dark:text-neu-whi-100 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 scale-95"
+                : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500 dark:hover:text-sup-suc-400 hover:scale-95"
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-full p-1`}
             aria-label={`Mark task "${task.title}" as ${
               task.completed ? "incomplete" : "complete"
             }`}
@@ -82,8 +95,8 @@ export const TaskItem = ({
                 isEditing ? "" : "transition-all duration-300"
               } ${
                 task.completed
-                  ? "text-neu-gre-800 scale-95"
-                  : "text-neu-gre-800"
+                  ? "text-neu-gre-800 dark:text-neu-whi-100 scale-95"
+                  : "text-neu-gre-800 dark:text-neu-whi-100"
               }`}
             >
               {isEditing ? (
@@ -102,7 +115,7 @@ export const TaskItem = ({
                     onEdit({ ...task, title: editingTitle });
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-transparent text-base font-inter font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-tea-500"
+                  className="w-full bg-transparent text-base font-inter font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-500"
                   autoFocus
                 />
               ) : (
@@ -121,8 +134,8 @@ export const TaskItem = ({
                     <span
                       className={`font-inter text-sm ${
                         subtask.completed
-                          ? "line-through text-neu-gre-600"
-                          : "text-neu-gre-700"
+                          ? "line-through text-neu-gre-600 dark:text-neu-whi-100/70"
+                          : "text-neu-gre-700 dark:text-neu-whi-100/90"
                       }`}
                     >
                       {subtask.title}
@@ -140,9 +153,9 @@ export const TaskItem = ({
               }}
               className={`p-2 flex items-center justify-center transition-all duration-300 ${
                 task.isSaved
-                  ? "text-pri-tea-500 hover:text-pri-tea-400 scale-110"
-                  : "text-neu-gre-500 hover:text-pri-tea-500"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 rounded-lg`}
+                  ? "text-pri-pur-500 hover:text-pri-pur-400 scale-110"
+                  : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-500 dark:hover:text-pri-pur-400"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
               aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
                 task.title
               }"`}
@@ -156,9 +169,9 @@ export const TaskItem = ({
               }}
               className={`p-2 flex items-center justify-center ${
                 task.completed
-                  ? "text-neu-gre-400 hover:text-neu-gre-600"
-                  : "text-neu-gre-500 hover:text-neu-gre-700"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 rounded-lg`}
+                  ? "text-neu-gre-400 dark:text-neu-whi-100/70 hover:text-neu-gre-600 dark:hover:text-neu-whi-100"
+                  : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
               aria-label={`Edit task "${task.title}"`}
             >
               <Icon icon="mingcute:edit-2-fill" width={24} height={24} />
@@ -170,9 +183,9 @@ export const TaskItem = ({
               }}
               className={`p-2 flex items-center justify-center ${
                 task.completed
-                  ? "text-neu-gre-400 hover:text-neu-gre-600"
-                  : "text-neu-gre-500 hover:text-sup-err-500"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 rounded-lg`}
+                  ? "text-neu-gre-400 dark:text-neu-whi-100/70 hover:text-neu-gre-600 dark:hover:text-neu-whi-100"
+                  : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-sup-err-500 dark:hover:text-sup-err-400"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
               aria-label={`Delete task "${task.title}"`}
             >
               <Icon icon="mingcute:delete-2-fill" width={24} height={24} />

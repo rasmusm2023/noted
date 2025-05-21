@@ -49,7 +49,7 @@ export const TaskItem = ({
           ? "bg-sup-suc-400 bg-opacity-50"
           : task.backgroundColor
           ? task.backgroundColor
-          : "bg-neu-800"
+          : "bg-neu-gre-800"
       } ${
         isNextTask
           ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
@@ -66,7 +66,7 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
-                ? "text-neu-100 hover:text-neu-100 scale-95"
+                ? "text-neu-whi-100 hover:text-neu-whi-100 scale-95"
                 : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
             } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-full p-1`}
             aria-label={`Mark task "${task.title}" as ${
@@ -90,7 +90,9 @@ export const TaskItem = ({
           <div className="flex-1">
             <h3
               className={`text-base font-inter font-regular transition-all duration-300 ${
-                task.completed ? "text-neu-100 scale-95" : "text-neu-100"
+                task.completed
+                  ? "text-neu-whi-100 scale-95"
+                  : "text-neu-whi-100"
               }`}
             >
               {editingTask?.id === task.id ? (
@@ -119,7 +121,7 @@ export const TaskItem = ({
                     });
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-transparent text-base font-inter font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200"
+                  className="w-full bg-transparent text-base font-inter font-semibold text-neu-whi-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-500 transition-colors duration-200"
                   autoFocus
                 />
               ) : (
@@ -136,8 +138,8 @@ export const TaskItem = ({
               }}
               className={`p-2 flex items-center justify-center ${
                 task.completed
-                  ? "text-neu-100 hover:text-neu-100"
-                  : "text-neu-400 hover:text-red-500"
+                  ? "text-neu-whi-100 hover:text-neu-whi-100"
+                  : "text-neu-gre-400 hover:text-red-500"
               } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
               aria-label={`Delete task "${task.title}"`}
             >

@@ -222,7 +222,7 @@ export function Goals() {
                               progressType: e.target.value as ProgressType,
                             })
                           }
-                          className="text-pri-blue-500 focus:ring-pri-blue-500"
+                          className="text-pri-pur-500 focus:ring-pri-pur-500"
                         />
                         <span className="text-neu-100">Percentage</span>
                       </label>
@@ -237,7 +237,7 @@ export function Goals() {
                               progressType: e.target.value as ProgressType,
                             })
                           }
-                          className="text-pri-blue-500 focus:ring-pri-blue-500"
+                          className="text-pri-pur-500 focus:ring-pri-pur-500"
                         />
                         <span className="text-neu-100">Numerical</span>
                       </label>
@@ -351,7 +351,7 @@ export function Goals() {
                     </div>
                     <div className="h-2 bg-neu-700 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-pri-blue-500 transition-all duration-300"
+                        className="h-full bg-pri-pur-500 transition-all duration-300"
                         style={{
                           width: `${
                             goal.progressType === "numerical"

@@ -78,7 +78,7 @@ export const DashboardHeader = ({
 
   return (
     <div className="rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 relative">
-      <div className="absolute inset-0 rounded-5xl bg-pink-test-500 [background:linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [background:-moz-linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [background:-webkit-linear-gradient(90deg,theme(colors.pink-test.500)_0%,theme(colors.orange-test.500)_100%)] [filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#EF709B,endColorstr=#FA9372,GradientType=1)] opacity-75"></div>
+      <div className="absolute inset-0 rounded-5xl bg-gradient-rose-peach-75"></div>
       <div className="flex justify-between items-start relative h-full">
         <AnimatePresence mode="wait">
           <motion.div
@@ -106,63 +106,66 @@ export const DashboardHeader = ({
           </motion.div>
         </AnimatePresence>
         <div className="flex flex-col items-center leading-none">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex flex-col px-4 py-2 bg-neu-whi-100 rounded-5xl items-center leading-none mb-4"
-          >
-            <motion.h1
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.4 }}
-              className="text-md font-regular font-inter text-neu-gre-800 leading-none"
-            >
-              {abbreviatedDay}
-            </motion.h1>
-            <div className="flex flex-col items-center leading-none">
-              <motion.span
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.5 }}
-                className="text-6xl font-inter font-semibold text-neu-gre-700 leading-none"
-              >
-                {day}
-              </motion.span>
-              <motion.span
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.6 }}
-                className="text-md font-inter font-regular text-neu-gre-800 leading-none"
-              >
-                {month}
-              </motion.span>
-            </div>
-          </motion.div>
-          {temperature !== null && (
+          <div className="w-[140px]">
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.7 }}
-              className="flex flex-1 items-center gap-2"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex flex-col bg-neu-whi-100 rounded-t-5xl items-center leading-none"
             >
-              <motion.div
+              <motion.h1
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.8 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+                className="text-md font-regular font-inter text-neu-gre-800 leading-none px-8 pt-2"
               >
-                {getWeatherIcon(weatherCondition)}
-              </motion.div>
-              <motion.span
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.9 }}
-                className="text-xl font-bold font-inter text-neu-gre-100 leading-none"
-              >
-                {temperature}°C
-              </motion.span>
+                {abbreviatedDay}
+              </motion.h1>
+              <div className="flex flex-col items-center leading-none px-8 pb-2">
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
+                  className="text-6xl font-inter font-semibold text-neu-gre-700 leading-none"
+                >
+                  {day}
+                </motion.span>
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.6 }}
+                  className="text-md font-inter font-regular text-neu-gre-800 leading-none"
+                >
+                  {month}
+                </motion.span>
+              </div>
             </motion.div>
-          )}
+            {temperature !== null && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="flex items-center justify-center bg-neu-whi-100/25 backdrop-blur-sm rounded-b-5xl px-8 py-2 "
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.8 }}
+                  className="w-8 h-8"
+                >
+                  {getWeatherIcon(weatherCondition)}
+                </motion.div>
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.9 }}
+                  className="text-lg font-medium font-inter text-neu-whi-100 leading-none ml-2"
+                >
+                  {temperature}°C
+                </motion.span>
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
     </div>

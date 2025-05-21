@@ -16,7 +16,7 @@ export const TaskManagementHeader = ({
   onStatsClick,
 }: TaskManagementHeaderProps) => {
   return (
-    <div className="flex-none pt-8 pb-8 bg-neu-900/30 backdrop-blur-md sticky top-0 z-10">
+    <div className="flex-none pt-8 pb-8 bg-neu-gre-900/30 backdrop-blur-md sticky top-0 z-10">
       <div className="max-w-[2000px] mx-auto">
         <div className="flex items-center justify-between pl-8 pr-8">
           <h1 className="text-4xl font-bold font-inter text-neu-100">
@@ -26,7 +26,7 @@ export const TaskManagementHeader = ({
             <div className="flex items-center space-x-2">
               <button
                 onClick={onStatsClick}
-                className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+                className="px-4 py-2 bg-neu-800 text-neu-400 rounded-lg hover:bg-neu-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500"
               >
                 <Icon
                   icon="mingcute:chart-fill"

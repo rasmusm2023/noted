@@ -6,6 +6,7 @@ import { Unread, AltArrowRight } from "solar-icon-set";
 import { Icon } from "@iconify/react";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
+import { useTheme } from "../../contexts/ThemeContext";
 
 // Import custom avatars
 import avatar1 from "../../assets/profile-avatars/PFP_option1.png";
@@ -60,7 +61,7 @@ const menuSections: MenuSection[] = [
       {
         id: "goals",
         label: "Goals",
-        icon: () => <Icon icon="mingcute:trophy-fill" width={24} height={24} />,
+        icon: () => <Icon icon="mingcute:target-fill" width={24} height={24} />,
         path: "/goals",
       },
       {
@@ -93,7 +94,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const [newListName, setNewListName] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [userDetails, setUserDetails] = useState<UserDetails>({
     firstName: "",
     selectedAvatar: 1,
@@ -394,7 +395,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     : ""
                 }`}
               >
-                <Icon icon="mingcute:star-fill" width={20} height={20} />
+                <Icon icon="mingcute:target-fill" width={20} height={20} />
                 {isOpen && <span className="text-base">Goals</span>}
               </button>
               <button
@@ -496,7 +497,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 <div className="py-1">
                   <button
                     onClick={() => {
-                      setIsDarkMode(!isDarkMode);
+                      toggleDarkMode();
                       setIsSettingsMenuOpen(false);
                     }}
                     className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
@@ -556,7 +557,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           <Unread
                             size={16}
                             color="currentColor"
-                            className="ml-1 text-pri-tea-500"
+                            className="ml-1 text-pri-pur-500"
                           />
                         )}
                       </button>
@@ -576,7 +577,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           <Unread
                             size={16}
                             color="currentColor"
-                            className="ml-1 text-pri-tea-500"
+                            className="ml-1 text-pri-pur-500"
                           />
                         )}
                       </button>

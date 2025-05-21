@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
@@ -75,39 +76,7 @@ module.exports = {
         "9xl": "240px",
       },
       colors: {
-        "pri-blue": {
-          100: "#E6F3FC",
-          200: "#B8DCF6",
-          300: "#8BC5F0",
-          400: "#5DAFEB",
-          500: "#0081D7",
-          600: "#006AB3",
-          700: "#00538F",
-          800: "#003D6B",
-          900: "#002647",
-        },
-        "pri-tea": {
-          100: "#E0FAF7",
-          200: "#B3F1EA",
-          300: "#80E4DB",
-          400: "#4FD7CD",
-          500: "#25C4B1",
-          600: "#1DAA9A",
-          700: "#178F81",
-          800: "#107269",
-          900: "#0A5550",
-        },
-        "pri-pin": {
-          100: "#FFE4F0",
-          200: "#FFC9E1",
-          300: "#FFADD1",
-          400: "#FF94C3",
-          500: "#FF87BD",
-          600: "#E570A6",
-          700: "#CC5A8E",
-          800: "#B34578",
-          900: "#993162",
-        },
+        // Primary Colors
         "pri-pur": {
           100: "#B0B2E6",
           200: "#9B9EDF",
@@ -119,6 +88,88 @@ module.exports = {
           800: "#383A8C",
           900: "#2E3079",
         },
+
+        // Task Background Colors
+        "task-sky": {
+          100: "#E0F2FE",
+          hover: "#BAE6FD",
+          dark: "#0C4A6E",
+          "dark-hover": "#0369A1",
+        },
+        "task-emerald": {
+          100: "#D1FAE5",
+          hover: "#A7F3D0",
+          dark: "#064E3B",
+          "dark-hover": "#047857",
+        },
+        "task-amber": {
+          100: "#FEF3C7",
+          hover: "#FDE68A",
+          dark: "#78350F",
+          "dark-hover": "#B45309",
+        },
+        "task-rose": {
+          100: "#FFE4E6",
+          hover: "#FECDD3",
+          dark: "#881337",
+          "dark-hover": "#BE123C",
+        },
+        "task-lilac": {
+          100: "#F3E8FF",
+          hover: "#E9D5FF",
+          dark: "#5B21B6",
+          "dark-hover": "#7C3AED",
+        },
+        "task-stone": {
+          100: "#F5F5F4",
+          hover: "#E5E5E4",
+          dark: "#292524",
+          "dark-hover": "#44403C",
+        },
+        "task-peach": {
+          100: "#FFE9D5",
+          hover: "#FFD7B8",
+          dark: "#7C2D12",
+          "dark-hover": "#C2410C",
+        },
+        "task-mint": {
+          100: "#E3FCEF",
+          hover: "#C6F6E4",
+          dark: "#065F46",
+          "dark-hover": "#0F766E",
+        },
+        "task-steel": {
+          100: "#E5E7EB",
+          hover: "#D1D5DB",
+          dark: "#374151",
+          "dark-hover": "#4B5563",
+        },
+
+        // Secondary Colors
+        "sec-rose": {
+          100: "#FFE8EF",
+          200: "#FFC8DA",
+          300: "#FFA5C3",
+          400: "#F883AD",
+          500: "#EF709B",
+          600: "#D65E89",
+          700: "#B94B74",
+          800: "#99385F",
+          900: "#732547",
+        },
+        "sec-pea": {
+          100: "#FFF1EC",
+          200: "#FFD9CB",
+          300: "#FFC0AA",
+          400: "#FEA88C",
+          500: "#FA9372",
+          600: "#E17D60",
+          700: "#C46650",
+          800: "#A45040",
+          900: "#823B30",
+        },
+
+        // Neutral Colors
         "neu-whi": {
           100: "#FFFFFF",
           200: "#FFF5F8",
@@ -152,17 +203,8 @@ module.exports = {
           800: "#1A1A1A",
           900: "#0A0A0A",
         },
-        neu: {
-          100: "#FAFAFA",
-          200: "#E0E4E5",
-          300: "#C0C7CA",
-          400: "#A0AAAF",
-          500: "#7F8D95",
-          600: "#5D666A",
-          700: "#3A4043",
-          800: "#2A2E30",
-          900: "#1B1B1B",
-        },
+
+        // Supportive Colors
         "sup-suc": {
           100: "#D6F2E0",
           200: "#B3E5C9",
@@ -207,16 +249,6 @@ module.exports = {
           800: "#965D1D",
           900: "#754716",
         },
-        "pink-test": {
-          500: "#EF709B",
-        },
-        "orange-test": {
-          500: "#FA9372",
-        },
-        "neu-blue": {
-          900: "#2A3441", // Dark blue-gray
-          800: "#4A6B8A", // Medium blue-gray
-        },
       },
       width: {
         xs: "30px",
@@ -251,7 +283,10 @@ module.exports = {
         "10xl": "240px",
       },
       backgroundImage: {
-        "blue-gradient": "linear-gradient(90deg, #2A3441 0%, #4A6B8A 100%)",
+        "gradient-rose-peach":
+          "linear-gradient(90deg, theme(colors.sec-rose.500) 0%, theme(colors.sec-pea.500) 100%)",
+        "gradient-rose-peach-75":
+          "linear-gradient(90deg, rgba(239, 112, 155, 0.75) 0%, rgba(250, 147, 114, 0.75) 100%)",
       },
     },
   },
