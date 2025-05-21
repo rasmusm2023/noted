@@ -252,10 +252,6 @@ export function Next7Days() {
         items: [],
       };
     });
-    console.log(
-      "Initialized days:",
-      next7Days.map((day) => day.date.toISOString())
-    );
     setDays(next7Days);
   }, []);
 
@@ -268,46 +264,16 @@ export function Next7Days() {
 
     try {
       setIsLoading(true);
-      console.log("Fetching tasks and sections...");
       const tasks = await taskService.getUserTasks(currentUser.uid);
       const sections = await taskService.getUserSections(currentUser.uid);
-
-      // Add detailed task logging
-      console.log(
-        "Detailed task data:",
-        tasks.map((task) => ({
-          id: task.id,
-          title: task.title,
-          date: task.date,
-          scheduledTime: task.scheduledTime,
-          type: task.type,
-          completed: task.completed,
-          order: task.order,
-          userId: task.userId,
-          createdAt: task.createdAt,
-          updatedAt: task.updatedAt,
-        }))
-      );
-
-      console.log("Fetched tasks:", tasks);
-      console.log("Fetched sections:", sections);
 
       // Group tasks by day
       const tasksByDay = tasks.reduce(
         (acc: Record<number, Task[]>, task: Task) => {
-          console.log("Processing task:", task);
           // Parse the date from the task's scheduledTime field
           const taskDate = parseDateString(task.scheduledTime);
           // Reset time part for comparison in local timezone
           taskDate.setHours(0, 0, 0, 0);
-
-          console.log(
-            "Days array:",
-            days.map((day) => ({
-              date: day.date.toISOString(),
-              dateLocal: day.date.toLocaleString(),
-            }))
-          );
 
           const dayIndex = days.findIndex((day) => {
             const dayDate = new Date(day.date);
@@ -317,22 +283,9 @@ export function Next7Days() {
             const taskDateStr = taskDate.toISOString().split("T")[0];
             const dayDateStr = dayDate.toISOString().split("T")[0];
 
-            console.log("Comparing dates:", {
-              taskDateStr,
-              dayDateStr,
-              taskDateLocal: taskDate.toLocaleString(),
-              dayDateLocal: dayDate.toLocaleString(),
-            });
-
             return taskDateStr === dayDateStr;
           });
 
-          console.log(
-            "Task date:",
-            taskDate.toISOString(),
-            "Day index:",
-            dayIndex
-          );
           if (dayIndex !== -1) {
             if (!acc[dayIndex]) {
               acc[dayIndex] = [];
@@ -350,14 +303,12 @@ export function Next7Days() {
               updatedAt: task.updatedAt,
               order: task.order || 0,
             };
-            console.log("Adding task to day:", dayIndex, taskWithType);
             acc[dayIndex].push(taskWithType);
           }
           return acc;
         },
         {}
       );
-      console.log("Tasks by day:", tasksByDay);
 
       // Distribute sections across days based on their date
       const sectionsByDay: Record<number, SectionItemType[]> = {};
@@ -370,14 +321,6 @@ export function Next7Days() {
         // Reset time part for comparison in local timezone
         sectionDate.setHours(0, 0, 0, 0);
 
-        console.log("Processing section:", {
-          id: section.id,
-          text: section.text,
-          scheduledTime: section.scheduledTime,
-          createdAt: section.createdAt,
-          parsedDate: sectionDate.toLocaleString(),
-        });
-
         // Find the corresponding day index
         const dayIndex = days.findIndex((day) => {
           const dayDate = new Date(day.date);
@@ -386,17 +329,8 @@ export function Next7Days() {
           const sectionDateStr = sectionDate.toISOString().split("T")[0];
           const dayDateStr = dayDate.toISOString().split("T")[0];
 
-          console.log("Comparing dates:", {
-            sectionDateStr,
-            dayDateStr,
-            sectionDateLocal: sectionDate.toLocaleString(),
-            dayDateLocal: dayDate.toLocaleString(),
-          });
-
           return sectionDateStr === dayDateStr;
         });
-
-        console.log("Section day index:", dayIndex);
 
         if (dayIndex !== -1) {
           if (!sectionsByDay[dayIndex]) {
@@ -414,12 +348,9 @@ export function Next7Days() {
             scheduledTime: section.scheduledTime || section.createdAt, // Ensure scheduledTime is set
           };
 
-          console.log("Adding section to day:", dayIndex, sectionWithType);
           sectionsByDay[dayIndex].push(sectionWithType);
         }
       });
-
-      console.log("Sections by day:", sectionsByDay);
 
       // Update days with tasks and sections
       setDays((prevDays) => {
@@ -431,18 +362,8 @@ export function Next7Days() {
               ...(tasksByDay[index] || []),
             ],
           };
-          console.log(
-            `Day ${index} items:`,
-            updatedDay.items.map((item) => ({
-              id: item.id,
-              type: item.type,
-              title: "title" in item ? item.title : "section",
-              date: "date" in item ? item.date : "N/A",
-            }))
-          );
           return updatedDay;
         });
-        console.log("Updated days:", newDays);
         return newDays;
       });
 
@@ -471,8 +392,6 @@ export function Next7Days() {
 
   // Helper function to parse date strings
   const parseDateString = (dateStr: string): Date => {
-    console.log("Parsing date string:", dateStr);
-
     // If it's an ISO string or YYYY-MM-DD format, parse it directly
     if (dateStr.includes("T") || dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
       return new Date(dateStr);
@@ -485,14 +404,10 @@ export function Next7Days() {
       return new Date(); // Return current date as fallback
     }
 
-    console.log("Date parts:", { datePart, timePart });
-
     // Check if datePart is in YYYY-MM-DD format
     if (datePart.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [year, month, day] = datePart.split("-");
       const [hours, minutes] = timePart.split(":");
-
-      console.log("Parsed components:", { day, month, year, hours, minutes });
 
       // Create date in local timezone
       const date = new Date();
@@ -504,15 +419,12 @@ export function Next7Days() {
       date.setSeconds(0);
       date.setMilliseconds(0);
 
-      console.log("Parsed date:", date.toISOString());
       return date;
     }
 
     // Handle DD/MM/YYYY format
     const [day, month, year] = datePart.split("/");
     const [hours, minutes] = timePart.split(":");
-
-    console.log("Parsed components:", { day, month, year, hours, minutes });
 
     // Create date in local timezone
     const date = new Date();
@@ -524,7 +436,6 @@ export function Next7Days() {
     date.setSeconds(0);
     date.setMilliseconds(0);
 
-    console.log("Parsed date:", date.toISOString());
     return date;
   };
 
@@ -636,7 +547,6 @@ export function Next7Days() {
     field: "title" | "description",
     value: string
   ) => {
-    console.log("Task input change:", { dayIndex, field, value });
     setNewTaskInputs((prev) => ({
       ...prev,
       [dayIndex]: {
@@ -647,11 +557,9 @@ export function Next7Days() {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent, dayIndex: number) => {
-    console.log("Key press:", { key: e.key, dayIndex });
     if (e.key === "Enter") {
       e.preventDefault();
       const title = newTaskInputs[dayIndex]?.title || "";
-      console.log("Attempting to create task with title:", title);
       handleAddTask(dayIndex, title);
     } else if (e.key === "Escape") {
       setIsCreatingTask(false);
@@ -1212,103 +1120,34 @@ export function Next7Days() {
     sourceDay: number,
     targetDay: number
   ) => {
-    if (!currentUser) return;
-
-    const sourceItems = [...days[sourceDay].items];
-    const [movedItem] = sourceItems.splice(dragIndex, 1);
-    const targetItems =
-      sourceDay === targetDay ? sourceItems : [...days[targetDay].items];
-    targetItems.splice(hoverIndex, 0, movedItem);
-
-    // Update UI immediately
-    setDays((prevDays) => {
-      const newDays = [...prevDays];
-      newDays[sourceDay] = {
-        ...newDays[sourceDay],
-        items: sourceItems,
-      };
-      if (sourceDay !== targetDay) {
-        newDays[targetDay] = {
-          ...newDays[targetDay],
-          items: targetItems,
-        };
-      }
-      return newDays;
-    });
-
-    // Update orders
-    const updatedSourceItems = sourceItems.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
-    const updatedTargetItems = targetItems.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
-
-    // Group updates by type
-    const updates = new Map<
-      string,
-      { type: "task" | "section"; updates: any[] }
-    >();
-
-    updatedSourceItems.forEach((item) => {
-      const type = isTask(item) ? "task" : "section";
-      if (!updates.has(type)) {
-        updates.set(type, { type, updates: [] });
-      }
-      updates.get(type)?.updates.push(item);
-    });
-
-    if (sourceDay !== targetDay) {
-      updatedTargetItems.forEach((item) => {
-        const type = isTask(item) ? "task" : "section";
-        if (!updates.has(type)) {
-          updates.set(type, { type, updates: [] });
-        }
-        updates.get(type)?.updates.push(item);
-      });
+    if (sourceDay === targetDay) {
+      // Handle same-day reordering
+      const newItems = [...days];
+      const [movedItem] = newItems[sourceDay].items.splice(dragIndex, 1);
+      newItems[sourceDay].items.splice(hoverIndex, 0, movedItem);
+      setDays(newItems);
+      return;
     }
 
-    const debouncedUpdate = debounce(async () => {
-      try {
-        const operations: BatchOperation[] = [];
+    // Get the target date from the target day
+    const targetDate = new Date(days[targetDay].date);
+    // Set to noon for better visibility
+    targetDate.setHours(12, 0, 0, 0);
 
-        // Convert updates to batch operations
-        updates.forEach(({ type, updates }) => {
-          updates.forEach((item) => {
-            operations.push({
-              type,
-              operation: "update",
-              id: item.id,
-              data: { order: item.order },
-            });
-          });
-        });
+    // Get the item being moved
+    const movedItem = days[sourceDay].items[dragIndex];
+    if (!movedItem) return;
 
-        // Execute batch operations
-        await taskService.batchOperations(operations);
-      } catch (error) {
-        console.error("Error saving item order:", error);
-        // Revert on error
-        setDays((prevDays) => {
-          const newDays = [...prevDays];
-          newDays[sourceDay] = {
-            ...newDays[sourceDay],
-            items: days[sourceDay].items,
-          };
-          if (sourceDay !== targetDay) {
-            newDays[targetDay] = {
-              ...newDays[targetDay],
-              items: days[targetDay].items,
-            };
-          }
-          return newDays;
-        });
-      }
-    }, 1000);
+    // Update the task's date
+    if (isTask(movedItem)) {
+      await taskService.updateTaskDate(movedItem.id, targetDate);
+    }
 
-    debouncedUpdate();
+    // Update the UI
+    const newDays = [...days];
+    const [removedItem] = newDays[sourceDay].items.splice(dragIndex, 1);
+    newDays[targetDay].items.splice(hoverIndex, 0, removedItem);
+    setDays(newDays);
   };
 
   const handleClearCompleted = async () => {

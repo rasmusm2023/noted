@@ -338,16 +338,41 @@ export function Dashboard() {
     return date;
   };
 
+  // Helper function to get today's date in user's timezone
+  const getTodayInUserTimezone = (): Date => {
+    const now = new Date();
+    // Set to midnight in user's timezone
+    now.setHours(0, 0, 0, 0);
+    return now;
+  };
+
+  // Helper function to format date for display
+  const formatDateForDisplay = (
+    date: Date
+  ): { dayOfWeek: string; currentDate: string } => {
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = date.toLocaleString("default", { month: "short" });
+    const dayOfWeek = date.toLocaleString("default", { weekday: "long" });
+
+    return {
+      dayOfWeek,
+      currentDate: `${month} ${day}`,
+    };
+  };
+
   // Update filteredAndSortedItems to filter for today and sort
   const filteredAndSortedItems = items
     .filter((item) => {
       const itemDate = parseDateString(
         isTask(item) ? item.scheduledTime : item.scheduledTime || item.createdAt
       );
-      itemDate.setHours(0, 0, 0, 0);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return itemDate.getTime() === today.getTime();
+      const today = getTodayInUserTimezone();
+
+      // Compare dates by their date parts only (ignoring time)
+      const itemDateStr = itemDate.toLocaleDateString();
+      const todayStr = today.toLocaleDateString();
+
+      return itemDateStr === todayStr;
     })
     .sort((a, b) => {
       // If both items have order, use that for custom sorting
@@ -399,14 +424,18 @@ export function Dashboard() {
   // Update date on mount and every day
   useEffect(() => {
     const updateDate = async () => {
-      const now = new Date();
-      const day = now.getDate().toString().padStart(2, "0");
-      const month = now.toLocaleString("default", { month: "short" });
-      setCurrentDate(`${month} ${day}`);
-      setDayOfWeek(now.toLocaleString("default", { weekday: "long" }));
+      const today = getTodayInUserTimezone();
+      const { dayOfWeek: newDayOfWeek, currentDate: newCurrentDate } =
+        formatDateForDisplay(today);
 
-      // Move incomplete tasks to next day and delete completed tasks
-      if (currentUser) {
+      setCurrentDate(newCurrentDate);
+      setDayOfWeek(newDayOfWeek);
+
+      // Only move incomplete tasks at midnight
+      const now = new Date();
+      const isMidnight = now.getHours() === 0 && now.getMinutes() === 0;
+
+      if (currentUser && isMidnight) {
         await taskService.moveIncompleteTasksToNextDay(currentUser.uid);
         // Reload data after moving tasks
         const [tasks, sections] = await Promise.all([
@@ -418,13 +447,11 @@ export function Dashboard() {
     };
 
     updateDate();
-    // Update at midnight
+    // Update at midnight in user's timezone
     const now = new Date();
-    const tomorrow = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1
-    );
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
     const timeUntilMidnight = tomorrow.getTime() - now.getTime();
 
     const timer = setTimeout(() => {
@@ -522,9 +549,8 @@ export function Dashboard() {
       const tasks = await taskService.getUserTasks(currentUser.uid);
       const sections = await taskService.getUserSections(currentUser.uid);
 
-      // Set today to midnight for consistent comparison
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // Get today's date in user's timezone
+      const today = getTodayInUserTimezone();
 
       // Filter tasks for today
       const todaysTasks = tasks.filter((task) => {
@@ -704,14 +730,16 @@ export function Dashboard() {
     }
 
     try {
-      // Add today's date at noon for the new task
-      const today = new Date();
+      // Get today's date in user's timezone
+      const today = getTodayInUserTimezone();
+      // Set to noon for better visibility
       today.setHours(12, 0, 0, 0);
+
       const newTask = await taskService.createTask(currentUser.uid, {
         type: "task",
         title: title,
         description: description,
-        scheduledTime: today.toLocaleString(),
+        scheduledTime: today.toISOString(),
         completed: false,
         date: today.toISOString(),
       });
@@ -725,13 +753,8 @@ export function Dashboard() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      console.log("Enter key pressed, adding task:", {
-        title: newTaskTitle,
-        description: newTaskDescription,
-      });
       handleAddTask(newTaskTitle, newTaskDescription);
     } else if (e.key === "Escape") {
-      console.log("Escape key pressed, clearing task inputs");
       setNewTaskTitle("");
       setNewTaskDescription("");
     }
@@ -1012,14 +1035,15 @@ export function Dashboard() {
     if (!currentUser) return;
 
     try {
-      // Calculate today's date at noon
-      const today = new Date();
+      // Get today's date in user's timezone
+      const today = getTodayInUserTimezone();
+      // Set to noon for better visibility
       today.setHours(12, 0, 0, 0);
 
       await taskService.createSection(currentUser.uid, {
         text: title,
         time: time,
-        scheduledTime: today.toLocaleString(),
+        scheduledTime: today.toISOString(),
       });
 
       // Reload data to show the new section
@@ -1613,6 +1637,50 @@ export function Dashboard() {
       console.error("Error clearing completed tasks:", error);
       // Revert the state if the update fails
       setItems(items);
+    }
+  };
+
+  const handleMoveItem = async (item: Task | SectionItem, targetDate: Date) => {
+    if (!currentUser) return;
+
+    try {
+      const targetDateStr = targetDate.toISOString();
+      const targetDateLocal = targetDate.toLocaleString();
+
+      if ("title" in item) {
+        // It's a task
+        await taskService.updateTaskDate(item.id, targetDate);
+      } else {
+        // It's a section
+        await taskService.updateSectionDate(item.id, targetDate);
+      }
+
+      // Refresh data
+      await loadData();
+    } catch (error) {
+      console.error("Error moving item:", error);
+    }
+  };
+
+  const handleTaskComplete = async (taskId: string) => {
+    if (!currentUser) return;
+
+    try {
+      await taskService.toggleTaskCompletion(taskId, true);
+      await loadData();
+    } catch (error) {
+      console.error("Error completing task:", error);
+    }
+  };
+
+  const handleTaskUncomplete = async (taskId: string) => {
+    if (!currentUser) return;
+
+    try {
+      await taskService.toggleTaskCompletion(taskId, false);
+      await loadData();
+    } catch (error) {
+      console.error("Error uncompleting task:", error);
     }
   };
 

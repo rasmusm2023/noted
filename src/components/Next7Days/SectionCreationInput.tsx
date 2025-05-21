@@ -94,8 +94,6 @@ export const SectionCreationInput = ({
       date.setDate(date.getDate() + dayIndex);
       date.setHours(12, 0, 0, 0);
 
-      console.log("Creating section for date:", date.toLocaleString());
-
       // Create section in database
       await taskService.createSection(currentUser.uid, {
         text: title,

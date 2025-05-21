@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   orderBy,
   Timestamp,
+  getDoc,
 } from "firebase/firestore";
 import type {
   Task,
@@ -165,9 +166,6 @@ export const taskService = {
       details: taskData,
     });
 
-    console.log("Creating task for user:", userId);
-    console.log("Task data:", taskData);
-
     try {
       const now = new Date();
       const newTask = {
@@ -178,14 +176,11 @@ export const taskService = {
         updatedAt: now.toISOString(),
       };
 
-      console.log("Full task object to be saved:", newTask);
-
       const docRef = await addDoc(collection(db, tasksCollection), newTask);
       const createdTask = {
         ...newTask,
         id: docRef.id,
       } as Task;
-      console.log("Task created successfully:", createdTask);
       return createdTask;
     } catch (error) {
       console.error("Error creating task:", error);
@@ -209,13 +204,10 @@ export const taskService = {
 
     try {
       const tasksRef = collection(db, tasksCollection);
-
       const q = query(tasksRef, where("userId", "==", userId));
-
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        console.log("No tasks found for user:", userId);
         return [];
       }
 
@@ -353,7 +345,6 @@ export const taskService = {
 
   // Create a new timestamp
   async createTimestamp(userId: string, time: string): Promise<TaskTimestamp> {
-    console.log("Creating timestamp for user:", userId);
     const now = new Date().toISOString();
     const timestamp: Omit<TaskTimestamp, "id"> = {
       time,
@@ -365,24 +356,20 @@ export const taskService = {
       order: 0,
     };
 
-    console.log("Full timestamp object to be saved:", timestamp);
     const docRef = await addDoc(
       collection(db, timestampsCollection),
       timestamp
     );
     const createdTimestamp = { ...timestamp, id: docRef.id };
-    console.log("Timestamp created successfully:", createdTimestamp);
     return createdTimestamp;
   },
 
   // Get all timestamps for a user
   async getUserTimestamps(userId: string): Promise<TaskTimestamp[]> {
     if (!userId) {
-      console.error("getUserTimestamps called with no userId");
       return [];
     }
 
-    console.log("Querying timestamps for user:", userId);
     try {
       const q = query(
         collection(db, timestampsCollection),
@@ -392,7 +379,6 @@ export const taskService = {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        console.log("No timestamps found for user:", userId);
         return [];
       }
 
@@ -413,10 +399,8 @@ export const taskService = {
 
   // Delete a timestamp
   async deleteTimestamp(timestampId: string): Promise<void> {
-    console.log("Deleting timestamp:", timestampId);
     const timestampRef = doc(db, timestampsCollection, timestampId);
     await deleteDoc(timestampRef);
-    console.log("Timestamp deleted successfully");
   },
 
   // Update a timestamp
@@ -424,19 +408,16 @@ export const taskService = {
     timestampId: string,
     updates: Partial<TaskTimestamp>
   ): Promise<void> {
-    console.log("Updating timestamp:", timestampId, updates);
     const timestampRef = doc(db, timestampsCollection, timestampId);
     const now = new Date().toISOString();
     await updateDoc(timestampRef, {
       ...updates,
       updatedAt: now,
     });
-    console.log("Timestamp updated successfully");
   },
 
   // Create a new title
   async createTitle(userId: string, text: string): Promise<TitleItem> {
-    console.log("Creating title for user:", userId);
     const now = new Date().toISOString();
     const title: Omit<TitleItem, "id"> = {
       type: "title",
@@ -447,21 +428,17 @@ export const taskService = {
       order: 0,
     };
 
-    console.log("Full title object to be saved:", title);
     const docRef = await addDoc(collection(db, titlesCollection), title);
     const createdTitle = { ...title, id: docRef.id };
-    console.log("Title created successfully:", createdTitle);
     return createdTitle;
   },
 
   // Get all titles for a user
   async getUserTitles(userId: string): Promise<TitleItem[]> {
     if (!userId) {
-      console.error("getUserTitles called with no userId");
       return [];
     }
 
-    console.log("Querying titles for user:", userId);
     try {
       const q = query(
         collection(db, titlesCollection),
@@ -471,7 +448,6 @@ export const taskService = {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        console.log("No titles found for user:", userId);
         return [];
       }
 
@@ -492,10 +468,8 @@ export const taskService = {
 
   // Delete a title
   async deleteTitle(titleId: string): Promise<void> {
-    console.log("Deleting title:", titleId);
     const titleRef = doc(db, titlesCollection, titleId);
     await deleteDoc(titleRef);
-    console.log("Title deleted successfully");
   },
 
   // Update a title
@@ -503,14 +477,12 @@ export const taskService = {
     titleId: string,
     updates: Partial<TitleItem>
   ): Promise<void> {
-    console.log("Updating title:", titleId, updates);
     const titleRef = doc(db, titlesCollection, titleId);
     const now = new Date().toISOString();
     await updateDoc(titleRef, {
       ...updates,
       updatedAt: now,
     });
-    console.log("Title updated successfully");
   },
 
   // Create a new section
@@ -518,12 +490,8 @@ export const taskService = {
     userId: string,
     sectionData: { text: string; time: string; scheduledTime: string }
   ): Promise<SectionItem> {
-    console.log("Creating section for user:", userId);
-    console.log("Section data:", sectionData);
-
     // Get current sections to determine the next order
     const currentSections = await this.getUserSections(userId);
-    console.log("Current sections count:", currentSections.length);
 
     const now = new Date().toISOString();
     const section: Omit<SectionItem, "id"> = {
@@ -538,12 +506,10 @@ export const taskService = {
       backgroundColor: "bg-pink-test-500/25", // Add default background color
     };
 
-    console.log("Full section object to be saved:", section);
     try {
       // First create the new section
       const docRef = await addDoc(collection(db, sectionsCollection), section);
       const createdSection = { ...section, id: docRef.id };
-      console.log("Section created successfully:", createdSection);
 
       // Try to update existing sections' orders, but don't fail if it doesn't work
       try {
@@ -565,9 +531,7 @@ export const taskService = {
           });
         });
         await batch.commit();
-        console.log("Successfully updated existing sections' orders");
       } catch (batchError) {
-        console.warn("Failed to update existing sections' orders:", batchError);
         // Don't throw the error - we still want to return the created section
       }
 
@@ -581,15 +545,12 @@ export const taskService = {
   // Get all sections for a user
   async getUserSections(userId: string): Promise<SectionItem[]> {
     if (!userId) {
-      console.error("getUserSections called with no userId");
       return [];
     }
 
     try {
       const sectionsRef = collection(db, sectionsCollection);
-
       const q = query(sectionsRef, where("userId", "==", userId));
-
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
@@ -616,10 +577,8 @@ export const taskService = {
 
   // Delete a section
   async deleteSection(sectionId: string): Promise<void> {
-    console.log("Deleting section:", sectionId);
     const sectionRef = doc(db, sectionsCollection, sectionId);
     await deleteDoc(sectionRef);
-    console.log("Section deleted successfully");
   },
 
   // Update a section
@@ -627,80 +586,90 @@ export const taskService = {
     sectionId: string,
     updates: Partial<SectionItem>
   ): Promise<void> {
-    console.log("Updating section:", sectionId, updates);
     const sectionRef = doc(db, sectionsCollection, sectionId);
     const now = new Date().toISOString();
     await updateDoc(sectionRef, {
       ...updates,
       updatedAt: now,
     });
-    console.log("Section updated successfully");
   },
 
-  // Add new function to move incomplete tasks to next day
+  // Add new function to update task date
+  async updateTaskDate(taskId: string, newDate: Date): Promise<void> {
+    const date = new Date(newDate);
+    date.setHours(12, 0, 0, 0);
+
+    const updateData = {
+      date: date.toISOString(),
+      scheduledTime: date.toLocaleString(),
+    };
+
+    await updateDoc(doc(db, "tasks", taskId), updateData);
+
+    FirestoreTracker.getInstance().trackOperation({
+      type: "write" as const,
+      collection: "tasks",
+      operation: "updateTaskDate",
+      details: { taskId, newDate: date.toISOString() },
+    });
+  },
+
+  // Add new function to update section date
+  async updateSectionDate(sectionId: string, newDate: Date): Promise<void> {
+    const date = new Date(newDate);
+    date.setHours(12, 0, 0, 0);
+
+    const updateData = {
+      scheduledTime: date.toLocaleString(),
+    };
+
+    await updateDoc(doc(db, "sections", sectionId), updateData);
+
+    FirestoreTracker.getInstance().trackOperation({
+      type: "write" as const,
+      collection: "sections",
+      operation: "updateSectionDate",
+      details: { sectionId, newDate: date.toISOString() },
+    });
+  },
+
+  // Update moveIncompleteTasksToNextDay to use timezone
   async moveIncompleteTasksToNextDay(userId: string): Promise<void> {
-    console.log("Moving incomplete tasks to next day for user:", userId);
+    try {
+      const tasks = await this.getUserTasks(userId);
+      const now = new Date();
+      const today = new Date(now);
+      today.setHours(0, 0, 0, 0);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(12, 0, 0, 0);
 
-    // Get all tasks and sections for the user
-    const [tasks, sections] = await Promise.all([
-      this.getUserTasks(userId),
-      this.getUserSections(userId),
-    ]);
+      const tasksToMove = tasks.filter((task) => {
+        if (task.completed) return false;
 
-    // 1. Delete completed tasks from today
-    const completedTasks = tasks.filter((task) => {
-      const taskDate = new Date(task.date);
-      taskDate.setHours(0, 0, 0, 0);
-      return task.completed && taskDate.getTime() === today.getTime();
-    });
+        const taskDate = new Date(task.date);
+        taskDate.setHours(0, 0, 0, 0);
 
-    for (const task of completedTasks) {
-      try {
-        await this.deleteTask(task.id);
-        console.log("Deleted completed task:", task.id);
-      } catch (error) {
-        console.error("Error deleting completed task:", task.id, error);
-      }
-    }
+        return taskDate.getTime() === today.getTime();
+      });
 
-    // 2. Delete sections that are older than today
-    const oldSections = sections.filter((section) => {
-      const sectionDate = new Date(section.createdAt);
-      sectionDate.setHours(0, 0, 0, 0);
-      return sectionDate.getTime() < today.getTime();
-    });
-
-    for (const section of oldSections) {
-      try {
-        await this.deleteSection(section.id);
-        console.log("Deleted old section:", section.id);
-      } catch (error) {
-        console.error("Error deleting old section:", section.id, error);
-      }
-    }
-
-    // 3. Move incomplete tasks to tomorrow
-    const incompleteTasks = tasks.filter((task) => {
-      const taskDate = new Date(task.date);
-      taskDate.setHours(0, 0, 0, 0);
-      return !task.completed && taskDate.getTime() === today.getTime();
-    });
-
-    for (const task of incompleteTasks) {
-      try {
-        await this.updateTask(task.id, {
+      const batchOperations: BatchOperation[] = tasksToMove.map((task) => ({
+        type: "task",
+        operation: "update",
+        id: task.id,
+        data: {
           date: tomorrow.toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-        console.log("Moved incomplete task to tomorrow:", task.id);
-      } catch (error) {
-        console.error("Error moving incomplete task:", task.id, error);
+          scheduledTime: tomorrow.toLocaleString(),
+        },
+      }));
+
+      if (batchOperations.length > 0) {
+        await this.batchOperations(batchOperations);
       }
+    } catch (error) {
+      console.error("Error moving incomplete tasks:", error);
+      throw error;
     }
   },
 
