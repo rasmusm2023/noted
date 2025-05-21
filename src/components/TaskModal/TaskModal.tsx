@@ -16,7 +16,7 @@ interface TaskModalProps {
 const TASK_COLORS = [
   {
     name: "Default",
-    value: "bg-gradient-to-r from-pink-test-500 to-orange-test-500",
+    value: "bg-neu-gre-100",
   },
   { name: "Blue", value: "bg-pri-blue-500" },
   { name: "Green", value: "bg-sup-suc-500" },
@@ -39,11 +39,9 @@ export function TaskModal({
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || []);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
-  const [isDragging, setIsDragging] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentBackgroundColor, setCurrentBackgroundColor] = useState(
-    task.backgroundColor ||
-      "bg-gradient-to-r from-pink-test-500 to-orange-test-500"
+    task.backgroundColor || "bg-neu-gre-100"
   );
   const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedGoalId, setSelectedGoalId] = useState<string | undefined>(
@@ -51,11 +49,6 @@ export function TaskModal({
   );
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const [dragState, setDragState] = useState<{
-    item: Subtask;
-    sourceIndex: number;
-    currentIndex: number;
-  } | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const subtaskInputRef = useRef<HTMLInputElement>(null);
@@ -133,25 +126,41 @@ export function TaskModal({
     }
   }, [isOpen]);
 
-  const handleClose = () => {
-    onClose({ ...task, shouldClose: true });
+  const handleClose = async () => {
+    try {
+      // Create updates object without undefined fields
+      const updates: Partial<Task> = {
+        title: editedTitle,
+        subtasks: subtasks,
+        backgroundColor: currentBackgroundColor,
+      };
+
+      // Only add goalId if it has a value
+      if (selectedGoalId) {
+        updates.goalId = selectedGoalId;
+      }
+
+      // Save any pending changes before closing
+      await onUpdate(task.id, updates);
+      onClose({ ...task, shouldClose: true });
+    } catch (error) {
+      console.error("Error saving changes before closing:", error);
+      // Still close the modal even if save fails
+      onClose({ ...task, shouldClose: true });
+    }
   };
 
-  const handleClickOutside = (e: React.MouseEvent) => {
+  const handleClickOutside = async (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onClose({ ...task, shouldClose: true });
+      await handleClose();
     }
   };
 
   // Update state when task changes
   useEffect(() => {
-    console.log("Task changed in modal:", task);
     setEditedTitle(task.title);
     setSubtasks(task.subtasks || []);
-    setCurrentBackgroundColor(
-      task.backgroundColor ||
-        "bg-gradient-to-r from-pink-test-500 to-orange-test-500"
-    );
+    setCurrentBackgroundColor(task.backgroundColor || "bg-neu-gre-100");
   }, [task]);
 
   // Handle escape key
@@ -228,76 +237,8 @@ export function TaskModal({
       setShowColorPicker(false);
     } catch (error) {
       console.error("Error updating task color:", error);
-      setCurrentBackgroundColor(
-        task.backgroundColor ||
-          "bg-gradient-to-r from-pink-test-500 to-orange-test-500"
-      ); // Revert on error
+      setCurrentBackgroundColor(task.backgroundColor || "bg-neu-gre-100"); // Revert on error
     }
-  };
-
-  // Handle drag and drop for subtasks
-  const handleDragStart = (
-    e: React.DragEvent,
-    subtask: Subtask,
-    index: number
-  ) => {
-    setIsDragging(true);
-    setDragState({
-      item: subtask,
-      sourceIndex: index,
-      currentIndex: index,
-    });
-    (e.target as HTMLElement).style.opacity = "0.4";
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (!dragState) return;
-
-    setDragState((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        currentIndex: index,
-      };
-    });
-  };
-
-  const handleDrop = async (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (!dragState) return;
-
-    const newSubtasks = [...subtasks];
-    const [movedItem] = newSubtasks.splice(dragState.sourceIndex, 1);
-    newSubtasks.splice(index, 0, movedItem);
-
-    // Update order property
-    const updatedSubtasks = newSubtasks.map((subtask, idx) => ({
-      ...subtask,
-      order: idx,
-    }));
-
-    setSubtasks(updatedSubtasks);
-    setDragState(null);
-    setIsDragging(false);
-    (e.target as HTMLElement).style.opacity = "1";
-
-    // Save the new order
-    try {
-      console.log("Saving reordered subtasks:", updatedSubtasks);
-      await onUpdate(task.id, {
-        title: editedTitle,
-        subtasks: updatedSubtasks,
-      });
-    } catch (error) {
-      console.error("Error saving reordered subtasks:", error);
-    }
-  };
-
-  const handleDragEnd = (e: React.DragEvent) => {
-    setIsDragging(false);
-    setDragState(null);
-    (e.target as HTMLElement).style.opacity = "1";
   };
 
   const handleAddSubtask = async () => {
@@ -315,7 +256,6 @@ export function TaskModal({
     setNewSubtaskTitle("");
 
     try {
-      console.log("Saving new subtask:", newSubtask);
       await onUpdate(task.id, {
         title: editedTitle,
         subtasks: updatedSubtasks,
@@ -340,7 +280,6 @@ export function TaskModal({
     setSubtasks(updatedSubtasks);
 
     try {
-      console.log("Saving subtask completion:", updatedSubtasks);
       await onUpdate(task.id, {
         title: editedTitle,
         subtasks: updatedSubtasks,
@@ -357,7 +296,6 @@ export function TaskModal({
     setSubtasks(updatedSubtasks);
 
     try {
-      console.log("Saving after subtask deletion:", updatedSubtasks);
       await onUpdate(task.id, {
         title: editedTitle,
         subtasks: updatedSubtasks,
@@ -373,7 +311,6 @@ export function TaskModal({
     const newTitle = e.target.value;
     setEditedTitle(newTitle);
     try {
-      console.log("Saving title change:", newTitle);
       await onUpdate(task.id, {
         title: newTitle,
         subtasks: subtasks,
@@ -543,27 +480,49 @@ export function TaskModal({
             </div>
           </div>
 
-          {/* Add Goal Selection Dropdown */}
+          {/* Replace Goal Selection Dropdown with Goal Tags */}
           <div className="mb-6">
-            <label
-              htmlFor="goal-select"
-              className="block text-sm font-medium text-neu-300 mb-2"
-            >
-              Associated Goal
-            </label>
-            <select
-              id="goal-select"
-              value={selectedGoalId || ""}
-              onChange={handleGoalChange}
-              className="w-full px-3 py-2 bg-neu-700 text-neu-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
-            >
-              <option value="">No Goal</option>
+            <div className="flex items-center space-x-2 mb-2">
+              <Icon
+                icon="mingcute:target-fill"
+                className="text-neu-400 w-5 h-5"
+              />
+              <h3 className="text-md font-medium font-inter text-neu-200">
+                Associated Goals
+              </h3>
+            </div>
+            <p className="text-sm font-inter text-neu-400 mb-4">
+              Click on a goal to associate it with this task
+            </p>
+            <div className="flex flex-wrap gap-2">
               {goals.map((goal) => (
-                <option key={goal.id} value={goal.id}>
+                <button
+                  key={goal.id}
+                  onClick={() =>
+                    handleGoalChange({
+                      target: {
+                        value: selectedGoalId === goal.id ? "" : goal.id,
+                      },
+                    } as React.ChangeEvent<HTMLSelectElement>)
+                  }
+                  className={`px-3 py-1.5 rounded-full text-sm font-inter transition-all duration-200 flex items-center gap-1.5 ${
+                    selectedGoalId === goal.id
+                      ? "bg-pri-blue-500 text-neu-100"
+                      : "bg-neu-700 text-neu-300 hover:bg-neu-600"
+                  }`}
+                >
                   {goal.title}
-                </option>
+                  {selectedGoalId === goal.id && (
+                    <Icon icon="mingcute:close-fill" className="w-3.5 h-3.5" />
+                  )}
+                </button>
               ))}
-            </select>
+              {goals.length === 0 && (
+                <span className="text-sm font-inter text-neu-400">
+                  No goals available
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Subtasks Section */}
@@ -614,15 +573,8 @@ export function TaskModal({
               {subtasks.map((subtask, index) => (
                 <div
                   key={subtask.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, subtask, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDrop={(e) => handleDrop(e, index)}
-                  onDragEnd={handleDragEnd}
                   onClick={(e) => e.stopPropagation()}
                   className={`p-3 rounded-lg flex items-center justify-between transition-all duration-300 ${
-                    isDragging ? "cursor-grabbing" : "cursor-grab"
-                  } ${
                     subtask.completed
                       ? "bg-sup-suc-400 bg-opacity-50"
                       : "bg-neu-700"

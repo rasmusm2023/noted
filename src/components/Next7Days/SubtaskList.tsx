@@ -9,9 +9,14 @@ export const SubtaskList = ({ subtasks }: SubtaskListProps) => {
     return null;
   }
 
+  // Sort subtasks by their order property
+  const sortedSubtasks = [...subtasks].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  );
+
   return (
     <div className="mt-2 space-y-1">
-      {subtasks.map((subtask) => (
+      {sortedSubtasks.map((subtask) => (
         <div key={subtask.id} className="flex items-center space-x-2">
           <div
             className={`w-2 h-2 rounded-full ${

@@ -20,19 +20,67 @@ interface PomodoroTimerProps {
   onTimerStart: (interval: TimeInterval) => void;
 }
 
+// Helper function to save timer state to localStorage
+const saveTimerState = (state: {
+  selectedInterval: TimeInterval;
+  timeLeft: number;
+  isRunning: boolean;
+  startTime?: number;
+}) => {
+  localStorage.setItem("pomodoroTimerState", JSON.stringify(state));
+};
+
+// Helper function to load timer state from localStorage
+const loadTimerState = () => {
+  const savedState = localStorage.getItem("pomodoroTimerState");
+  if (savedState) {
+    return JSON.parse(savedState);
+  }
+  return null;
+};
+
 export const PomodoroTimer = ({
   onClose,
   onTimerStart,
 }: PomodoroTimerProps) => {
+  // Load initial state from localStorage or use defaults
+  const savedState = loadTimerState();
   const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(
-    timeIntervals[0]
+    savedState?.selectedInterval || timeIntervals[0]
   );
   const [timeLeft, setTimeLeft] = useState<number>(
-    selectedInterval.minutes * 60
+    savedState?.timeLeft || selectedInterval.minutes * 60
   );
-  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [isRunning, setIsRunning] = useState<boolean>(
+    savedState?.isRunning || false
+  );
   const [hasPermission, setHasPermission] = useState<boolean>(false);
+  const [startTime, setStartTime] = useState<number | undefined>(
+    savedState?.startTime
+  );
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Save state whenever it changes
+  useEffect(() => {
+    saveTimerState({
+      selectedInterval,
+      timeLeft,
+      isRunning,
+      startTime,
+    });
+  }, [selectedInterval, timeLeft, isRunning, startTime]);
+
+  // Calculate elapsed time when component mounts or when timer is running
+  useEffect(() => {
+    if (isRunning && startTime) {
+      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+      const newTimeLeft = Math.max(
+        0,
+        selectedInterval.minutes * 60 - elapsedSeconds
+      );
+      setTimeLeft(newTimeLeft);
+    }
+  }, [isRunning, startTime, selectedInterval]);
 
   // Focus trap implementation
   useEffect(() => {
@@ -105,12 +153,28 @@ export const PomodoroTimer = ({
     if (hasPermission) {
       new Notification("Pomodoro Timer", {
         body: `${selectedInterval.label} session completed!`,
-        icon: "/favicon.ico", // Using the app's favicon
+        icon: "/favicon.ico",
       });
     }
-    // Play sound
-    const audio = new Audio(timerCompleteSound);
-    audio.play();
+
+    // Play sound 5 times with delay between each play
+    const playSound = (count: number) => {
+      if (count <= 0) return;
+
+      const audio = new Audio(timerCompleteSound);
+      audio.play();
+
+      // Schedule next play after 1 second
+      setTimeout(() => {
+        playSound(count - 1);
+      }, 1000);
+    };
+
+    // Start playing the sound 5 times
+    playSound(5);
+
+    // Clear timer state when completed
+    localStorage.removeItem("pomodoroTimerState");
   }, [hasPermission, selectedInterval.label]);
 
   // Timer effect
@@ -118,10 +182,18 @@ export const PomodoroTimer = ({
     let interval: NodeJS.Timeout;
 
     if (isRunning && timeLeft > 0) {
+      // Set start time when timer starts running
+      if (!startTime) {
+        const newStartTime =
+          Date.now() - (selectedInterval.minutes * 60 - timeLeft) * 1000;
+        setStartTime(newStartTime);
+      }
+
       interval = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             setIsRunning(false);
+            setStartTime(undefined);
             handleTimerComplete();
             return 0;
           }
@@ -131,17 +203,28 @@ export const PomodoroTimer = ({
     }
 
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, handleTimerComplete]);
+  }, [isRunning, timeLeft, handleTimerComplete, selectedInterval, startTime]);
 
   // Reset timer when interval changes
   useEffect(() => {
     setTimeLeft(selectedInterval.minutes * 60);
     setIsRunning(false);
+    setStartTime(undefined);
   }, [selectedInterval]);
 
   // Handle timer start
   const handleStart = () => {
+    setIsRunning(true);
+    setStartTime(Date.now());
     onTimerStart(selectedInterval);
+  };
+
+  // Handle timer reset
+  const handleReset = () => {
+    setTimeLeft(selectedInterval.minutes * 60);
+    setIsRunning(false);
+    setStartTime(undefined);
+    localStorage.removeItem("pomodoroTimerState");
   };
 
   return (
@@ -215,10 +298,7 @@ export const PomodoroTimer = ({
                 <Icon icon="mingcute:play-fill" width={24} height={24} />
               </button>
               <button
-                onClick={() => {
-                  setTimeLeft(selectedInterval.minutes * 60);
-                  setIsRunning(false);
-                }}
+                onClick={handleReset}
                 className="p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
                 aria-label="Reset Timer"
               >

@@ -293,11 +293,36 @@ export function Dashboard() {
   });
 
   const [isTimerVisible, setIsTimerVisible] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(
-    timeIntervals[0]
-  );
+  const [timeLeft, setTimeLeft] = useState<number>(() => {
+    const savedState = localStorage.getItem("pomodoroTimerState");
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      if (state.isRunning && state.startTime) {
+        const elapsedSeconds = Math.floor(
+          (Date.now() - state.startTime) / 1000
+        );
+        return Math.max(0, state.timeLeft - elapsedSeconds);
+      }
+      return state.timeLeft;
+    }
+    return 0;
+  });
+  const [isTimerRunning, setIsTimerRunning] = useState(() => {
+    const savedState = localStorage.getItem("pomodoroTimerState");
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      return state.isRunning;
+    }
+    return false;
+  });
+  const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(() => {
+    const savedState = localStorage.getItem("pomodoroTimerState");
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      return state.selectedInterval || timeIntervals[0];
+    }
+    return timeIntervals[0];
+  });
 
   useEffect(() => {
     const handleHighlightNextTaskChange = (event: CustomEvent) => {
@@ -1863,6 +1888,25 @@ export function Dashboard() {
     }
   };
 
+  // Save timer state whenever it changes
+  useEffect(() => {
+    if (timeLeft > 0) {
+      localStorage.setItem(
+        "pomodoroTimerState",
+        JSON.stringify({
+          selectedInterval,
+          timeLeft,
+          isRunning: isTimerRunning,
+          startTime: isTimerRunning
+            ? Date.now() - (selectedInterval.minutes * 60 - timeLeft) * 1000
+            : undefined,
+        })
+      );
+    } else {
+      localStorage.removeItem("pomodoroTimerState");
+    }
+  }, [timeLeft, isTimerRunning, selectedInterval]);
+
   // Timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -1872,6 +1916,7 @@ export function Dashboard() {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             setIsTimerRunning(false);
+            localStorage.removeItem("pomodoroTimerState");
             return 0;
           }
           return prev - 1;
@@ -1896,6 +1941,7 @@ export function Dashboard() {
   const handleTimerCancel = () => {
     setTimeLeft(0);
     setIsTimerRunning(false);
+    localStorage.removeItem("pomodoroTimerState");
   };
 
   return (
