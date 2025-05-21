@@ -21,7 +21,11 @@ import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
 import { TaskProgress } from "../components/Dashboard/TaskProgress";
 import { TaskList } from "../components/Dashboard/TaskList";
 import { QuickActions } from "../components/Dashboard/QuickActions";
-import { PomodoroTimer } from "../components/Pomodoro/PomodoroTimer";
+import {
+  PomodoroTimer,
+  timeIntervals,
+} from "../components/Pomodoro/PomodoroTimer";
+import type { TimeInterval } from "../components/Pomodoro/PomodoroTimer";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
 
@@ -289,6 +293,11 @@ export function Dashboard() {
   });
 
   const [isTimerVisible, setIsTimerVisible] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(
+    timeIntervals[0]
+  );
 
   useEffect(() => {
     const handleHighlightNextTaskChange = (event: CustomEvent) => {
@@ -1854,6 +1863,41 @@ export function Dashboard() {
     }
   };
 
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isTimerRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setIsTimerRunning(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isTimerRunning, timeLeft]);
+
+  const handleTimerStart = (interval: TimeInterval) => {
+    setSelectedInterval(interval);
+    setTimeLeft(interval.minutes * 60);
+    setIsTimerRunning(true);
+    setIsTimerVisible(false);
+  };
+
+  const handleTimerPauseResume = () => {
+    setIsTimerRunning(!isTimerRunning);
+  };
+
+  const handleTimerCancel = () => {
+    setTimeLeft(0);
+    setIsTimerRunning(false);
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
@@ -1878,7 +1922,11 @@ export function Dashboard() {
               onAddTask={handleAddTask}
               onAddSection={handleAddSection}
               onTimerClick={() => setIsTimerVisible(true)}
-              isTimerActive={isTimerVisible}
+              isTimerActive={timeLeft > 0}
+              timeLeft={timeLeft}
+              isTimerRunning={isTimerRunning}
+              onTimerPauseResume={handleTimerPauseResume}
+              onTimerCancel={handleTimerCancel}
             />
 
             <AnimatePresence mode="wait">
@@ -1889,7 +1937,10 @@ export function Dashboard() {
                   exit={{ opacity: 0, y: -20, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 >
-                  <PomodoroTimer onClose={() => setIsTimerVisible(false)} />
+                  <PomodoroTimer
+                    onClose={() => setIsTimerVisible(false)}
+                    onTimerStart={handleTimerStart}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

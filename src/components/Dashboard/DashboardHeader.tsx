@@ -23,6 +23,10 @@ interface DashboardHeaderProps {
   onAddSection: (title: string, time: string) => void;
   onTimerClick: () => void;
   isTimerActive: boolean;
+  timeLeft?: number;
+  isTimerRunning?: boolean;
+  onTimerPauseResume?: () => void;
+  onTimerCancel?: () => void;
 }
 
 const getWeatherIcon = (condition: string | null) => {
@@ -61,6 +65,10 @@ export const DashboardHeader = ({
   onAddSection,
   onTimerClick,
   isTimerActive,
+  timeLeft,
+  isTimerRunning,
+  onTimerPauseResume,
+  onTimerCancel,
 }: DashboardHeaderProps) => {
   // Abbreviate the day of the week to 3 letters
   const abbreviatedDay = dayOfWeek.substring(0, 3);
@@ -86,7 +94,14 @@ export const DashboardHeader = ({
               <MotivationalQuote className="mb-8" />
             </div>
             <div className="mt-auto">
-              <TimerButton onClick={onTimerClick} isActive={isTimerActive} />
+              <TimerButton
+                onClick={onTimerClick}
+                isActive={isTimerActive}
+                timeLeft={timeLeft}
+                isRunning={isTimerRunning}
+                onPauseResume={onTimerPauseResume}
+                onCancel={onTimerCancel}
+              />
             </div>
           </motion.div>
         </AnimatePresence>

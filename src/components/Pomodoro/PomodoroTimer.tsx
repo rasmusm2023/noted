@@ -2,24 +2,28 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Icon } from "@iconify/react";
 import timerCompleteSound from "../../assets/sounds/timer-complete.mp3";
 
-interface TimeInterval {
+export interface TimeInterval {
   label: string;
   minutes: number;
   type: "work" | "break";
 }
 
-interface PomodoroTimerProps {
-  onClose: () => void;
-}
-
-const timeIntervals: TimeInterval[] = [
+export const timeIntervals: TimeInterval[] = [
   { label: "Pomodoro", minutes: 25, type: "work" },
   { label: "1 Hour", minutes: 60, type: "work" },
   { label: "Short Break", minutes: 5, type: "break" },
   { label: "Long Break", minutes: 15, type: "break" },
 ];
 
-export const PomodoroTimer = ({ onClose }: PomodoroTimerProps) => {
+interface PomodoroTimerProps {
+  onClose: () => void;
+  onTimerStart: (interval: TimeInterval) => void;
+}
+
+export const PomodoroTimer = ({
+  onClose,
+  onTimerStart,
+}: PomodoroTimerProps) => {
   const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(
     timeIntervals[0]
   );
@@ -135,6 +139,11 @@ export const PomodoroTimer = ({ onClose }: PomodoroTimerProps) => {
     setIsRunning(false);
   }, [selectedInterval]);
 
+  // Handle timer start
+  const handleStart = () => {
+    onTimerStart(selectedInterval);
+  };
+
   return (
     <div
       ref={containerRef}
@@ -200,16 +209,10 @@ export const PomodoroTimer = ({ onClose }: PomodoroTimerProps) => {
             </div>
             <div className="flex gap-4">
               <button
-                onClick={() => setIsRunning(!isRunning)}
+                onClick={handleStart}
                 className="p-4 rounded-full bg-orange-test-500 text-white hover:bg-orange-test-500/75 transition-colors"
               >
-                <Icon
-                  icon={
-                    isRunning ? "mingcute:pause-fill" : "mingcute:play-fill"
-                  }
-                  width={24}
-                  height={24}
-                />
+                <Icon icon="mingcute:play-fill" width={24} height={24} />
               </button>
               <button
                 onClick={() => {
