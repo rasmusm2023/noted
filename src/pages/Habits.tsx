@@ -1,60 +1,6 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { aiService } from "../services/aiService";
-import { Icon } from "@iconify/react";
 import { PageTransition } from "../components/PageTransition";
 
-interface Habit {
-  id: string;
-  name: string;
-  frequency: string;
-  streak: number;
-  lastCompleted: string;
-}
-
 export function Habits() {
-  const { currentUser } = useAuth();
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [aiInsights, setAiInsights] = useState<any>(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (currentUser) {
-      loadHabits();
-      loadAIInsights();
-    }
-  }, [currentUser]);
-
-  const loadHabits = async () => {
-    // TODO: Implement actual habit loading
-    setIsLoading(false);
-  };
-
-  const loadAIInsights = async () => {
-    if (!currentUser) return;
-    try {
-      const analysis = await aiService.analyzeHabits(currentUser.uid);
-      setAiInsights(analysis);
-    } catch (error) {
-      console.error("Error loading AI insights:", error);
-    }
-  };
-
-  const handleGetSuggestions = async () => {
-    if (!currentUser) return;
-    try {
-      const newSuggestions = await aiService.getHabitSuggestions(
-        currentUser.uid
-      );
-      setSuggestions(newSuggestions);
-      setShowSuggestions(true);
-    } catch (error) {
-      console.error("Error getting suggestions:", error);
-    }
-  };
-
   return (
     <PageTransition>
       <div className="p-8">
