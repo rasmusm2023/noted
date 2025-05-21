@@ -15,6 +15,7 @@ interface TaskItemProps {
   onEdit: (task: Task | null) => void;
   onDelete: (taskId: string) => void;
   onTitleChange: (title: string) => void;
+  onSave: (taskId: string, isSaved: boolean) => void;
 }
 
 export const TaskItem = ({
@@ -27,6 +28,7 @@ export const TaskItem = ({
   onEdit,
   onDelete,
   onTitleChange,
+  onSave,
 }: TaskItemProps) => {
   return (
     <div
@@ -131,6 +133,22 @@ export const TaskItem = ({
             )}
           </div>
           <div className="flex items-center space-x-2 ml-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSave(task.id, task.isSaved || false);
+              }}
+              className={`p-2 flex items-center justify-center transition-all duration-300 ${
+                task.isSaved
+                  ? "text-pri-tea-500 hover:text-pri-tea-400 scale-110"
+                  : "text-neu-gre-500 hover:text-pri-tea-500"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500 rounded-lg`}
+              aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
+                task.title
+              }"`}
+            >
+              <Icon icon="mingcute:bookmark-fill" width={24} height={24} />
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();

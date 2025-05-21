@@ -1,12 +1,14 @@
-import { useRef, useState } from "react";
-import { SortMenuButton } from "../Button/SortMenuButton";
-import { ClearCompletedButton } from "../Button/ClearCompletedButton";
+import { ClearCompletedButton } from "../Buttons/ClearCompletedButton";
+import { TaskLibraryButton } from "../Buttons/TaskLibraryButton";
+import type { Task } from "../../types/task";
 
 interface TaskProgressProps {
   completionPercentage: number;
   completedPosition: "top" | "bottom" | "mixed";
   onCompletedPositionChange: (position: "top" | "bottom" | "mixed") => void;
   onClearCompleted: () => void;
+  onTaskSelect: (task: Task) => void;
+  onRemoveTask: (taskId: string) => void;
 }
 
 export const TaskProgress = ({
@@ -14,6 +16,8 @@ export const TaskProgress = ({
   completedPosition,
   onCompletedPositionChange,
   onClearCompleted,
+  onTaskSelect,
+  onRemoveTask,
 }: TaskProgressProps) => {
   return (
     <div className="flex items-center rounded-5xl justify-between mb-6">
@@ -35,10 +39,11 @@ export const TaskProgress = ({
           </span>
         </div>
       </div>
+
       <div className="flex items-center space-x-2">
-        <SortMenuButton
-          completedPosition={completedPosition}
-          onCompletedPositionChange={onCompletedPositionChange}
+        <TaskLibraryButton
+          onTaskSelect={onTaskSelect}
+          onRemoveTask={onRemoveTask}
         />
         <ClearCompletedButton onClearCompleted={onClearCompleted} />
       </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Button } from "../components/Button/Button";
+import { Button } from "../components/Buttons/Button";
 import { useNavigate } from "react-router-dom";
 
 export function Login() {

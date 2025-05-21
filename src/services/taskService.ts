@@ -13,6 +13,7 @@ import {
   orderBy,
   Timestamp,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
 import type {
   Task,
@@ -141,6 +142,7 @@ setInterval(() => {
 }, 5 * 60 * 1000); // Log every 5 minutes
 
 const tasksCollection = "tasks";
+const savedTasksCollection = "savedTasks"; // New collection for saved tasks
 const timestampsCollection = "timestamps";
 const titlesCollection = "titles";
 const sectionsCollection = "sections";
@@ -260,8 +262,26 @@ export const taskService = {
       details: { taskId },
     });
 
-    const taskRef = doc(db, tasksCollection, taskId);
-    await deleteDoc(taskRef);
+    try {
+      // Get the task first to check ownership
+      const taskRef = doc(db, tasksCollection, taskId);
+      const taskDoc = await getDoc(taskRef);
+
+      if (!taskDoc.exists()) {
+        throw new Error("Task not found");
+      }
+
+      const taskData = taskDoc.data();
+      if (!taskData.userId) {
+        throw new Error("Task has no owner");
+      }
+
+      // Delete only from main tasks collection
+      await deleteDoc(taskRef);
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      throw error;
+    }
   },
 
   // Toggle task completion
@@ -695,6 +715,105 @@ export const taskService = {
       });
     } catch (error) {
       console.error("Error in getTasksByGoal:", error);
+      throw error;
+    }
+  },
+
+  // Save a task for quick reuse
+  async saveTask(taskId: string): Promise<void> {
+    tracker.trackOperation({
+      type: "write",
+      collection: savedTasksCollection,
+      operation: "saveTask",
+      details: { taskId },
+    });
+
+    try {
+      // Get the original task
+      const taskRef = doc(db, tasksCollection, taskId);
+      const taskDoc = await getDoc(taskRef);
+
+      if (!taskDoc.exists()) {
+        throw new Error("Task not found");
+      }
+
+      const taskData = taskDoc.data();
+
+      // Create a new document with only essential fields
+      const savedTaskData = {
+        title: taskData.title,
+        description: taskData.description,
+        subtasks: taskData.subtasks || [],
+        userId: taskData.userId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        originalTaskId: taskId, // Keep reference to original task
+        savedAt: new Date().toISOString(),
+      };
+
+      // Create a new document with auto-generated ID
+      await addDoc(collection(db, savedTasksCollection), savedTaskData);
+    } catch (error) {
+      console.error("Error saving task:", error);
+      throw error;
+    }
+  },
+
+  // Unsave a task
+  async unsaveTask(taskId: string): Promise<void> {
+    tracker.trackOperation({
+      type: "write",
+      collection: savedTasksCollection,
+      operation: "unsaveTask",
+      details: { taskId },
+    });
+
+    try {
+      // Delete the saved task directly by its ID
+      const savedTaskRef = doc(db, savedTasksCollection, taskId);
+      await deleteDoc(savedTaskRef);
+    } catch (error) {
+      console.error("Error unsaving task:", error);
+      throw error;
+    }
+  },
+
+  // Get all saved tasks for a user
+  async getSavedTasks(userId: string): Promise<Task[]> {
+    tracker.trackOperation({
+      type: "read",
+      collection: savedTasksCollection,
+      operation: "getSavedTasks",
+      details: { userId },
+    });
+
+    if (!userId) {
+      console.error("getSavedTasks called with no userId");
+      return [];
+    }
+
+    try {
+      const savedTasksRef = collection(db, savedTasksCollection);
+      const q = query(savedTasksRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return [];
+      }
+
+      const tasks = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
+        } as Task;
+      });
+
+      return tasks;
+    } catch (error) {
+      console.error("Error in getSavedTasks:", error);
       throw error;
     }
   },

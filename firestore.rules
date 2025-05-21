@@ -49,11 +49,38 @@ service cloud.firestore {
         isOwner(get(/databases/$(database)/documents/goals/$(resource.data.goalId)).data.userId))
       );
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
-      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
       // Allow batch operations for tasks
       allow write: if isAuthenticated() && (
         isOwner(resource.data.userId) || 
         isOwner(request.resource.data.userId)
+      );
+    }
+
+    // Saved Tasks collection rules
+    match /savedTasks/{taskId} {
+      // Allow read if user is authenticated and owns the task
+      allow read: if isAuthenticated() && (
+        !exists(resource) || 
+        isOwner(resource.data.userId)
+      );
+      
+      // Allow create if user is authenticated and sets themselves as owner
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      
+      // Allow update if user is authenticated and owns the task
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      
+      // Allow delete if user is authenticated and owns the task
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Allow querying by originalTaskId
+      allow list: if isAuthenticated() && (
+        request.query.filters.size() == 1 &&
+        request.query.filters[0].field == "originalTaskId" &&
+        request.query.filters[0].op == "==" &&
+        isOwner(resource.data.userId)
       );
     }
 

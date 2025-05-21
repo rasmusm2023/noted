@@ -24,6 +24,7 @@ export interface Task extends BaseItem {
   shouldClose?: boolean; // Optional property to control modal closing
   backgroundColor?: string; // Optional property for task background color
   goalId?: string; // Optional property to link task to a goal
+  isSaved?: boolean; // Optional property to mark task as saved for quick reuse
 }
 
 export interface SectionItem extends BaseItem {

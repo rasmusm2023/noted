@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
-import { SortMenuButton } from "../Button/SortMenuButton";
-import { ClearCompletedButton } from "../Button/ClearCompletedButton";
+import { SortMenuButton } from "../Buttons/SortMenuButton";
+import { ClearCompletedButton } from "../Buttons/ClearCompletedButton";
 
 interface TaskManagementHeaderProps {
   completedPosition: "top" | "bottom" | "mixed";

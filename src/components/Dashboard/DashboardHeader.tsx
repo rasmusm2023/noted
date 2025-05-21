@@ -1,6 +1,6 @@
 import { Greeting } from "../Greeting/Greeting";
 import { MotivationalQuote } from "../Greeting/MotivationalQuote";
-import { TimerButton } from "../Button/TimerButton";
+import { TimerButton } from "../Buttons/TimerButton";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
 

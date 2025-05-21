@@ -4,6 +4,8 @@ import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import type { Task, SectionItem } from "../../types/task";
 import { TaskItem } from "./TaskItem";
 import { SectionItem as SectionItemComponent } from "./SectionItem";
+import { taskService } from "../../services/taskService";
+import { useAuth } from "../../contexts/AuthContext";
 
 type ListItem = Task | SectionItem;
 
@@ -27,6 +29,7 @@ interface TaskListProps {
   onTaskSelect: (task: Task) => void;
   onTaskEdit: (task: Task | null) => void;
   onTaskDelete: (taskId: string) => void;
+  onTaskSave: (taskId: string, isSaved: boolean) => void;
   onSectionSelect: (section: SectionItem) => void;
   onSectionDelete: (sectionId: string) => void;
   onMoveItem: (dragIndex: number, hoverIndex: number) => void;
@@ -173,12 +176,52 @@ export const TaskList = ({
   onTaskSelect,
   onTaskEdit,
   onTaskDelete,
+  onTaskSave,
   onSectionSelect,
   onSectionDelete,
   onMoveItem,
   isTask,
 }: TaskListProps) => {
+  const { currentUser } = useAuth();
   const listContainerRef = useRef<HTMLDivElement>(null);
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: "SAVED_TASK",
+    drop: async (item: Task) => {
+      if (!currentUser) return;
+
+      try {
+        // Get today's date in user's timezone
+        const today = new Date();
+        today.setHours(12, 0, 0, 0); // Set to noon for better visibility
+
+        // Create a new task with the saved task's properties
+        const { id, userId, createdAt, updatedAt, isSaved, ...taskData } = item;
+        const newTask = await taskService.createTask(currentUser.uid, {
+          ...taskData,
+          scheduledTime: today.toISOString(),
+          completed: false,
+          date: today.toISOString(),
+          isSaved: false, // Ensure the new task is not marked as saved
+        });
+
+        // Notify parent component to refresh the task list
+        onTaskSelect(newTask);
+      } catch (error) {
+        console.error("Error creating task from saved task:", error);
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  }));
+
+  // Combine refs
+  const combinedRef = (node: HTMLDivElement) => {
+    drop(node);
+    if (listContainerRef) {
+      listContainerRef.current = node;
+    }
+  };
 
   const renderTask = (task: Task) => {
     const isNextTask =
@@ -197,6 +240,7 @@ export const TaskList = ({
         onSelect={onTaskSelect}
         onEdit={onTaskEdit}
         onDelete={onTaskDelete}
+        onSave={onTaskSave}
         onTitleChange={(title) => onTaskEdit({ ...task, title })}
       />
     );
@@ -241,7 +285,12 @@ export const TaskList = ({
   }
 
   return (
-    <div className="space-y-4" ref={listContainerRef}>
+    <div
+      ref={combinedRef}
+      className={`space-y-4 transition-colors duration-200 ${
+        isOver ? "bg-neu-gre-300/20" : ""
+      }`}
+    >
       {items.map((item, index) => {
         const isTaskItem = isTask(item);
 

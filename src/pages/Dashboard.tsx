@@ -2,7 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
 import type { Task, SectionItem } from "../types/task";
-import { TrashBinTrash, Pen, CheckSquare, Record } from "solar-icon-set";
+import {
+  TrashBinTrash,
+  Pen,
+  CheckSquare,
+  Record,
+  Bookmark,
+} from "solar-icon-set";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
 import { SectionModal } from "../components/SectionModal/SectionModal";
@@ -17,6 +23,7 @@ import { TaskList } from "../components/Dashboard/TaskList";
 import { QuickActions } from "../components/Dashboard/QuickActions";
 import { PomodoroTimer } from "../components/Pomodoro/PomodoroTimer";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast, Toaster } from "react-hot-toast";
 
 // Import weather icons
 import sunIcon from "../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -1161,7 +1168,96 @@ export function Dashboard() {
     </div>
   );
 
-  // Modify the renderTask function
+  // Add new handler for saving tasks
+  const handleSaveTask = async (taskId: string, isSaved: boolean) => {
+    try {
+      if (!isSaved) {
+        // Get the task element
+        const taskElement = document.querySelector(
+          `[data-task-id="${taskId}"]`
+        );
+        if (taskElement) {
+          // Add a class for the save animation
+          taskElement.classList.add("task-saving");
+
+          // Get the task library button position
+          const taskLibraryButton = document.querySelector(
+            ".task-library-button"
+          );
+          if (taskLibraryButton) {
+            const buttonRect = taskLibraryButton.getBoundingClientRect();
+            const taskRect = taskElement.getBoundingClientRect();
+
+            // Create a floating element
+            const floatingElement = document.createElement("div");
+            floatingElement.className = "floating-task";
+            floatingElement.style.position = "fixed";
+            floatingElement.style.left = `${taskRect.left}px`;
+            floatingElement.style.top = `${taskRect.top}px`;
+            floatingElement.style.width = `${taskRect.width}px`;
+            floatingElement.style.height = `${taskRect.height}px`;
+            floatingElement.style.zIndex = "1000";
+            floatingElement.style.transition = "all 0.5s ease-in-out";
+            floatingElement.style.backgroundColor = "var(--pri-tea-500)";
+            floatingElement.style.borderRadius = "0.5rem";
+            floatingElement.style.opacity = "0.8";
+            document.body.appendChild(floatingElement);
+
+            // Animate to the task library button
+            requestAnimationFrame(() => {
+              floatingElement.style.left = `${buttonRect.left}px`;
+              floatingElement.style.top = `${buttonRect.top}px`;
+              floatingElement.style.width = `${buttonRect.width}px`;
+              floatingElement.style.height = `${buttonRect.height}px`;
+              floatingElement.style.opacity = "0";
+            });
+
+            // Remove the floating element after animation
+            setTimeout(() => {
+              document.body.removeChild(floatingElement);
+              taskElement.classList.remove("task-saving");
+            }, 500);
+          }
+        }
+
+        await taskService.saveTask(taskId);
+        toast.success("Task template saved to library");
+        // Update local state
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === taskId ? { ...item, isSaved: true } : item
+          )
+        );
+
+        // Log saved tasks
+        if (currentUser) {
+          const savedTasks = await taskService.getSavedTasks(currentUser.uid);
+          console.log(
+            "Task Library:",
+            savedTasks.map((task) => ({
+              id: task.id,
+              title: task.title,
+              description: task.description,
+            }))
+          );
+        }
+      } else {
+        await taskService.unsaveTask(taskId);
+        toast.success("Task template removed from library");
+        // Update local state
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === taskId ? { ...item, isSaved: false } : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error saving task:", error);
+      toast.error("Failed to save task");
+    }
+  };
+
+  // Update the renderTask function to include the save button
   const renderTask = (item: Task) => {
     const isNextTask =
       highlightNextTask &&
@@ -1319,6 +1415,22 @@ export function Dashboard() {
               )}
             </div>
             <div className="flex items-center space-x-2 ml-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSaveTask(item.id, item.isSaved || false);
+                }}
+                className={`p-2 flex items-center justify-center ${
+                  item.isSaved
+                    ? "text-pri-blue-500 hover:text-pri-blue-400"
+                    : "text-neu-400 hover:text-pri-blue-500"
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
+                aria-label={`${item.isSaved ? "Unsave" : "Save"} task "${
+                  item.title
+                }"`}
+              >
+                <Bookmark size={24} color="currentColor" autoSize={false} />
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1548,6 +1660,35 @@ export function Dashboard() {
       animation: deleteTask 0.3s ease-out forwards;
       border: 2px solid transparent;
     }
+
+    .task-saving {
+      opacity: 0.5;
+      transform: scale(0.95);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .floating-task {
+      pointer-events: none;
+      box-shadow: 0 4px 20px -4px rgba(0,0,0,0.1), 0 8px 32px -8px rgba(0,0,0,0.08);
+    }
+
+    .task-library-button {
+      position: relative;
+    }
+
+    .task-library-button::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 0.75rem;
+      background: var(--pri-tea-500);
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .task-library-button:active::after {
+      opacity: 0.2;
+    }
   `;
 
   // Update the moveItem function
@@ -1684,9 +1825,48 @@ export function Dashboard() {
     }
   };
 
+  // Add handleTaskSelect function
+  const handleTaskSelect = async (task: Task) => {
+    // If the task is from the task library, add it to the items list
+    if (task.isSaved === false) {
+      try {
+        // First reload the data to ensure we have the latest state
+        await loadData();
+        // Then add the new task to the items list
+        const newTask = { ...task, type: "task" as const };
+        setItems([newTask, ...items]);
+      } catch (error) {
+        console.error("Error handling new task:", error);
+      }
+    } else {
+      setSelectedTask(task);
+    }
+  };
+
+  const handleRemoveTask = async (taskId: string) => {
+    try {
+      // Just unsave the task, don't delete it
+      await taskService.unsaveTask(taskId);
+      toast.success("Task template removed from library");
+    } catch (error) {
+      console.error("Error removing task from library:", error);
+      toast.error("Failed to remove task from library");
+    }
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
       <PageTransition>
         <div className="p-8">
           <div className="max-w-4xl mx-auto space-y-16">
@@ -1721,6 +1901,8 @@ export function Dashboard() {
                   completedPosition={completedPosition}
                   onCompletedPositionChange={setCompletedPosition}
                   onClearCompleted={handleClearCompleted}
+                  onTaskSelect={handleTaskSelect}
+                  onRemoveTask={handleRemoveTask}
                 />
 
                 <QuickActions onAddTask={handleAddTask} />
@@ -1736,6 +1918,7 @@ export function Dashboard() {
                     onTaskSelect={setSelectedTask}
                     onTaskEdit={setEditingTask}
                     onTaskDelete={handleDeleteTask}
+                    onTaskSave={handleSaveTask}
                     onSectionSelect={setSelectedSection}
                     onSectionDelete={handleDeleteSection}
                     onMoveItem={moveItem}
