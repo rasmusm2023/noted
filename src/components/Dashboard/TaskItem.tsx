@@ -82,7 +82,7 @@ export const TaskItem = ({
             }`}
           >
             {task.completed ? (
-              <Icon icon="mingcute:check-circle-line" className="w-8 h-8" />
+              <Icon icon="mingcute:check-2-fill" className="w-8 h-8" />
             ) : (
               <Icon icon="mingcute:round-line" className="w-8 h-8" />
             )}
@@ -153,8 +153,8 @@ export const TaskItem = ({
               }}
               className={`p-2 flex items-center justify-center transition-all duration-300 ${
                 task.isSaved
-                  ? "text-pri-pur-500 hover:text-pri-pur-400 scale-110"
-                  : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-500 dark:hover:text-pri-pur-400"
+                  ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
+                  : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-100 dark:hover:text-pri-pur-400"
               } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
               aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
                 task.title

@@ -61,6 +61,18 @@ const TASK_COLORS = [
   },
 ];
 
+// Add these keyframes at the top of the file, after the imports
+const fadeOut = {
+  opacity: 0,
+  transition: "opacity 200ms ease-out",
+};
+
+const scaleOut = {
+  transform: "scale(0.95)",
+  opacity: 0,
+  transition: "transform 200ms ease-out, opacity 200ms ease-out",
+};
+
 export function TaskModal({
   task,
   isOpen,
@@ -93,6 +105,9 @@ export function TaskModal({
   const firstColorRef = useRef<HTMLButtonElement>(null);
   const lastColorRef = useRef<HTMLButtonElement>(null);
   const closeColorPickerRef = useRef<HTMLButtonElement>(null);
+
+  const [isClosing, setIsClosing] = useState(false);
+  const [isOpening, setIsOpening] = useState(true);
 
   // Add auto-resize effect for title textarea
   useEffect(() => {
@@ -159,6 +174,18 @@ export function TaskModal({
     }
   }, [isOpen]);
 
+  // Add effect for opening animation
+  useEffect(() => {
+    if (isOpen) {
+      setIsOpening(true);
+      // Reset opening state after animation
+      const timer = setTimeout(() => {
+        setIsOpening(false);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   const handleClose = async () => {
     try {
       // Create updates object without undefined fields
@@ -172,6 +199,12 @@ export function TaskModal({
       if (selectedGoalId) {
         updates.goalId = selectedGoalId;
       }
+
+      // Start closing animation
+      setIsClosing(true);
+
+      // Wait for animation to complete before closing
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Save any pending changes before closing
       await onUpdate(task.id, updates);
@@ -198,9 +231,9 @@ export function TaskModal({
 
   // Handle escape key
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+    const handleEscape = async (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose({ ...task, shouldClose: true });
+        await handleClose();
       }
     };
 
@@ -387,200 +420,175 @@ export function TaskModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn"
+      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity ${
+        isClosing ? "duration-200" : "duration-150"
+      } ${isClosing ? "opacity-0" : isOpening ? "opacity-0" : "opacity-100"}`}
       role="dialog"
       aria-modal="true"
       onClick={handleClickOutside}
     >
       <div
         ref={modalRef}
-        className="bg-neu-whi-200 rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative animate-scaleIn"
+        className={`bg-neu-whi-100 rounded-5xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative transition-all ${
+          isClosing ? "duration-200" : "duration-150"
+        } ${
+          isClosing
+            ? "opacity-0 scale-95"
+            : isOpening
+            ? "opacity-0 scale-95"
+            : "opacity-100 scale-100"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
+        <div className="p-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3 flex-1">
-              <Icon
-                icon="mingcute:pencil-3-fill"
-                className="text-neu-400 w-6 h-6"
-              />
-              <textarea
-                ref={titleTextareaRef}
-                value={editedTitle}
-                onChange={handleTitleChange}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    handleClose();
-                  }
-                }}
-                onClick={(e) => e.stopPropagation()}
-                className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-1"
-                rows={1}
-                style={{ height: "auto" }}
-              />
-            </div>
-            <div className="flex items-center space-x-2 ml-4">
-              <div className="relative" ref={colorPickerRef}>
-                <button
-                  ref={colorPickerButtonRef}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowColorPicker(!showColorPicker);
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-4 flex-1">
+              <div className="flex items-center space-x-3 flex-1 bg-neu-gre-200 rounded-md p-4">
+                <Icon
+                  icon="mingcute:pencil-3-fill"
+                  className="text-neu-gre-800 w-6 h-6"
+                />
+                <textarea
+                  ref={titleTextareaRef}
+                  value={editedTitle}
+                  onChange={handleTitleChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      handleClose();
+                    } else if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleClose();
+                    }
                   }}
-                  className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center"
-                  aria-label="Change task background color"
-                >
-                  <div
-                    className={`w-6 h-6 rounded-md border-[2px] border-neu-500 ${currentBackgroundColor}`}
-                  />
-                </button>
-                {showColorPicker && (
-                  <div
-                    className="absolute right-0 mt-3 p-4 bg-neu-700 rounded-lg shadow-lg z-10 w-48"
-                    onKeyDown={handleColorPickerKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-gre-800 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
+                  rows={1}
+                  style={{ height: "auto" }}
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 ml-4">
+              <div className="flex items-center space-x-2 rounded-lg p-1">
+                <div className="relative" ref={colorPickerRef}>
+                  <button
+                    ref={colorPickerButtonRef}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowColorPicker(!showColorPicker);
+                    }}
+                    className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors flex items-center justify-center"
+                    aria-label="Change task background color"
                   >
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-inter text-neu-300">
-                        Select color
-                      </span>
-                      <button
-                        ref={closeColorPickerRef}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowColorPicker(false);
-                        }}
-                        className="p-1 text-neu-400 hover:text-neu-100 transition-colors"
-                        aria-label="Close color picker"
-                      >
-                        <Icon
-                          icon="mingcute:close-circle-fill"
-                          className="w-6 h-6"
-                        />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      {TASK_COLORS.map((color, index) => (
+                    <div
+                      className={`w-8 h-8 rounded-md border-[2px] border-neu-gre-400 ${currentBackgroundColor}`}
+                    />
+                  </button>
+                  {showColorPicker && (
+                    <div
+                      className="absolute right-0 mt-3 p-4 bg-neu-whi-100 rounded-lg shadow-lg z-10 w-48 border border-neu-gre-200"
+                      onKeyDown={handleColorPickerKeyDown}
+                    >
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-sm font-inter text-neu-gre-800">
+                          Select a background color
+                        </span>
                         <button
-                          ref={
-                            index === 0
-                              ? firstColorRef
-                              : index === TASK_COLORS.length - 1
-                              ? lastColorRef
-                              : null
-                          }
-                          key={color.name}
+                          ref={closeColorPickerRef}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleColorSelect(color.value);
+                            setShowColorPicker(false);
                           }}
-                          className={`w-6 h-6 rounded-md ${
-                            color.value
-                          } ring-1 ring-neu-600 ${
-                            currentBackgroundColor === color.value
-                              ? "ring-2 ring-pri-blue-500"
-                              : ""
-                          }`}
-                          aria-label={`Select ${color.name} color`}
-                        />
-                      ))}
+                          className="p-1 text-neu-gre-600 hover:text-neu-gre-800 transition-colors"
+                          aria-label="Close color picker"
+                        >
+                          <Icon
+                            icon="mingcute:close-circle-fill"
+                            className="w-6 h-6"
+                          />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 p-2">
+                        {TASK_COLORS.map((color, index) => (
+                          <button
+                            ref={
+                              index === 0
+                                ? firstColorRef
+                                : index === TASK_COLORS.length - 1
+                                ? lastColorRef
+                                : null
+                            }
+                            key={color.name}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleColorSelect(color.value);
+                            }}
+                            className={`w-8 h-8 rounded-sm ${
+                              color.value
+                            } ring-2 ring-neu-gre-300 ${
+                              currentBackgroundColor === color.value
+                                ? "ring-4 ring-pri-pur-400"
+                                : ""
+                            }`}
+                            aria-label={`Select ${color.name} color`}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-              <button
-                ref={deleteTaskButtonRef}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(task.id);
-                }}
-                className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center"
-                aria-label="Delete task"
-              >
-                <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
-              </button>
-              <button
-                ref={closeModalButtonRef}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClose();
-                }}
-                className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center"
-                aria-label="Close modal"
-              >
-                <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-
-          {/* Replace Goal Selection Dropdown with Goal Tags */}
-          <div className="mb-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <Icon
-                icon="mingcute:target-fill"
-                className="text-neu-400 w-5 h-5"
-              />
-              <h3 className="text-md font-medium font-inter text-neu-200">
-                Associated Goals
-              </h3>
-            </div>
-            <p className="text-sm font-inter text-neu-400 mb-4">
-              Click on a goal to associate it with this task
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {goals.map((goal) => (
-                <button
-                  key={goal.id}
-                  onClick={() =>
-                    handleGoalChange({
-                      target: {
-                        value: selectedGoalId === goal.id ? "" : goal.id,
-                      },
-                    } as React.ChangeEvent<HTMLSelectElement>)
-                  }
-                  className={`px-3 py-1.5 rounded-full text-sm font-inter transition-all duration-200 flex items-center gap-1.5 ${
-                    selectedGoalId === goal.id
-                      ? "bg-pri-blue-500 text-neu-100"
-                      : "bg-neu-700 text-neu-300 hover:bg-neu-600"
-                  }`}
-                >
-                  {goal.title}
-                  {selectedGoalId === goal.id && (
-                    <Icon icon="mingcute:close-fill" className="w-3.5 h-3.5" />
                   )}
+                </div>
+                <button
+                  ref={deleteTaskButtonRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(task.id);
+                  }}
+                  className="p-2 text-neu-gre-600 hover:text-sup-err-400 transition-colors flex items-center justify-center"
+                  aria-label="Delete task"
+                >
+                  <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
                 </button>
-              ))}
-              {goals.length === 0 && (
-                <span className="text-sm font-inter text-neu-400">
-                  No goals available
-                </span>
-              )}
+                <button
+                  ref={closeModalButtonRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClose();
+                  }}
+                  className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors flex items-center justify-center"
+                  aria-label="Close modal"
+                >
+                  <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Subtasks Section */}
-          <div className="mt-8" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
+          <div className="mb-12" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3">
                 <Icon
                   icon="mingcute:more-2-fill"
-                  className="text-neu-400 w-5 h-5"
+                  className="text-neu-gre-800 w-5 h-5"
                 />
-                <h3 className="text-md font-medium font-inter text-neu-200">
+                <h3 className="text-md font-medium font-inter text-neu-gre-800">
                   Subtasks
                 </h3>
               </div>
             </div>
-            <p className="text-sm font-inter text-neu-400 mb-4">
+            <p className="text-sm font-inter text-neu-gre-600 mb-4">
               Break down large tasks into smaller, manageable steps with
               subtasks
             </p>
 
             {/* Add Subtask Input */}
             <div className="flex items-center space-x-2 mb-4">
-              <div className="flex items-center space-x-2 flex-1 bg-neu-700 rounded-lg px-4 py-2 focus-within:ring-2 focus-within:ring-pri-blue-500">
-                <div className="text-neu-400 flex items-center justify-center">
-                  <Icon icon="mingcute:add-fill" className="w-5 h-5" />
+              <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 rounded-md px-4 py-2 ring-2 ring-pri-pur-500/25 focus-within:ring-2 focus-within:ring-pri-pur-500/75 transition-all duration-200 ease-in-out">
+                <div className="flex items-center justify-center">
+                  <Icon
+                    icon="mingcute:add-fill"
+                    className="w-6 h-6 text-pri-pur-300"
+                  />
                 </div>
                 <input
                   ref={subtaskInputRef}
@@ -595,7 +603,7 @@ export function TaskModal({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="Add a subtask..."
-                  className="flex-1 bg-transparent py-2 font-inter text-base text-neu-100 placeholder-neu-400 focus:outline-none"
+                  className="flex-1 bg-transparent py-2 font-inter text-base text-neu-gre-800 placeholder-neu-gre-500 focus:outline-none"
                   tabIndex={0}
                 />
               </div>
@@ -609,8 +617,8 @@ export function TaskModal({
                   onClick={(e) => e.stopPropagation()}
                   className={`p-3 rounded-lg flex items-center justify-between transition-all duration-300 ${
                     subtask.completed
-                      ? "bg-sup-suc-400 bg-opacity-50"
-                      : "bg-neu-700"
+                      ? "bg-sup-suc-400 bg-opacity-75"
+                      : "bg-neu-gre-300"
                   }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -621,8 +629,8 @@ export function TaskModal({
                       }}
                       className={`transition-all duration-300 flex items-center justify-center ${
                         subtask.completed
-                          ? "text-neu-100 hover:text-neu-100 scale-95"
-                          : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
+                          ? "text-neu-gre-800 hover:text-neu-gre-600 scale-95"
+                          : "text-neu-gre-800 hover:text-neu-gre-600 hover:scale-95"
                       }`}
                       aria-label={`Mark subtask "${subtask.title}" as ${
                         subtask.completed ? "incomplete" : "complete"
@@ -630,18 +638,18 @@ export function TaskModal({
                     >
                       {subtask.completed ? (
                         <Icon
-                          icon="mingcute:checkbox-fill"
-                          className="w-5 h-5"
+                          icon="mingcute:check-2-fill"
+                          className="w-6 h-6"
                         />
                       ) : (
-                        <Icon icon="mingcute:square-fill" className="w-5 h-5" />
+                        <Icon icon="mingcute:round-line" className="w-6 h-6" />
                       )}
                     </button>
                     <span
                       className={`font-inter text-base ${
                         subtask.completed
-                          ? "line-through text-neu-400"
-                          : "text-neu-100"
+                          ? "line-through text-neu-gre-600"
+                          : "text-neu-gre-800"
                       }`}
                     >
                       {subtask.title}
@@ -652,13 +660,58 @@ export function TaskModal({
                       e.stopPropagation();
                       handleDeleteSubtask(subtask.id);
                     }}
-                    className="p-1 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center"
+                    className="p-1 text-neu-gre-600 hover:text-sup-err-400 transition-colors flex items-center justify-center"
                     aria-label={`Delete subtask "${subtask.title}"`}
                   >
                     <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/*Goal Tags */}
+          <div className="mb-8">
+            <div className="flex items-center space-x-3 mb-3">
+              <Icon
+                icon="mingcute:target-fill"
+                className="text-neu-gre-800 w-5 h-5"
+              />
+              <h3 className="text-md font-medium font-inter text-neu-gre-800">
+                Associated goals
+              </h3>
+            </div>
+            <p className="text-sm font-inter text-neu-gre-600 mb-4">
+              Associate this task with a goal to help you stay on track
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {goals.map((goal) => (
+                <button
+                  key={goal.id}
+                  onClick={() =>
+                    handleGoalChange({
+                      target: {
+                        value: selectedGoalId === goal.id ? "" : goal.id,
+                      },
+                    } as React.ChangeEvent<HTMLSelectElement>)
+                  }
+                  className={`px-3 py-2 rounded-full text-sm font-inter transition-all duration-200 flex items-center gap-2 ${
+                    selectedGoalId === goal.id
+                      ? "bg-pri-pur-400 text-neu-whi-100"
+                      : "bg-neu-gre-100 text-neu-gre-600 hover:bg-pri-pur-100/50"
+                  }`}
+                >
+                  {goal.title}
+                  {selectedGoalId === goal.id && (
+                    <Icon icon="mingcute:close-fill" className="w-4 h-4" />
+                  )}
+                </button>
+              ))}
+              {goals.length === 0 && (
+                <span className="text-sm font-inter text-neu-gre-600">
+                  No goals available
+                </span>
+              )}
             </div>
           </div>
         </div>

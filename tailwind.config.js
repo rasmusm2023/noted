@@ -4,6 +4,15 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0", transform: "translateY(-10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        fadeIn: "fadeIn 0.2s ease-out",
+      },
       fontFamily: {
         inter: ["Inter", "sans-serif"],
       },
@@ -87,6 +96,19 @@ module.exports = {
           700: "#43459F",
           800: "#383A8C",
           900: "#2E3079",
+        },
+
+        // Focus/Tab Colors
+        "pri-focus": {
+          100: "#E0F2FF",
+          200: "#BAE6FF",
+          300: "#7DD3FC",
+          400: "#38BDF8",
+          500: "#0EA5E9", // Main focus color
+          600: "#0284C7",
+          700: "#0369A1",
+          800: "#075985",
+          900: "#0C4A6E",
         },
 
         // Task Background Colors

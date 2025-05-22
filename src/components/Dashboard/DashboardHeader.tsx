@@ -111,7 +111,9 @@ export const DashboardHeader = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex flex-col bg-neu-whi-100 rounded-t-5xl items-center leading-none"
+              className={`flex flex-col bg-neu-whi-100 items-center leading-none ${
+                temperature === null ? "rounded-5xl" : "rounded-t-5xl"
+              }`}
             >
               <motion.h1
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -145,7 +147,7 @@ export const DashboardHeader = ({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.7 }}
-                className="flex items-center justify-center bg-neu-whi-100/25 backdrop-blur-sm rounded-b-5xl px-8 py-2 "
+                className="flex items-center justify-center bg-neu-whi-100/25 backdrop-blur-sm rounded-b-5xl px-8 py-2"
               >
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}

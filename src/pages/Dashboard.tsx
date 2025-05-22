@@ -644,6 +644,7 @@ export function Dashboard() {
       setIsLoading(true);
       const tasks = await taskService.getUserTasks(currentUser.uid);
       const sections = await taskService.getUserSections(currentUser.uid);
+      const savedTasks = await taskService.getSavedTasks(currentUser.uid);
 
       // Get today's date in user's timezone
       const today = getTodayInUserTimezone();
@@ -672,10 +673,13 @@ export function Dashboard() {
         return sectionDateStr === todayStr;
       });
 
-      // Convert tasks to new format
+      // Convert tasks to new format and update isSaved state
       const tasksWithType = todaysTasks.map((task) => ({
         ...task,
         type: "task" as const,
+        isSaved: savedTasks.some(
+          (savedTask) => savedTask.originalTaskId === task.id
+        ),
       }));
 
       // Convert sections to new format
@@ -1258,91 +1262,51 @@ export function Dashboard() {
   );
 
   // Add new handler for saving tasks
-  const handleSaveTask = async (taskId: string, isSaved: boolean) => {
+  const handleSaveTask = async (taskId: string) => {
+    if (!currentUser) return;
+
     try {
-      if (!isSaved) {
-        // Get the task element
-        const taskElement = document.querySelector(
-          `[data-task-id="${taskId}"]`
-        );
-        if (taskElement) {
-          // Add a class for the save animation
-          taskElement.classList.add("task-saving");
+      // Get the task from items
+      const task = items.find((item) => item.id === taskId);
+      if (!task || !isTask(task)) return;
 
-          // Get the task library button position
-          const taskLibraryButton = document.querySelector(
-            ".task-library-button"
-          );
-          if (taskLibraryButton) {
-            const buttonRect = taskLibraryButton.getBoundingClientRect();
-            const taskRect = taskElement.getBoundingClientRect();
+      // Get all saved tasks first
+      const savedTasks = await taskService.getSavedTasks(currentUser.uid);
 
-            // Create a floating element
-            const floatingElement = document.createElement("div");
-            floatingElement.className = "floating-task";
-            floatingElement.style.position = "fixed";
-            floatingElement.style.left = `${taskRect.left}px`;
-            floatingElement.style.top = `${taskRect.top}px`;
-            floatingElement.style.width = `${taskRect.width}px`;
-            floatingElement.style.height = `${taskRect.height}px`;
-            floatingElement.style.zIndex = "1000";
-            floatingElement.style.transition = "all 0.5s ease-in-out";
-            floatingElement.style.backgroundColor = "var(--pri-tea-500)";
-            floatingElement.style.borderRadius = "0.5rem";
-            floatingElement.style.opacity = "0.8";
-            document.body.appendChild(floatingElement);
+      // Check if this task is already saved (by matching originalTaskId)
+      const existingSavedTask = savedTasks.find(
+        (savedTask) => savedTask.originalTaskId === taskId
+      );
 
-            // Animate to the task library button
-            requestAnimationFrame(() => {
-              floatingElement.style.left = `${buttonRect.left}px`;
-              floatingElement.style.top = `${buttonRect.top}px`;
-              floatingElement.style.width = `${buttonRect.width}px`;
-              floatingElement.style.height = `${buttonRect.height}px`;
-              floatingElement.style.opacity = "0";
-            });
+      if (existingSavedTask) {
+        // If task is already saved, unsave it
+        await taskService.unsaveTask(existingSavedTask.id);
 
-            // Remove the floating element after animation
-            setTimeout(() => {
-              document.body.removeChild(floatingElement);
-              taskElement.classList.remove("task-saving");
-            }, 500);
-          }
-        }
-
-        await taskService.saveTask(taskId);
-        toast.success("Task template saved to library");
-        // Update local state
-        setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === taskId ? { ...item, isSaved: true } : item
-          )
-        );
-
-        // Log saved tasks
-        if (currentUser) {
-          const savedTasks = await taskService.getSavedTasks(currentUser.uid);
-          console.log(
-            "Task Library:",
-            savedTasks.map((task) => ({
-              id: task.id,
-              title: task.title,
-              description: task.description,
-            }))
-          );
-        }
-      } else {
-        await taskService.unsaveTask(taskId);
-        toast.success("Task template removed from library");
         // Update local state
         setItems((prevItems) =>
           prevItems.map((item) =>
             item.id === taskId ? { ...item, isSaved: false } : item
           )
         );
+
+        toast.success("Task removed from library");
+        return;
       }
+
+      // If task is not saved, save it
+      await taskService.saveTask(taskId);
+
+      // Update local state
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === taskId ? { ...item, isSaved: true } : item
+        )
+      );
+
+      toast.success("Task saved to library");
     } catch (error) {
-      console.error("Error saving task:", error);
-      toast.error("Failed to save task");
+      console.error("Error saving/unsaving task:", error);
+      toast.error("Failed to update task library");
     }
   };
 
@@ -1507,7 +1471,7 @@ export function Dashboard() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleSaveTask(item.id, item.isSaved || false);
+                  handleSaveTask(item.id);
                 }}
                 className={`p-2 flex items-center justify-center ${
                   item.isSaved
@@ -1934,6 +1898,23 @@ export function Dashboard() {
 
   const handleRemoveTask = async (taskId: string) => {
     try {
+      // Get the saved task to find its originalTaskId
+      const savedTasks = await taskService.getSavedTasks(
+        currentUser?.uid || ""
+      );
+      const savedTask = savedTasks.find((task) => task.id === taskId);
+
+      if (savedTask?.originalTaskId) {
+        // Update the original task's isSaved state in the UI
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === savedTask.originalTaskId
+              ? { ...item, isSaved: false }
+              : item
+          )
+        );
+      }
+
       // Just unsave the task, don't delete it
       await taskService.unsaveTask(taskId);
       toast.success("Task template removed from library");

@@ -230,7 +230,7 @@ export const PomodoroTimer = ({
   return (
     <div
       ref={containerRef}
-      className="bg-pri-pur-500/25 rounded-5xl p-8 shadow-lg relative"
+      className="bg-neu-whi-100 rounded-5xl p-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 relative"
       role="dialog"
       aria-modal="true"
       aria-label="Pomodoro Timer"
@@ -238,7 +238,7 @@ export const PomodoroTimer = ({
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <button
           onClick={requestNotificationPermission}
-          className="p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
+          className="p-2 rounded-full bg-neu-gre-200 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
           aria-label={
             hasPermission ? "Disable notifications" : "Enable notifications"
           }
@@ -249,25 +249,31 @@ export const PomodoroTimer = ({
                 ? "mingcute:notification-off-fill"
                 : "mingcute:notification-fill"
             }
-            className="w-5 h-5"
+            className="w-6 h-6"
           />
         </button>
         <button
           onClick={onClose}
-          className="p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
+          className="p-2 rounded-full bg-neu-gre-200 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
           aria-label="Close Timer"
         >
-          <Icon icon="mingcute:close-fill" className="w-5 h-5" />
+          <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
         </button>
       </div>
-      <div className="flex flex-col items-center gap-6">
+      <div className="flex flex-col items-center gap-8">
         {/* Main Timer Section */}
         <div className="flex items-center justify-between w-full max-w-3xl">
           {/* Work Timers */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-inter font-semibold text-neu-gre-700 mb-3">
-              Work
-            </h3>
+            <div className="flex items-center space-x-3 mb-3">
+              <Icon
+                icon="mingcute:work-fill"
+                className="text-neu-gre-800 w-5 h-5"
+              />
+              <h3 className="text-md font-medium font-inter text-neu-gre-800">
+                Work
+              </h3>
+            </div>
             {timeIntervals
               .filter((interval) => interval.type === "work")
               .map((interval) => (
@@ -276,9 +282,9 @@ export const PomodoroTimer = ({
                   onClick={() => setSelectedInterval(interval)}
                   className={`px-4 py-2 rounded-lg font-inter transition-all text-left ${
                     selectedInterval.label === interval.label
-                      ? "bg-sec-rose-500 text-neu-whi-100"
-                      : "bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200"
-                  }`}
+                      ? "bg-pri-pur-400 text-neu-whi-100"
+                      : "bg-neu-gre-300 text-neu-gre-800 hover:bg-pri-pur-100/50"
+                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400`}
                 >
                   {interval.label}
                 </button>
@@ -287,19 +293,26 @@ export const PomodoroTimer = ({
 
           {/* Timer Display and Controls */}
           <div className="flex flex-col items-center gap-6">
-            <div className="text-6xl font-bold font-inter text-neu-gre-800">
+            <div className="text-7xl font-bold font-inter text-neu-gre-800">
               {formatTime(timeLeft)}
             </div>
             <div className="flex gap-4">
               <button
                 onClick={handleStart}
-                className="p-4 rounded-full bg-sec-pea-500 text-white hover:bg-sec-pea-500/75 transition-colors"
+                className="p-4 rounded-full bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
+                aria-label={isRunning ? "Pause Timer" : "Start Timer"}
               >
-                <Icon icon="mingcute:play-fill" width={24} height={24} />
+                <Icon
+                  icon={
+                    isRunning ? "mingcute:pause-fill" : "mingcute:play-fill"
+                  }
+                  width={24}
+                  height={24}
+                />
               </button>
               <button
                 onClick={handleReset}
-                className="p-2 rounded-full bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors"
+                className="p-4 rounded-full bg-neu-gre-300 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
                 aria-label="Reset Timer"
               >
                 <Icon icon="mingcute:back-2-fill" width={24} height={24} />
@@ -309,9 +322,15 @@ export const PomodoroTimer = ({
 
           {/* Break Timers */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-inter font-semibold text-neu-gre-700 mb-3">
-              Break
-            </h3>
+            <div className="flex items-center space-x-3 mb-3">
+              <Icon
+                icon="mingcute:coffee-fill"
+                className="text-neu-gre-800 w-5 h-5"
+              />
+              <h3 className="text-md font-medium font-inter text-neu-gre-800">
+                Break
+              </h3>
+            </div>
             {timeIntervals
               .filter((interval) => interval.type === "break")
               .map((interval) => (
@@ -320,9 +339,9 @@ export const PomodoroTimer = ({
                   onClick={() => setSelectedInterval(interval)}
                   className={`px-4 py-2 rounded-lg font-inter transition-all text-left ${
                     selectedInterval.label === interval.label
-                      ? "bg-pink-test-500 text-neu-whi-100"
-                      : "bg-neu-gre-100 text-neu-gre-700 hover:bg-neu-gre-200"
-                  }`}
+                      ? "bg-pri-pur-400 text-neu-whi-100"
+                      : "bg-neu-gre-300 text-neu-gre-800 hover:bg-pri-pur-100/50"
+                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400`}
                 >
                   {interval.label}
                 </button>

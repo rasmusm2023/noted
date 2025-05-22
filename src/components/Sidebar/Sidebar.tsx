@@ -102,10 +102,19 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   });
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const settingsMenuRef = useRef<HTMLDivElement>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const darkModeButtonRef = useRef<HTMLButtonElement>(null);
+  const highlightNextTaskButtonRef = useRef<HTMLButtonElement>(null);
+  const logoutButtonRef = useRef<HTMLButtonElement>(null);
   const [highlightNextTask, setHighlightNextTask] = useState(() => {
     const savedState = localStorage.getItem("highlightNextTask");
     return savedState ? JSON.parse(savedState) : true;
   });
+  const [isHighlightSubmenuOpen, setIsHighlightSubmenuOpen] = useState(false);
+  const highlightYesButtonRef = useRef<HTMLButtonElement>(null);
+  const highlightNoButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -184,6 +193,129 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     };
   }, [isProfileMenuOpen, isSettingsMenuOpen]);
 
+  // Focus trap for profile menu
+  useEffect(() => {
+    if (!isProfileMenuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Tab") {
+        event.preventDefault();
+
+        if (event.shiftKey) {
+          // If shift + tab and focus is on account button, move to profile button
+          if (document.activeElement === accountButtonRef.current) {
+            profileButtonRef.current?.focus();
+          } else {
+            // If shift + tab and focus is on profile button, move to account button
+            accountButtonRef.current?.focus();
+          }
+        } else {
+          // If tab and focus is on profile button, move to account button
+          if (document.activeElement === profileButtonRef.current) {
+            accountButtonRef.current?.focus();
+          } else {
+            // If tab and focus is on account button, move to profile button
+            profileButtonRef.current?.focus();
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isProfileMenuOpen]);
+
+  // Focus trap for settings menu
+  useEffect(() => {
+    if (!isSettingsMenuOpen) return;
+
+    const focusableElements = [
+      settingsButtonRef.current,
+      darkModeButtonRef.current,
+      highlightNextTaskButtonRef.current,
+      highlightYesButtonRef.current,
+      highlightNoButtonRef.current,
+      logoutButtonRef.current,
+    ].filter((el): el is HTMLButtonElement => el !== null);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Tab") {
+        event.preventDefault();
+
+        const currentIndex = focusableElements.indexOf(
+          document.activeElement as HTMLButtonElement
+        );
+
+        if (event.shiftKey) {
+          // Move focus to previous element
+          const previousIndex =
+            currentIndex <= 0 ? focusableElements.length - 1 : currentIndex - 1;
+          focusableElements[previousIndex]?.focus();
+        } else {
+          // Move focus to next element
+          const nextIndex =
+            currentIndex >= focusableElements.length - 1 ? 0 : currentIndex + 1;
+          focusableElements[nextIndex]?.focus();
+        }
+      } else if (
+        event.key === "ArrowDown" &&
+        document.activeElement === highlightNextTaskButtonRef.current
+      ) {
+        // Open submenu and focus first option when pressing down arrow
+        setIsHighlightSubmenuOpen(true);
+        highlightYesButtonRef.current?.focus();
+      } else if (
+        event.key === "ArrowUp" &&
+        document.activeElement === highlightYesButtonRef.current
+      ) {
+        // Close submenu and return focus to parent when pressing up arrow
+        setIsHighlightSubmenuOpen(false);
+        highlightNextTaskButtonRef.current?.focus();
+      } else if (
+        event.key === "ArrowDown" &&
+        document.activeElement === highlightYesButtonRef.current
+      ) {
+        // Move to No option
+        highlightNoButtonRef.current?.focus();
+      } else if (
+        event.key === "ArrowUp" &&
+        document.activeElement === highlightNoButtonRef.current
+      ) {
+        // Move to Yes option
+        highlightYesButtonRef.current?.focus();
+      } else if (event.key === "Escape" && isHighlightSubmenuOpen) {
+        // Close submenu and return focus to parent when pressing escape
+        setIsHighlightSubmenuOpen(false);
+        highlightNextTaskButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isSettingsMenuOpen, isHighlightSubmenuOpen]);
+
+  // Close submenu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        highlightNextTaskButtonRef.current &&
+        !highlightNextTaskButtonRef.current.contains(event.target as Node) &&
+        !highlightYesButtonRef.current?.contains(event.target as Node) &&
+        !highlightNoButtonRef.current?.contains(event.target as Node)
+      ) {
+        setIsHighlightSubmenuOpen(false);
+      }
+    };
+
+    if (isHighlightSubmenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isHighlightSubmenuOpen]);
+
   const handleNavigation = (path: string) => {
     navigate(path);
   };
@@ -251,7 +383,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-md hover:bg-neu-gre-100 hover:text-neu-gre-700 text-neu-gre-500 flex items-center justify-center"
+            className="p-2 rounded-md hover:bg-neu-gre-100 hover:text-neu-gre-700 text-neu-gre-500 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
           >
             {isOpen ? (
               <Icon
@@ -273,10 +405,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <div className="px-4 py-3 border-b border-neu-gre-300">
           <div className="relative" ref={profileMenuRef}>
             <button
+              ref={profileButtonRef}
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
-              } p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter`}
+              } p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
+              aria-expanded={isProfileMenuOpen}
+              aria-haspopup="true"
             >
               <img
                 src={avatars[(userDetails.selectedAvatar || 1) - 1].src}
@@ -303,27 +438,22 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 } ${
                   isOpen ? "w-full" : "w-72"
                 } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200`}
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="profile-menu-button"
               >
                 <div className="py-1">
                   <button
+                    ref={accountButtonRef}
                     onClick={() => {
                       navigate("/account");
                       setIsProfileMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    role="menuitem"
                   >
                     <Icon icon="mingcute:user-3-fill" width={20} height={20} />
                     <span>Account</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsProfileMenuOpen(false);
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
-                  >
-                    <Icon icon="mingcute:exit-fill" width={20} height={20} />
-                    <span>Logout</span>
                   </button>
                 </div>
               </div>
@@ -347,7 +477,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 onClick={() => navigate("/")}
                 className={`w-full flex items-center ${
                   isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                   location.pathname === "/"
                     ? "bg-neu-gre-200 text-neu-gre-900"
                     : ""
@@ -365,7 +495,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 onClick={() => navigate("/next7days")}
                 className={`w-full flex items-center ${
                   isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                   location.pathname === "/next7days"
                     ? "bg-neu-gre-200 text-neu-gre-900"
                     : ""
@@ -389,7 +519,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 onClick={() => navigate("/goals")}
                 className={`w-full flex items-center ${
                   isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                   location.pathname === "/goals"
                     ? "bg-neu-gre-200 text-neu-gre-900"
                     : ""
@@ -402,7 +532,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 onClick={() => navigate("/habits")}
                 className={`w-full flex items-center ${
                   isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                   location.pathname === "/habits"
                     ? "bg-neu-gre-200 text-neu-gre-900"
                     : ""
@@ -430,7 +560,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 {isOpen && (
                   <button
                     onClick={() => setIsAddingList(true)}
-                    className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700"
+                    className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                   >
                     <Icon icon="mingcute:add-fill" width={20} height={20} />
                   </button>
@@ -439,10 +569,64 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               {!isOpen && (
                 <button
                   onClick={() => setIsAddingList(true)}
-                  className="w-full p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 flex justify-center"
+                  className="w-full p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 flex justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                 >
                   <Icon icon="mingcute:add-fill" width={20} height={20} />
                 </button>
+              )}
+
+              {/* Add List Form */}
+              {isAddingList && (
+                <div
+                  className={`${
+                    isOpen ? "px-2" : "px-1"
+                  } py-2 transition-all duration-200 ease-in-out transform origin-top`}
+                >
+                  <div className="flex items-center gap-1 animate-fadeIn">
+                    <input
+                      type="text"
+                      value={newListName}
+                      onChange={(e) => setNewListName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && newListName.trim()) {
+                          handleAddList();
+                        } else if (e.key === "Escape") {
+                          setIsAddingList(false);
+                          setNewListName("");
+                        }
+                      }}
+                      placeholder="List name"
+                      className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 border border-neu-gre-400 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter"
+                      autoFocus
+                    />
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={handleAddList}
+                        disabled={!newListName.trim()}
+                        className="p-0 ml-2 text-pri-pur-500 hover:text-pri-pur-600 disabled:text-neu-gre-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out"
+                      >
+                        <Icon
+                          icon="mingcute:check-fill"
+                          width={20}
+                          height={20}
+                        />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsAddingList(false);
+                          setNewListName("");
+                        }}
+                        className="p-0 ml-2 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out"
+                      >
+                        <Icon
+                          icon="mingcute:close-line"
+                          width={20}
+                          height={20}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {/* Lists */}
@@ -453,7 +637,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     onClick={() => navigate(`/list/${list.id}`)}
                     className={`w-full flex items-center ${
                       isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter ${
+                    } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                       location.pathname === `/list/${list.id}`
                         ? "bg-neu-gre-200 text-neu-gre-900"
                         : ""
@@ -476,10 +660,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <div className="px-4 pb-4">
           <div className="relative" ref={settingsMenuRef}>
             <button
+              ref={settingsButtonRef}
               onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
-              } text-base font-medium p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter`}
+              } text-base font-medium p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
+              aria-expanded={isSettingsMenuOpen}
+              aria-haspopup="true"
             >
               <Icon icon="mingcute:settings-3-fill" width={24} height={24} />
               {isOpen && <span className="ml-3">Settings</span>}
@@ -493,14 +680,19 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 } ${
                   isOpen ? "w-full" : "w-72"
                 } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200`}
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="settings-menu-button"
               >
                 <div className="py-1">
                   <button
+                    ref={darkModeButtonRef}
                     onClick={() => {
                       toggleDarkMode();
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    role="menuitem"
                   >
                     {isDarkMode ? (
                       <>
@@ -521,7 +713,17 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
                   {/* Highlight Next Task Option */}
                   <div className="relative group">
-                    <button className="w-full flex items-center justify-between px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter">
+                    <button
+                      ref={highlightNextTaskButtonRef}
+                      onClick={() =>
+                        setIsHighlightSubmenuOpen(!isHighlightSubmenuOpen)
+                      }
+                      onFocus={() => setIsHighlightSubmenuOpen(true)}
+                      className="w-full flex items-center justify-between px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                      role="menuitem"
+                      aria-expanded={isHighlightSubmenuOpen}
+                      aria-haspopup="true"
+                    >
                       <div className="flex items-center space-x-2">
                         <Icon
                           icon="mingcute:fullscreen-fill"
@@ -539,18 +741,24 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 hidden group-hover:block`}
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 ${
+                        isHighlightSubmenuOpen ? "block" : "hidden"
+                      }`}
+                      role="menu"
+                      aria-label="Highlight next task options"
                     >
                       <button
+                        ref={highlightYesButtonRef}
                         onClick={() => {
                           handleHighlightNextTask(true);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-t-lg font-inter ${
+                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-t-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                           highlightNextTask
                             ? "text-pri-pur-500"
                             : "text-neu-gre-700"
                         }`}
+                        role="menuitem"
                       >
                         <span>Yes</span>
                         {highlightNextTask && (
@@ -562,15 +770,17 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         )}
                       </button>
                       <button
+                        ref={highlightNoButtonRef}
                         onClick={() => {
                           handleHighlightNextTask(false);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-b-lg font-inter ${
+                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-b-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                           !highlightNextTask
                             ? "text-pri-pur-500"
                             : "text-neu-gre-700"
                         }`}
+                        role="menuitem"
                       >
                         <span>No</span>
                         {!highlightNextTask && (
@@ -583,6 +793,23 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       </button>
                     </div>
                   </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-neu-gre-200 my-2"></div>
+
+                  {/* Logout Button */}
+                  <button
+                    ref={logoutButtonRef}
+                    onClick={() => {
+                      logout();
+                      setIsSettingsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    role="menuitem"
+                  >
+                    <Icon icon="mingcute:exit-fill" width={20} height={20} />
+                    <span>Logout</span>
+                  </button>
                 </div>
               </div>
             )}

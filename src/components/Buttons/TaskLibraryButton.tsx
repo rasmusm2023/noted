@@ -115,6 +115,10 @@ export const TaskLibraryButton = ({
         completed: false,
         date: today.toISOString(),
         isSaved: false,
+        subtasks: taskData.subtasks?.map((subtask) => ({
+          ...subtask,
+          completed: false,
+        })),
       });
 
       onTaskSelect(newTask);
@@ -130,6 +134,10 @@ export const TaskLibraryButton = ({
 
   const handleRemoveTask = async (taskId: string) => {
     try {
+      // Find the task being removed to get its originalTaskId
+      const taskToRemove = savedTasks.find((task) => task.id === taskId);
+      if (!taskToRemove) return;
+
       // Optimistically remove from UI
       setSavedTasks((prevTasks) =>
         prevTasks.filter((task) => task.id !== taskId)
@@ -137,6 +145,12 @@ export const TaskLibraryButton = ({
 
       // Call the remove handler to unsave the task
       await onRemoveTask(taskId);
+
+      // If this task has an originalTaskId, we should update the original task's saved state
+      if (taskToRemove.originalTaskId) {
+        // The parent component will handle updating the original task's saved state
+        // through the onRemoveTask callback
+      }
     } catch (error) {
       console.error("Error removing task:", error);
       // If there's an error, we could reload the tasks here
@@ -147,19 +161,17 @@ export const TaskLibraryButton = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`task-library-button flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+        className={`task-library-button flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
           isOpen
-            ? "bg-pri-pur-500/50 text-white hover:bg-pri-pur-500/75"
-            : "bg-pri-pur-500 text-neu-whi-100 hover:bg-pri-pur-500/75 border border-sec-rose-200"
+            ? "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500"
+            : "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500"
         }`}
       >
         <Icon
           icon="mingcute:classify-add-2-fill"
-          className={`w-6 h-6 ${
-            isOpen ? "text-neu-whi-100" : "text-neu-gre-200"
-          }`}
+          className="w-6 h-6 text-neu-whi-100"
         />
-        <span className="text-base font-inter font-regular">Task Library</span>
+        <span className="text-base font-inter font-medium">Task Library</span>
       </button>
 
       <AnimatePresence mode="wait">
@@ -172,7 +184,7 @@ export const TaskLibraryButton = ({
               duration: 0.2,
               ease: "easeInOut",
             }}
-            className="absolute right-50 mt-2 w-[40rem] bg-neu-whi-100 rounded-lg shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 border border-neu-300 z-50"
+            className="absolute right-0 mt-2 w-[40rem] bg-neu-whi-100 rounded-5xl shadow-lg border border-neu-gre-200 z-50"
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -181,17 +193,23 @@ export const TaskLibraryButton = ({
               transition={{ duration: 0.2, delay: 0.1 }}
               className="p-8"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className="text-neu-gre-800 font-inter font-semibold text-xl">
-                  Your saved tasks
+              <div className="flex justify-between items-start mb-8">
+                <div className="flex items-center space-x-3">
+                  <Icon
+                    icon="mingcute:classify-add-2-fill"
+                    className="text-neu-gre-800 w-5 h-5"
+                  />
+                  <h3 className="text-md font-medium font-inter text-neu-gre-800">
+                    Your saved tasks
+                  </h3>
                 </div>
                 <button
                   ref={closeButtonRef}
                   onClick={() => setIsOpen(false)}
-                  className="p-2 text-neu-600 hover:text-neu-800 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-tea-500"
+                  className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
                   aria-label="Close task library"
                 >
-                  <Icon icon="mingcute:close-line" className="w-5 h-5" />
+                  <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
                 </button>
               </div>
               {isLoading ? (
@@ -206,7 +224,7 @@ export const TaskLibraryButton = ({
                     </div>
                   ) : (
                     <>
-                      <div className="text-neu-gre-800 font-inter font-regular text-base mb-4">
+                      <div className="text-neu-gre-700 font-inter font-regular text-base mb-4">
                         Click a task to add it to your todo-list
                       </div>
                       <div className="max-h-128 overflow-y-auto">
@@ -230,7 +248,7 @@ export const TaskLibraryButton = ({
                                   : {
                                       opacity: 1,
                                       scale: 1,
-                                      backgroundColor: "#f3f4f6",
+                                      backgroundColor: "transparent",
                                       transition: {
                                         duration: 0.3,
                                         ease: "easeOut",
@@ -238,11 +256,11 @@ export const TaskLibraryButton = ({
                                     }
                               }
                               exit={{ opacity: 0, scale: 0.95 }}
-                              className="mb-4"
+                              className="mb-4 rounded-xl"
                             >
                               <button
                                 onClick={() => handleTaskClick(task)}
-                                className="w-full text-left font-inter font-regular px-2 py-6 text-neu-800 hover:bg-neu-gre-400 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500"
+                                className="w-full text-left font-inter font-regular px-2 py-6 text-neu-800 bg-pri-pur-100/50 hover:bg-pri-pur-100 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500"
                                 aria-label={`Add task "${task.title}" to your list`}
                               >
                                 <div className="flex items-center justify-between">
@@ -252,18 +270,18 @@ export const TaskLibraryButton = ({
                                       className="w-6 h-6 text-neu-gre-800"
                                     />
                                     <div>
-                                      <div className="font-medium text-base">
+                                      <div className="font-medium text-base text-neu-gre-800">
                                         {task.title}
                                       </div>
                                       <div className="flex items-center mt-1">
                                         {task.description && (
-                                          <div className="text-xs text-neu-400 truncate">
+                                          <div className="text-xs text-neu-gre-700 truncate">
                                             {task.description}
                                           </div>
                                         )}
                                         {task.subtasks &&
                                           task.subtasks.length > 0 && (
-                                            <div className="text-sm font-inter font-regular text-neu-600">
+                                            <div className="text-sm font-inter font-regular text-neu-gre-600">
                                               {task.subtasks.length} subtask
                                               {task.subtasks.length !== 1
                                                 ? "s"
@@ -287,12 +305,12 @@ export const TaskLibraryButton = ({
                                     }}
                                     role="button"
                                     tabIndex={0}
-                                    className="p-1 hover:bg-neu-gre-400 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500"
+                                    className="p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 transition-colors duration-200"
                                     aria-label={`Remove task "${task.title}" from library`}
                                   >
                                     <Icon
-                                      icon="mingcute:delete-2-line"
-                                      className="w-5 h-5 text-neu-600 hover:text-neu-800"
+                                      icon="mingcute:delete-2-fill"
+                                      className="w-6 h-6 text-neu-gre-600 hover:text-sup-err-400"
                                     />
                                   </div>
                                 </div>

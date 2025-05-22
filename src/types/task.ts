@@ -25,6 +25,7 @@ export interface Task extends BaseItem {
   backgroundColor?: string; // Optional property for task background color
   goalId?: string; // Optional property to link task to a goal
   isSaved?: boolean; // Optional property to mark task as saved for quick reuse
+  originalTaskId?: string; // Optional property to link saved task to original task
 }
 
 export interface SectionItem extends BaseItem {
@@ -36,7 +37,20 @@ export interface SectionItem extends BaseItem {
   scheduledTime?: string; // Add scheduledTime field
 }
 
-export type ListItem = Task | SectionItem;
+export interface ListItem {
+  id: string;
+  title: string;
+  description?: string;
+  type: "task" | "section";
+  time?: string;
+  completed: boolean;
+  date: string;
+  scheduledTime?: string;
+  backgroundColor?: string;
+  subtasks?: Subtask[];
+  goalId?: string;
+  isSaved?: boolean;
+}
 
 // Keep Timestamp and TitleItem for backward compatibility
 export interface Timestamp {
