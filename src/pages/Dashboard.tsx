@@ -1215,7 +1215,7 @@ export function Dashboard() {
     <div
       className={`p-4 ${
         item.backgroundColor || "bg-neu-900"
-      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
+      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-pur-500`}
       tabIndex={0}
       onClick={() => setSelectedSection(item)}
     >
@@ -1242,7 +1242,7 @@ export function Dashboard() {
               setSelectedSection(item);
             }
           }}
-          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
+          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg"
           aria-label={`Edit section "${item.text}"`}
         >
           <Pen size={24} color="currentColor" autoSize={false} />
@@ -1252,7 +1252,7 @@ export function Dashboard() {
             e.stopPropagation();
             handleDeleteSection(item.id);
           }}
-          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
+          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg"
           aria-label={`Delete section "${item.text}"`}
         >
           <TrashBinTrash size={24} color="currentColor" autoSize={false} />
@@ -1366,9 +1366,9 @@ export function Dashboard() {
             : "bg-neu-gre-200"
         } ${
           isNextTask
-            ? "highlighted-task ring-2 ring-pri-blue-500 ring-opacity-60"
+            ? "highlighted-task ring-2 ring-pri-pur-500 ring-opacity-60"
             : ""
-        } focus:outline-none focus:ring-2 focus:ring-pri-blue-500`}
+        } focus:outline-none focus:ring-2 focus:ring-pri-pur-500`}
         onClick={(e) => handleTaskClick(item, e)}
       >
         <div className="flex items-center space-x-4 flex-1">
@@ -1381,8 +1381,8 @@ export function Dashboard() {
               className={`transition-all duration-300 flex items-center justify-center ${
                 item.completed
                   ? "text-neu-100 hover:text-neu-100 scale-95"
-                  : "text-pri-blue-500 hover:text-sup-suc-500 hover:scale-95"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-full p-1`}
+                  : "text-pri-pur-500 hover:text-sup-suc-500 hover:scale-95"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-full p-1`}
               aria-label={`Mark task "${item.title}" as ${
                 item.completed ? "incomplete" : "complete"
               }`}
@@ -1434,7 +1434,7 @@ export function Dashboard() {
                       });
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-transparent text-base font-inter font-regular text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-blue-500"
+                    className="w-full bg-transparent text-base font-inter font-regular text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-500"
                     autoFocus
                   />
                 ) : (
@@ -1475,9 +1475,9 @@ export function Dashboard() {
                 }}
                 className={`p-2 flex items-center justify-center ${
                   item.isSaved
-                    ? "text-pri-blue-500 hover:text-pri-blue-400"
-                    : "text-neu-400 hover:text-pri-blue-500"
-                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
+                    ? "text-pri-pur-500 hover:text-pri-pur-400"
+                    : "text-neu-400 hover:text-pri-pur-500"
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
                 aria-label={`${item.isSaved ? "Unsave" : "Save"} task "${
                   item.title
                 }"`}
@@ -1493,7 +1493,7 @@ export function Dashboard() {
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-neu-100"
-                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
                 aria-label={`Edit task "${item.title}"`}
               >
                 <Pen size={24} color="currentColor" autoSize={false} />
@@ -1507,7 +1507,7 @@ export function Dashboard() {
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-red-500"
-                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg`}
+                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
                 aria-label={`Delete task "${item.title}"`}
               >
                 <TrashBinTrash
@@ -1643,12 +1643,18 @@ export function Dashboard() {
     }
 
     .highlighted-task {
-      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      animation: none;
       background: linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
       background: -moz-linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
       background: -webkit-linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
       filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#A78BFA,endColorstr=#6D28D9,GradientType=1);
       position: relative;
+      transition: all 0.3s ease-in-out;
+      border: 2px solid theme(colors.pri-pur-500);
+    }
+
+    .highlighted-task:hover {
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     .highlighted-task::before {
@@ -1656,13 +1662,13 @@ export function Dashboard() {
       position: absolute;
       inset: 0;
       background: linear-gradient(90deg, rgba(167, 139, 250, 0.3) 0%, rgba(109, 40, 217, 0.3) 100%);
-      border-radius: 0.5rem;
+      border-radius: 1rem;
       z-index: 0;
     }
 
     .highlighted-task > * {
       position: relative;
-      z-index: 1;
+      z-index: 10;
     }
 
     @keyframes completeTask {

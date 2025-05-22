@@ -154,7 +154,6 @@ const DraggableItem = ({
         isDragging ? "cursor-grabbing" : "cursor-grab"
       } ${isOver && canDrop ? "bg-sec-rose-500/5" : ""}`}
       role="button"
-      tabIndex={0}
       aria-grabbed={isDragging}
       aria-dropeffect="move"
     >

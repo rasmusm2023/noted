@@ -238,7 +238,7 @@ export const PomodoroTimer = ({
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <button
           onClick={requestNotificationPermission}
-          className="p-2 rounded-full bg-neu-gre-200 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
+          className="p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
           aria-label={
             hasPermission ? "Disable notifications" : "Enable notifications"
           }
@@ -254,7 +254,7 @@ export const PomodoroTimer = ({
         </button>
         <button
           onClick={onClose}
-          className="p-2 rounded-full bg-neu-gre-200 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
+          className="p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
           aria-label="Close Timer"
         >
           <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
@@ -280,11 +280,11 @@ export const PomodoroTimer = ({
                 <button
                   key={interval.label}
                   onClick={() => setSelectedInterval(interval)}
-                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left ${
+                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                     selectedInterval.label === interval.label
                       ? "bg-pri-pur-400 text-neu-whi-100"
                       : "bg-neu-gre-300 text-neu-gre-800 hover:bg-pri-pur-100/50"
-                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400`}
+                  }`}
                 >
                   {interval.label}
                 </button>
@@ -299,7 +299,7 @@ export const PomodoroTimer = ({
             <div className="flex gap-4">
               <button
                 onClick={handleStart}
-                className="p-4 rounded-full bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
+                className="p-4 rounded-full bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                 aria-label={isRunning ? "Pause Timer" : "Start Timer"}
               >
                 <Icon
@@ -312,7 +312,7 @@ export const PomodoroTimer = ({
               </button>
               <button
                 onClick={handleReset}
-                className="p-4 rounded-full bg-neu-gre-300 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
+                className="p-4 rounded-full bg-neu-gre-300 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                 aria-label="Reset Timer"
               >
                 <Icon icon="mingcute:back-2-fill" width={24} height={24} />
@@ -337,11 +337,11 @@ export const PomodoroTimer = ({
                 <button
                   key={interval.label}
                   onClick={() => setSelectedInterval(interval)}
-                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left ${
+                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                     selectedInterval.label === interval.label
                       ? "bg-pri-pur-400 text-neu-whi-100"
                       : "bg-neu-gre-300 text-neu-gre-800 hover:bg-pri-pur-100/50"
-                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400`}
+                  }`}
                 >
                   {interval.label}
                 </button>

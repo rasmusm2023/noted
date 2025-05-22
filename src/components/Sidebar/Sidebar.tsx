@@ -113,8 +113,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     return savedState ? JSON.parse(savedState) : true;
   });
   const [isHighlightSubmenuOpen, setIsHighlightSubmenuOpen] = useState(false);
+  const [isLanguageSubmenuOpen, setIsLanguageSubmenuOpen] = useState(false);
   const highlightYesButtonRef = useRef<HTMLButtonElement>(null);
   const highlightNoButtonRef = useRef<HTMLButtonElement>(null);
+  const languageEnglishButtonRef = useRef<HTMLButtonElement>(null);
+  const languageSwedishButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -569,6 +572,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               {!isOpen && (
                 <button
                   onClick={() => setIsAddingList(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      onToggle(); // Expand the sidebar
+                      setIsAddingList(true);
+                    }
+                  }}
                   className="w-full p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 flex justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                 >
                   <Icon icon="mingcute:add-fill" width={20} height={20} />
@@ -596,7 +606,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         }
                       }}
                       placeholder="List name"
-                      className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 border border-neu-gre-400 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter"
+                      className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 border border-neu-gre-300 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter"
                       autoFocus
                     />
                     <div className="flex items-center gap-1">
@@ -790,6 +800,71 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             className="ml-1 text-pri-pur-500"
                           />
                         )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Language Option */}
+                  <div className="relative group">
+                    <button
+                      onClick={() =>
+                        setIsLanguageSubmenuOpen(!isLanguageSubmenuOpen)
+                      }
+                      onFocus={() => setIsLanguageSubmenuOpen(true)}
+                      className="w-full flex items-center justify-between px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                      role="menuitem"
+                      aria-expanded={isLanguageSubmenuOpen}
+                      aria-haspopup="true"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Icon
+                          icon="mingcute:translate-2-fill"
+                          width={20}
+                          height={20}
+                        />
+                        <span>Language</span>
+                      </div>
+                      <AltArrowRight size={15} color="currentColor" />
+                    </button>
+
+                    {/* Language Submenu */}
+                    <div
+                      className={`absolute ${
+                        isOpen
+                          ? "left-full top-0 ml-1"
+                          : "left-full -top-12 ml-1"
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 ${
+                        isLanguageSubmenuOpen ? "block" : "hidden"
+                      }`}
+                      role="menu"
+                      aria-label="Language options"
+                    >
+                      <button
+                        ref={languageEnglishButtonRef}
+                        onClick={() => {
+                          // Placeholder for language change
+                          setIsSettingsMenuOpen(false);
+                        }}
+                        className="w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-t-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 text-pri-pur-500"
+                        role="menuitem"
+                      >
+                        <span>English</span>
+                        <Unread
+                          size={16}
+                          color="currentColor"
+                          className="ml-1 text-pri-pur-500"
+                        />
+                      </button>
+                      <button
+                        ref={languageSwedishButtonRef}
+                        onClick={() => {
+                          // Placeholder for language change
+                          setIsSettingsMenuOpen(false);
+                        }}
+                        className="w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-b-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 text-neu-gre-700"
+                        role="menuitem"
+                      >
+                        <span>Swedish</span>
                       </button>
                     </div>
                   </div>

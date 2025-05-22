@@ -161,7 +161,7 @@ export const TaskLibraryButton = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`task-library-button flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+        className={`task-library-button flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
           isOpen
             ? "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500"
             : "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500"
@@ -206,7 +206,7 @@ export const TaskLibraryButton = ({
                 <button
                   ref={closeButtonRef}
                   onClick={() => setIsOpen(false)}
-                  className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-400"
+                  className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                   aria-label="Close task library"
                 >
                   <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
@@ -260,7 +260,7 @@ export const TaskLibraryButton = ({
                             >
                               <button
                                 onClick={() => handleTaskClick(task)}
-                                className="w-full text-left font-inter font-regular px-2 py-6 text-neu-800 bg-pri-pur-100/50 hover:bg-pri-pur-100 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500"
+                                className="w-full text-left font-inter font-regular px-2 py-6 text-neu-800 bg-pri-pur-100/50 hover:bg-pri-pur-100 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                                 aria-label={`Add task "${task.title}" to your list`}
                               >
                                 <div className="flex items-center justify-between">
@@ -305,7 +305,7 @@ export const TaskLibraryButton = ({
                                     }}
                                     role="button"
                                     tabIndex={0}
-                                    className="p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 transition-colors duration-200"
+                                    className="p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-colors duration-200 rounded-md"
                                     aria-label={`Remove task "${task.title}" from library`}
                                   >
                                     <Icon

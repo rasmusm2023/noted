@@ -9,9 +9,17 @@ module.exports = {
           "0%": { opacity: "0", transform: "translateY(-10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        gradientMove: {
+          "0%": { backgroundPosition: "0% 0%" },
+          "25%": { backgroundPosition: "100% 0%" },
+          "50%": { backgroundPosition: "100% 100%" },
+          "75%": { backgroundPosition: "0% 100%" },
+          "100%": { backgroundPosition: "0% 0%" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.2s ease-out",
+        gradientMove: "gradientMove 30s linear infinite",
       },
       fontFamily: {
         inter: ["Inter", "sans-serif"],
@@ -306,7 +314,7 @@ module.exports = {
       },
       backgroundImage: {
         "gradient-rose-peach":
-          "linear-gradient(90deg, theme(colors.sec-rose.500) 0%, theme(colors.sec-pea.500) 100%)",
+          "linear-gradient(90deg, theme(colors.sec-rose.500) 0%, theme(colors.sec-pea.500) 50%, theme(colors.sec-rose.500) 100%)",
         "gradient-rose-peach-75":
           "linear-gradient(90deg, rgba(239, 112, 155, 0.75) 0%, rgba(250, 147, 114, 0.75) 100%)",
       },

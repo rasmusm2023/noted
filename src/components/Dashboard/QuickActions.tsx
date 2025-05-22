@@ -54,7 +54,7 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
               onFocus={() => setFocusedInput("task")}
               onBlur={() => setFocusedInput(null)}
               placeholder="Add new task..."
-              className="w-full bg-transparent font-semibold text-gre-800 placeholder-neu-gre-600 focus:outline-none"
+              className="w-full bg-transparent font-semibold text-gre-800 placeholder-neu-gre-600 focus-visible:outline-none"
               autoFocus
             />
             <p className="text-neu-gre-500 text-sm font-inter mt-2">

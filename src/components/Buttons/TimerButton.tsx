@@ -29,7 +29,7 @@ export const TimerButton = ({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 mt-4 px-4 py-2 rounded-md transition-all duration-300 backdrop-blur-sm ${
+      className={`flex items-center gap-2 mt-4 px-4 py-2 rounded-md transition-all duration-300 backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
         isActive
           ? "bg-white/40 border border-white/50 text-neu-gre-800 hover:bg-white/75"
           : "bg-white/40 border border-white/50 text-neu-gre-800 hover:bg-white/75"
@@ -49,7 +49,7 @@ export const TimerButton = ({
               e.stopPropagation();
               onPauseResume?.();
             }}
-            className="p-1 rounded-full hover:bg-white/50 transition-colors"
+            className="p-1 rounded-full hover:bg-white/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
           >
             <Icon
               icon={isRunning ? "mingcute:pause-fill" : "mingcute:play-fill"}
@@ -61,7 +61,7 @@ export const TimerButton = ({
               e.stopPropagation();
               onCancel?.();
             }}
-            className="p-1 rounded-full hover:bg-white/50 transition-colors"
+            className="p-1 rounded-full hover:bg-white/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
           >
             <Icon icon="mingcute:close-fill" className="w-4 h-4" />
           </button>

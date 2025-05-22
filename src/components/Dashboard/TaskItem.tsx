@@ -41,7 +41,17 @@ export const TaskItem = ({
           onSelect(task);
         }
       }}
-      className={`task-item p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
+      onFocus={(e) => {
+        console.log("Focused element:", {
+          element: e.target,
+          className: e.target.className,
+          id: e.target.id,
+          tagName: e.target.tagName,
+          role: e.target.getAttribute("role"),
+          tabIndex: e.target.getAttribute("tabIndex"),
+        });
+      }}
+      className={`task-item p-4 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
         task.completed
           ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)]"
           : task.backgroundColor
@@ -62,21 +72,51 @@ export const TaskItem = ({
           : "bg-neu-gre-100 dark:bg-neu-gre-800"
       } ${
         isNextTask ? "highlighted-task" : ""
-      } focus:outline-none focus:ring-2 focus:ring-pri-pur-500`}
+      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
       onClick={() => onSelect(task)}
+      role="button"
     >
       <div className="flex items-center space-x-4 flex-1">
         <div className="flex items-center justify-center h-full">
           <button
+            tabIndex={0}
             onClick={(e) => {
               e.stopPropagation();
               onCompletion(task.id, !task.completed, e);
+            }}
+            onKeyDown={(e) => {
+              console.log("Key pressed:", e.key);
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.stopPropagation();
+                const button = e.currentTarget;
+                const rect = button.getBoundingClientRect();
+                const x = (rect.left + rect.right) / 2 / window.innerWidth;
+                const y = (rect.top + rect.bottom) / 2 / window.innerHeight;
+                const syntheticEvent = {
+                  stopPropagation: () => {},
+                  preventDefault: () => {},
+                  clientX: rect.left + rect.width / 2,
+                  clientY: rect.top + rect.height / 2,
+                  currentTarget: {
+                    closest: (selector: string) => {
+                      const taskItem = button.closest(".task-item");
+                      if (taskItem) {
+                        taskItem.classList.add("task-completing");
+                      }
+                      return taskItem;
+                    },
+                  },
+                } as React.MouseEvent;
+                console.log("Completing task:", task.id);
+                onCompletion(task.id, !task.completed, syntheticEvent);
+              }
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
                 ? "text-neu-gre-900 dark:text-neu-whi-100 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 scale-95"
                 : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500 dark:hover:text-sup-suc-400 hover:scale-95"
-            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-full p-1`}
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1`}
             aria-label={`Mark task "${task.title}" as ${
               task.completed ? "incomplete" : "complete"
             }`}
@@ -115,7 +155,7 @@ export const TaskItem = ({
                     onEdit({ ...task, title: editingTitle });
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-transparent text-base font-inter font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-500"
+                  className="w-full bg-transparent text-base font-inter font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-focus-500"
                   autoFocus
                 />
               ) : (
@@ -151,11 +191,20 @@ export const TaskItem = ({
                 e.stopPropagation();
                 onSave(task.id, task.isSaved || false);
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSave(task.id, task.isSaved || false);
+                }
+              }}
               className={`p-2 flex items-center justify-center transition-all duration-300 ${
                 task.isSaved
                   ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
+                  : task.completed
+                  ? "text-neu-gre-600 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
                   : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-100 dark:hover:text-pri-pur-400"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
                 task.title
               }"`}
@@ -167,11 +216,18 @@ export const TaskItem = ({
                 e.stopPropagation();
                 onSelect(task);
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSelect(task);
+                }
+              }}
               className={`p-2 flex items-center justify-center ${
                 task.completed
-                  ? "text-neu-gre-400 dark:text-neu-whi-100/70 hover:text-neu-gre-600 dark:hover:text-neu-whi-100"
+                  ? "text-neu-gre-600 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
                   : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-label={`Edit task "${task.title}"`}
             >
               <Icon icon="mingcute:edit-2-fill" width={24} height={24} />
@@ -181,11 +237,18 @@ export const TaskItem = ({
                 e.stopPropagation();
                 onDelete(task.id);
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(task.id);
+                }
+              }}
               className={`p-2 flex items-center justify-center ${
                 task.completed
-                  ? "text-neu-gre-400 dark:text-neu-whi-100/70 hover:text-neu-gre-600 dark:hover:text-neu-whi-100"
+                  ? "text-neu-gre-600 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
                   : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-sup-err-500 dark:hover:text-sup-err-400"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-label={`Delete task "${task.title}"`}
             >
               <Icon icon="mingcute:delete-2-fill" width={24} height={24} />
