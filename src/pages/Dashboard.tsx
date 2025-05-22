@@ -504,10 +504,35 @@ export function Dashboard() {
     return () => clearTimeout(timer);
   }, [currentUser]);
 
-  // Add temperature fetching
+  // Add weather cache types
+  type WeatherCache = {
+    temperature: number;
+    condition: string;
+    timestamp: number;
+  };
+
+  // Add temperature fetching with cache
   useEffect(() => {
     const fetchTemperature = async (latitude: number, longitude: number) => {
       try {
+        // Check cache first
+        const cachedWeather = localStorage.getItem("weatherCache");
+        if (cachedWeather) {
+          const {
+            temperature: cachedTemp,
+            condition: cachedCondition,
+            timestamp,
+          } = JSON.parse(cachedWeather) as WeatherCache;
+          const cacheAge = Date.now() - timestamp;
+
+          // Use cache if it's less than 15 minutes old
+          if (cacheAge < 15 * 60 * 1000) {
+            setTemperature(cachedTemp);
+            setWeatherCondition(cachedCondition);
+            return;
+          }
+        }
+
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
         if (!apiKey) {
@@ -536,23 +561,53 @@ export function Dashboard() {
           return;
         }
 
-        setTemperature(Math.round(data.main.temp));
-        setWeatherCondition(data.weather[0]?.main || null);
+        const newTemp = Math.round(data.main.temp);
+        const newCondition = data.weather[0]?.main || null;
+
+        // Update state
+        setTemperature(newTemp);
+        setWeatherCondition(newCondition);
+
+        // Update cache
+        const weatherCache: WeatherCache = {
+          temperature: newTemp,
+          condition: newCondition,
+          timestamp: Date.now(),
+        };
+        localStorage.setItem("weatherCache", JSON.stringify(weatherCache));
       } catch (error) {
         console.error("Error fetching temperature:", error);
       }
     };
 
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          fetchTemperature(position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
-    }
+    // Function to get current position and fetch weather
+    const getPositionAndFetchWeather = () => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            fetchTemperature(
+              position.coords.latitude,
+              position.coords.longitude
+            );
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+          }
+        );
+      }
+    };
+
+    // Initial fetch
+    getPositionAndFetchWeather();
+
+    // Set up background refresh every 15 minutes
+    const refreshInterval = setInterval(
+      getPositionAndFetchWeather,
+      15 * 60 * 1000
+    );
+
+    // Cleanup interval on unmount
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const getWeatherIcon = (condition: string | null) => {

@@ -24,7 +24,7 @@ export function MidnightTaskMover() {
       const shouldMove = !lastMove || (lastMove < lastMidnight && isMidnight);
 
       if (shouldMove) {
-        console.log("Moving incomplete tasks to next day...");
+        console.log("Moving tasks at midnight...");
         await taskService.moveIncompleteTasksToNextDay(currentUser.uid);
         localStorage.setItem("lastTaskMoveTime", now.toISOString());
       }

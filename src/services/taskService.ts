@@ -654,7 +654,7 @@ export const taskService = {
     });
   },
 
-  // Update moveIncompleteTasksToNextDay to use timezone
+  // Update moveIncompleteTasksToNextDay to handle midnight task moving
   async moveIncompleteTasksToNextDay(userId: string): Promise<void> {
     try {
       const tasks = await this.getUserTasks(userId);
@@ -662,34 +662,49 @@ export const taskService = {
       const today = new Date(now);
       today.setHours(0, 0, 0, 0);
 
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(12, 0, 0, 0);
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
-      const tasksToMove = tasks.filter((task) => {
-        if (task.completed) return false;
-
+      // 1. Delete all completed tasks from today
+      const completedTasksToday = tasks.filter((task) => {
         const taskDate = new Date(task.date);
         taskDate.setHours(0, 0, 0, 0);
-
-        return taskDate.getTime() === today.getTime();
+        return task.completed && taskDate.getTime() === today.getTime();
       });
 
-      const batchOperations: BatchOperation[] = tasksToMove.map((task) => ({
-        type: "task",
-        operation: "update",
-        id: task.id,
-        data: {
-          date: tomorrow.toISOString(),
-          scheduledTime: tomorrow.toLocaleString(),
-        },
-      }));
+      // 2. Find uncompleted tasks from yesterday
+      const uncompletedTasksYesterday = tasks.filter((task) => {
+        const taskDate = new Date(task.date);
+        taskDate.setHours(0, 0, 0, 0);
+        return !task.completed && taskDate.getTime() === yesterday.getTime();
+      });
+
+      // Create batch operations
+      const batchOperations: BatchOperation[] = [
+        // Delete completed tasks from today
+        ...completedTasksToday.map((task) => ({
+          type: "task" as const,
+          operation: "delete" as const,
+          id: task.id,
+          data: {}, // Add empty data object for delete operations
+        })),
+        // Update uncompleted tasks from yesterday to today
+        ...uncompletedTasksYesterday.map((task) => ({
+          type: "task" as const,
+          operation: "update" as const,
+          id: task.id,
+          data: {
+            date: today.toISOString(),
+            scheduledTime: today.toLocaleString(),
+          },
+        })),
+      ];
 
       if (batchOperations.length > 0) {
         await this.batchOperations(batchOperations);
       }
     } catch (error) {
-      console.error("Error moving incomplete tasks:", error);
+      console.error("Error moving tasks at midnight:", error);
       throw error;
     }
   },
