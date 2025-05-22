@@ -114,7 +114,7 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
-                ? "text-neu-gre-900 dark:text-neu-whi-100 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 scale-95"
+                ? "text-sup-suc-600 dark:text-sup-suc-700 hover:text-sup-suc-500 dark:hover:text-sup-suc-700 scale-95"
                 : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500 dark:hover:text-sup-suc-400 hover:scale-95"
             } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1`}
             aria-label={`Mark task "${task.title}" as ${
@@ -185,32 +185,7 @@ export const TaskItem = ({
               </div>
             )}
           </div>
-          <div className="flex items-center space-x-2 ml-4">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onSave(task.id, task.isSaved || false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onSave(task.id, task.isSaved || false);
-                }
-              }}
-              className={`p-2 flex items-center justify-center transition-all duration-300 ${
-                task.isSaved
-                  ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
-                  : task.completed
-                  ? "text-neu-gre-600 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
-                  : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-100 dark:hover:text-pri-pur-400"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
-              aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
-                task.title
-              }"`}
-            >
-              <Icon icon="mingcute:bookmark-fill" width={24} height={24} />
-            </button>
+          <div className="flex items-center ml-4">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -223,14 +198,43 @@ export const TaskItem = ({
                   onSelect(task);
                 }
               }}
-              className={`p-2 flex items-center justify-center ${
-                task.completed
-                  ? "text-neu-gre-600 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
+              className={`p-1 flex items-center justify-center ${
+                isNextTask
+                  ? "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
+                  : task.completed
+                  ? "text-sup-suc-800 dark:text-sup-suc-800 hover:text-sup-suc-700 dark:hover:text-sup-suc-700"
                   : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
               } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-label={`Edit task "${task.title}"`}
             >
               <Icon icon="mingcute:edit-2-fill" width={24} height={24} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSave(task.id, task.isSaved || false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSave(task.id, task.isSaved || false);
+                }
+              }}
+              className={`p-1 flex items-center justify-center transition-all duration-300 ${
+                task.isSaved
+                  ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
+                  : isNextTask
+                  ? "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-100 dark:hover:text-pri-pur-400"
+                  : task.completed
+                  ? "text-sup-suc-800 dark:text-sup-suc-800 hover:text-sup-suc-700 dark:hover:text-sup-suc-700"
+                  : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-100 dark:hover:text-pri-pur-400"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
+              aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
+                task.title
+              }"`}
+            >
+              <Icon icon="mingcute:bookmark-fill" width={24} height={24} />
             </button>
             <button
               onClick={(e) => {
@@ -244,9 +248,11 @@ export const TaskItem = ({
                   onDelete(task.id);
                 }
               }}
-              className={`p-2 flex items-center justify-center ${
-                task.completed
-                  ? "text-neu-gre-600 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
+              className={`p-1 flex items-center justify-center ${
+                isNextTask
+                  ? "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-sup-err-500 dark:hover:text-sup-err-400"
+                  : task.completed
+                  ? "text-sup-suc-800 dark:text-sup-suc-800 hover:text-sup-suc-700 dark:hover:text-sup-suc-700"
                   : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-sup-err-500 dark:hover:text-sup-err-400"
               } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-label={`Delete task "${task.title}"`}
