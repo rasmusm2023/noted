@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { goalService } from "../services/goalService";
 import { taskService } from "../services/taskService";
@@ -88,7 +88,7 @@ const DatePicker = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" role="group" aria-label="Select deadline date">
       <div className="flex gap-2">
         <select
           value={selectedMonth}
@@ -96,7 +96,8 @@ const DatePicker = ({
             setSelectedMonth(e.target.value);
             handleChange(e.target.value, selectedDay, selectedYear);
           }}
-          className="flex-1 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+          className="flex-1 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
+          aria-label="Select month"
         >
           <option value="Month">Month</option>
           {months.map((month) => (
@@ -111,7 +112,8 @@ const DatePicker = ({
             setSelectedDay(e.target.value);
             handleChange(selectedMonth, e.target.value, selectedYear);
           }}
-          className="w-24 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+          className="w-24 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
+          aria-label="Select day"
         >
           <option value="Day">Day</option>
           {days.map((day) => (
@@ -126,7 +128,8 @@ const DatePicker = ({
             setSelectedYear(e.target.value);
             handleChange(selectedMonth, selectedDay, e.target.value);
           }}
-          className="w-28 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+          className="w-28 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
+          aria-label="Select year"
         >
           <option value="Year">Year</option>
           {years.map((year) => (
@@ -136,7 +139,7 @@ const DatePicker = ({
           ))}
         </select>
       </div>
-      <p className="text-sm text-neu-gre-500">
+      <p className="text-sm text-neu-gre-500" aria-live="polite">
         No rush, unless you want to! 😉
       </p>
     </div>
@@ -169,6 +172,7 @@ export function Goals() {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [newGoal, setNewGoal] = useState({
     title: "",
     description: "",
@@ -197,6 +201,12 @@ export function Goals() {
       setTitlePlaceholder(
         GOAL_PLACEHOLDERS[Math.floor(Math.random() * GOAL_PLACEHOLDERS.length)]
       );
+    }
+  }, [showForm]);
+
+  useEffect(() => {
+    if (showForm && titleInputRef.current) {
+      titleInputRef.current.focus();
     }
   }, [showForm]);
 
@@ -387,6 +397,12 @@ export function Goals() {
       progressType: goal.progressType,
       totalSteps: goal.totalSteps,
     });
+    // Use setTimeout to ensure the input is rendered before focusing
+    setTimeout(() => {
+      if (titleInputRef.current) {
+        titleInputRef.current.focus();
+      }
+    }, 0);
   };
 
   return (
@@ -408,29 +424,30 @@ export function Goals() {
               <Icon
                 icon="mingcute:target-fill"
                 className="text-pri-pur-500 w-8 h-8"
+                aria-hidden="true"
               />
               <h1 className="text-3xl font-bold text-neu-gre-800">Goals</h1>
             </div>
             <button
-              onClick={() => setShowForm(!showForm)}
-              className="px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+              onClick={() => setShowForm(true)}
+              className="px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md"
+              aria-expanded={showForm}
+              aria-controls="goal-form"
+              aria-label="Add new goal"
             >
               <Icon
-                icon={showForm ? "mingcute:close-fill" : "mingcute:add-fill"}
+                icon="mingcute:add-fill"
                 width={20}
                 height={20}
+                aria-hidden="true"
               />
-              <span>{showForm ? "Cancel" : "Add Goal"}</span>
+              <span>Add Goal</span>
             </button>
           </div>
 
           {isLoading ? (
             <div className="text-neu-gre-600 text-center py-8">
               Loading goals...
-            </div>
-          ) : goals.length === 0 ? (
-            <div className="text-neu-gre-600 text-center py-8">
-              No goals yet. Add some to get started!
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -439,10 +456,10 @@ export function Goals() {
                   key={goal.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 ${
+                  className={`rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-neu-gre-300/50 ${
                     goal.status === "completed"
                       ? "bg-sup-suc-100/75"
-                      : "bg-neu-gre-100"
+                      : "bg-neu-gre-200/50"
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -458,28 +475,38 @@ export function Goals() {
                       <button
                         onClick={() => startEditing(goal)}
                         className="text-neu-gre-600 hover:text-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
+                        aria-label={`Edit goal: ${goal.title}`}
                       >
                         <Icon
                           icon="mingcute:pencil-fill"
                           width={20}
                           height={20}
+                          aria-hidden="true"
                         />
                       </button>
                       <button
                         onClick={() => handleDeleteGoal(goal.id)}
                         className="text-neu-gre-600 hover:text-sup-err-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
+                        aria-label={`Delete goal: ${goal.title}`}
                       >
                         <Icon
                           icon="mingcute:delete-2-fill"
                           width={20}
                           height={20}
+                          aria-hidden="true"
                         />
                       </button>
                     </div>
                   </div>
 
                   {editingGoalId === goal.id ? (
-                    <form onSubmit={handleEditGoal} className="space-y-4 mt-4">
+                    <motion.form
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      onSubmit={handleEditGoal}
+                      className="space-y-4 mt-4"
+                    >
                       <div>
                         <label
                           htmlFor={`title-${goal.id}`}
@@ -490,12 +517,15 @@ export function Goals() {
                         <input
                           type="text"
                           id={`title-${goal.id}`}
+                          ref={titleInputRef}
                           value={newGoal.title}
                           onChange={(e) =>
                             setNewGoal({ ...newGoal, title: e.target.value })
                           }
-                          className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                          className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
                           required
+                          aria-required="true"
+                          aria-label="Goal title"
                         />
                       </div>
                       <div>
@@ -517,8 +547,9 @@ export function Goals() {
                               description: e.target.value,
                             })
                           }
-                          className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                          className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
                           rows={3}
+                          aria-label="Goal description"
                         />
                       </div>
                       <div>
@@ -541,7 +572,7 @@ export function Goals() {
                       <div className="flex gap-2 mt-4">
                         <button
                           type="submit"
-                          className="flex-1 px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                          className="flex-1 px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
                         >
                           Save changes
                         </button>
@@ -562,9 +593,13 @@ export function Goals() {
                           Cancel
                         </button>
                       </div>
-                    </form>
+                    </motion.form>
                   ) : (
-                    <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                    >
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm text-neu-gre-800 font-inter font-medium">
                           <span className="flex items-center space-x-2 gap-2">
@@ -608,6 +643,7 @@ export function Goals() {
                                 )
                               }
                               className="px-3 py-1 text-base font-inter font-semibold bg-neu-gre-300 text-neu-gre-800 rounded-md hover:bg-sup-err-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                              aria-label={`Decrease progress for ${goal.title} by 1 step`}
                             >
                               -1 Step
                             </button>
@@ -625,6 +661,7 @@ export function Goals() {
                                 )
                               }
                               className="px-3 py-1 text-base font-inter font-semibold bg-pri-pur-100 text-neu-gre-800 rounded-md hover:bg-pri-pur-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                              aria-label={`Increase progress for ${goal.title} by 1 step`}
                             >
                               +1 Step
                             </button>
@@ -639,6 +676,7 @@ export function Goals() {
                                 )
                               }
                               className="px-3 py-1 text-base font-inter font-semibold bg-neu-gre-300 text-neu-gre-800 rounded-md hover:bg-sup-err-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                              aria-label={`Decrease progress for ${goal.title} by 10%`}
                             >
                               -10%
                             </button>
@@ -650,6 +688,7 @@ export function Goals() {
                                 )
                               }
                               className="px-3 py-1 text-base font-inter font-semibold bg-pri-pur-100 text-neu-gre-800 rounded-md hover:bg-pri-pur-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                              aria-label={`Increase progress for ${goal.title} by 10%`}
                             >
                               +10%
                             </button>
@@ -668,12 +707,27 @@ export function Goals() {
                             No tasks associated with this goal yet.
                           </p>
                         ) : (
-                          <ul className="space-y-2">
+                          <ul
+                            className="space-y-2"
+                            role="list"
+                            aria-label={`Tasks for goal: ${goal.title}`}
+                          >
                             {tasks[goal.id]?.map((task) => (
                               <li
                                 key={task.id}
-                                className="flex items-center justify-between bg-sec-rose-200 rounded-md p-2 cursor-pointer hover:bg-sec-rose-300 transition-colors"
+                                className="flex items-center justify-between bg-sec-rose-200 rounded-md p-2 cursor-pointer hover:bg-sec-rose-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                                 onClick={() => handleTaskClick(task)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    handleTaskClick(task);
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`${task.title} - ${
+                                  task.completed ? "Completed" : "In Progress"
+                                }`}
                               >
                                 <span
                                   className={`text-sm ml-2 font-inter font-regular ${
@@ -685,11 +739,12 @@ export function Goals() {
                                   {task.title}
                                 </span>
                                 <span
-                                  className={`px-2 py-1 rounded-full text-xs mr-2 ${
+                                  className={`px-2 py-1 rounded-full text-xs font-semibold mr-2 ${
                                     task.completed
                                       ? "bg-sup-suc-500 text-neu-whi-100"
                                       : "bg-neu-gre-200 text-neu-gre-800"
                                   }`}
+                                  aria-hidden="true"
                                 >
                                   {task.completed ? "Done" : "In Progress"}
                                 </span>
@@ -716,177 +771,208 @@ export function Goals() {
                           {goal.status}
                         </span>
                       </div>
-                    </>
+                    </motion.div>
                   )}
                 </motion.div>
               ))}
-              {showForm ? (
+              <AnimatePresence mode="wait">
+                {goals.length === 0 && !showForm && (
+                  <motion.div
+                    key="no-goals-message"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-neu-gre-600 font-inter text-center py-8 col-span-full"
+                  >
+                    There are no goals yet. Click the button below to get
+                    started.
+                  </motion.div>
+                )}
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-pri-pur-100/30 rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300"
+                  key="form-container"
+                  initial={false}
+                  animate={{ height: "auto" }}
+                  exit={{ height: 0 }}
+                  transition={{
+                    duration: 0.2,
+                    ease: [0.4, 0, 0.2, 1],
+                  }}
+                  className="overflow-hidden"
                 >
-                  <form onSubmit={handleCreateGoal} className="space-y-4">
-                    <div>
-                      <label
-                        htmlFor="title"
-                        className="block text-neu-gre-800 mb-1 font-medium"
-                      >
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        id="title"
-                        value={newGoal.title}
-                        onChange={(e) =>
-                          setNewGoal({ ...newGoal, title: e.target.value })
-                        }
-                        placeholder={titlePlaceholder}
-                        className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="description"
-                        className="block text-neu-gre-800 mb-1 font-medium"
-                      >
-                        Description{" "}
-                        <span className="text-sm font-normal text-neu-gre-600">
-                          (optional)
-                        </span>
-                      </label>
-                      <textarea
-                        id="description"
-                        value={newGoal.description}
-                        onChange={(e) =>
-                          setNewGoal({
-                            ...newGoal,
-                            description: e.target.value,
-                          })
-                        }
-                        placeholder="What's your game plan? Break it down into bite-sized pieces. 🎯"
-                        className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="deadline"
-                        className="block text-neu-gre-800 mb-1 font-medium"
-                      >
-                        Deadline{" "}
-                        <span className="text-sm font-normal text-neu-gre-600">
-                          (optional)
-                        </span>
-                      </label>
-                      <DatePicker
-                        value={newGoal.deadline}
-                        onChange={(date) =>
-                          setNewGoal({ ...newGoal, deadline: date })
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-neu-gre-800 mb-1 font-medium">
-                        Track progress as
-                      </label>
-                      <div className="flex items-center space-x-4">
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            value="percentage"
-                            checked={newGoal.progressType === "percentage"}
-                            onChange={(e) =>
-                              setNewGoal({
-                                ...newGoal,
-                                progressType: e.target.value as ProgressType,
-                              })
-                            }
-                            className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200 accent-pri-pur-500"
-                          />
-                          <span className="text-neu-gre-800">Percentage</span>
-                        </label>
-                        <label className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            value="numerical"
-                            checked={newGoal.progressType === "numerical"}
-                            onChange={(e) =>
-                              setNewGoal({
-                                ...newGoal,
-                                progressType: e.target.value as ProgressType,
-                              })
-                            }
-                            className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200 accent-pri-pur-500"
-                          />
-                          <span className="text-neu-gre-800">Steps</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {newGoal.progressType === "numerical" && (
-                      <div>
+                  {showForm ? (
+                    <div className="bg-pri-pur-100/30 rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-pri-pur-300/25">
+                      <form onSubmit={handleCreateGoal} className="space-y-4">
                         <div>
                           <label
-                            htmlFor="totalSteps"
+                            htmlFor="title"
                             className="block text-neu-gre-800 mb-1 font-medium"
                           >
-                            Total Steps
+                            Title
                           </label>
                           <input
-                            type="number"
-                            id="totalSteps"
-                            min="1"
-                            value={newGoal.totalSteps}
+                            type="text"
+                            id="title"
+                            ref={titleInputRef}
+                            value={newGoal.title}
                             onChange={(e) =>
-                              setNewGoal({
-                                ...newGoal,
-                                totalSteps: parseInt(e.target.value),
-                              })
+                              setNewGoal({ ...newGoal, title: e.target.value })
                             }
-                            placeholder="How many steps to greatness? 🚀"
+                            placeholder={titlePlaceholder}
                             className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
                             required
                           />
                         </div>
-                      </div>
-                    )}
+                        <div>
+                          <label
+                            htmlFor="description"
+                            className="block text-neu-gre-800 mb-1 font-medium"
+                          >
+                            Description{" "}
+                            <span className="text-sm font-normal text-neu-gre-600">
+                              (optional)
+                            </span>
+                          </label>
+                          <textarea
+                            id="description"
+                            value={newGoal.description}
+                            onChange={(e) =>
+                              setNewGoal({
+                                ...newGoal,
+                                description: e.target.value,
+                              })
+                            }
+                            placeholder="What's your game plan? Break it down into bite-sized pieces. 🎯"
+                            className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="deadline"
+                            className="block text-neu-gre-800 mb-1 font-medium"
+                          >
+                            Deadline{" "}
+                            <span className="text-sm font-normal text-neu-gre-600">
+                              (optional)
+                            </span>
+                          </label>
+                          <DatePicker
+                            value={newGoal.deadline}
+                            onChange={(date) =>
+                              setNewGoal({ ...newGoal, deadline: date })
+                            }
+                          />
+                        </div>
 
-                    <div className="flex gap-2 mt-4">
-                      <button
-                        type="submit"
-                        className="flex-1 px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
-                      >
-                        Create Goal
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowForm(false)}
-                        className="px-4 py-4 text-base font-inter font-semibold bg-neu-gre-100 text-neu-gre-800 rounded-md hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
-                      >
-                        Cancel
-                      </button>
+                        <div>
+                          <label className="block text-neu-gre-800 mb-1 font-medium">
+                            Track progress as
+                          </label>
+                          <div className="flex items-center space-x-4">
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                value="percentage"
+                                checked={newGoal.progressType === "percentage"}
+                                onChange={(e) =>
+                                  setNewGoal({
+                                    ...newGoal,
+                                    progressType: e.target
+                                      .value as ProgressType,
+                                  })
+                                }
+                                className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200 accent-pri-pur-500"
+                                aria-label="Track progress as percentage"
+                              />
+                              <span className="text-neu-gre-800">
+                                Percentage
+                              </span>
+                            </label>
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="radio"
+                                value="numerical"
+                                checked={newGoal.progressType === "numerical"}
+                                onChange={(e) =>
+                                  setNewGoal({
+                                    ...newGoal,
+                                    progressType: e.target
+                                      .value as ProgressType,
+                                  })
+                                }
+                                className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200 accent-pri-pur-500"
+                                aria-label="Track progress as steps"
+                              />
+                              <span className="text-neu-gre-800">Steps</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {newGoal.progressType === "numerical" && (
+                          <div>
+                            <div>
+                              <label
+                                htmlFor="totalSteps"
+                                className="block text-neu-gre-800 mb-1 font-medium"
+                              >
+                                Total Steps
+                              </label>
+                              <input
+                                type="number"
+                                id="totalSteps"
+                                min="1"
+                                value={newGoal.totalSteps}
+                                onChange={(e) =>
+                                  setNewGoal({
+                                    ...newGoal,
+                                    totalSteps: parseInt(e.target.value),
+                                  })
+                                }
+                                placeholder="How many steps to greatness? 🚀"
+                                className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                                required
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 mt-4">
+                          <button
+                            type="submit"
+                            className="flex-1 px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                          >
+                            Create Goal
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowForm(false)}
+                            className="px-4 py-4 text-base font-inter font-semibold bg-neu-gre-100 text-neu-gre-800 rounded-md hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
                     </div>
-                  </form>
+                  ) : (
+                    <div
+                      className="bg-pri-pur-100/25 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-dashed border-pri-pur-500/50 cursor-pointer"
+                      onClick={() => setShowForm(!showForm)}
+                    >
+                      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-neu-gre-600 hover:text-pri-pur-500 transition-colors">
+                        <Icon
+                          icon="mingcute:add-fill"
+                          className="w-12 h-12 mb-4"
+                        />
+                        <span className="text-lg font-medium">Add Goal</span>
+                        <span className="text-sm mt-2">
+                          Click to create a new goal
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-pri-pur-100/25 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-dashed border-pri-pur-500/50 cursor-pointer"
-                  onClick={() => setShowForm(!showForm)}
-                >
-                  <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-neu-gre-600 hover:text-pri-pur-500 transition-colors">
-                    <Icon icon="mingcute:add-fill" className="w-12 h-12 mb-4" />
-                    <span className="text-lg font-medium">Add Goal</span>
-                    <span className="text-sm mt-2">
-                      Click to create a new goal
-                    </span>
-                  </div>
-                </motion.div>
-              )}
+              </AnimatePresence>
             </div>
           )}
         </div>

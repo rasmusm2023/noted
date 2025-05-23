@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  deleteUser,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 import {
@@ -14,6 +15,7 @@ import {
   getDoc,
   collection,
   getDocs,
+  deleteDoc,
 } from "firebase/firestore";
 
 interface AuthContextType {
@@ -26,6 +28,7 @@ interface AuthContextType {
     lastName: string
   ) => Promise<UserCredential>;
   logout: () => Promise<void>;
+  deleteUser: () => Promise<void>;
   loading: boolean;
 }
 
@@ -163,11 +166,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function deleteUser() {
+    try {
+      if (!currentUser) return;
+
+      // Delete user data from Firestore
+      const db = getFirestore();
+      await deleteDoc(doc(db, "users", currentUser.uid));
+
+      // Delete the user account
+      await currentUser.delete();
+
+      console.log("User account deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting user:", error.code, error.message);
+      throw error;
+    }
+  }
+
   const value = {
     currentUser,
     login,
     signup,
     logout,
+    deleteUser,
     loading,
   };
 
