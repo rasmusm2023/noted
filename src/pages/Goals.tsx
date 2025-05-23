@@ -7,6 +7,7 @@ import type { Task } from "../types/task";
 import { Icon } from "@iconify/react";
 import { PageTransition } from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast, Toaster } from "react-hot-toast";
 
 type ProgressType = "percentage" | "numerical";
 
@@ -76,8 +77,10 @@ export function Goals() {
         currentStep: 0,
       });
       setShowForm(false);
+      toast.success("Goal created successfully!");
     } catch (error) {
       console.error("Error creating goal:", error);
+      toast.error("Failed to create goal");
     }
   };
 
@@ -109,8 +112,12 @@ export function Goals() {
             : goal
         )
       );
+      if (progress >= 100) {
+        toast.success("Goal completed! 🎉");
+      }
     } catch (error) {
       console.error("Error updating goal progress:", error);
+      toast.error("Failed to update progress");
     }
   };
 
@@ -120,20 +127,38 @@ export function Goals() {
       setGoals(goals.filter((goal) => goal.id !== goalId));
       const { [goalId]: removedTasks, ...remainingTasks } = tasks;
       setTasks(remainingTasks);
+      toast.success("Goal deleted successfully");
     } catch (error) {
       console.error("Error deleting goal:", error);
+      toast.error("Failed to delete goal");
     }
   };
 
   return (
     <PageTransition>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
       <div className="p-8">
         <div className="max-w-5xl mx-auto space-y-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-neu-800">Goals</h1>
+            <div className="flex items-center space-x-3">
+              <Icon
+                icon="mingcute:target-fill"
+                className="text-pri-pur-500 w-8 h-8"
+              />
+              <h1 className="text-3xl font-bold text-neu-gre-800">Goals</h1>
+            </div>
             <button
               onClick={() => setShowForm(!showForm)}
-              className="px-4 py-2 bg-pri-blue-500 text-neu-100 rounded-lg hover:bg-pri-blue-600 transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-pri-pur-500 text-neu-whi-100 rounded-lg hover:bg-pri-pur-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
             >
               <Icon
                 icon={showForm ? "mingcute:close-fill" : "mingcute:add-fill"}
@@ -150,11 +175,14 @@ export function Goals() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="bg-neu-800 rounded-lg p-6"
+                className="bg-neu-whi-100 rounded-5xl p-8 shadow-lg"
               >
-                <form onSubmit={handleCreateGoal} className="space-y-4">
+                <form onSubmit={handleCreateGoal} className="space-y-6">
                   <div>
-                    <label htmlFor="title" className="block text-neu-300 mb-2">
+                    <label
+                      htmlFor="title"
+                      className="block text-neu-gre-800 mb-2 font-medium"
+                    >
                       Title
                     </label>
                     <input
@@ -164,14 +192,14 @@ export function Goals() {
                       onChange={(e) =>
                         setNewGoal({ ...newGoal, title: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-neu-700 rounded-lg text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                      className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
                       required
                     />
                   </div>
                   <div>
                     <label
                       htmlFor="description"
-                      className="block text-neu-300 mb-2"
+                      className="block text-neu-gre-800 mb-2 font-medium"
                     >
                       Description
                     </label>
@@ -181,7 +209,7 @@ export function Goals() {
                       onChange={(e) =>
                         setNewGoal({ ...newGoal, description: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-neu-700 rounded-lg text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                      className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
                       rows={3}
                       required
                     />
@@ -189,7 +217,7 @@ export function Goals() {
                   <div>
                     <label
                       htmlFor="deadline"
-                      className="block text-neu-300 mb-2"
+                      className="block text-neu-gre-800 mb-2 font-medium"
                     >
                       Deadline
                     </label>
@@ -200,14 +228,13 @@ export function Goals() {
                       onChange={(e) =>
                         setNewGoal({ ...newGoal, deadline: e.target.value })
                       }
-                      className="w-full px-4 py-2 bg-neu-700 rounded-lg text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                      className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
                       required
                     />
                   </div>
 
-                  {/* Progress Type Selection */}
                   <div>
-                    <label className="block text-neu-300 mb-2">
+                    <label className="block text-neu-gre-800 mb-2 font-medium">
                       Progress Type
                     </label>
                     <div className="flex items-center space-x-4">
@@ -224,7 +251,7 @@ export function Goals() {
                           }
                           className="text-pri-pur-500 focus:ring-pri-pur-500"
                         />
-                        <span className="text-neu-100">Percentage</span>
+                        <span className="text-neu-gre-800">Percentage</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input
@@ -239,18 +266,17 @@ export function Goals() {
                           }
                           className="text-pri-pur-500 focus:ring-pri-pur-500"
                         />
-                        <span className="text-neu-100">Numerical</span>
+                        <span className="text-neu-gre-800">Numerical</span>
                       </label>
                     </div>
                   </div>
 
-                  {/* Numerical Progress Inputs */}
                   {newGoal.progressType === "numerical" && (
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label
                           htmlFor="totalSteps"
-                          className="block text-neu-300 mb-2"
+                          className="block text-neu-gre-800 mb-2 font-medium"
                         >
                           Total Steps
                         </label>
@@ -265,14 +291,14 @@ export function Goals() {
                               totalSteps: parseInt(e.target.value),
                             })
                           }
-                          className="w-full px-4 py-2 bg-neu-700 rounded-lg text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                          className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
                           required
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="currentStep"
-                          className="block text-neu-300 mb-2"
+                          className="block text-neu-gre-800 mb-2 font-medium"
                         >
                           Current Step
                         </label>
@@ -288,7 +314,7 @@ export function Goals() {
                               currentStep: parseInt(e.target.value),
                             })
                           }
-                          className="w-full px-4 py-2 bg-neu-700 rounded-lg text-neu-100 focus:outline-none focus:ring-2 focus:ring-pri-blue-500"
+                          className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
                           required
                         />
                       </div>
@@ -297,7 +323,7 @@ export function Goals() {
 
                   <button
                     type="submit"
-                    className="w-full px-4 py-2 bg-pri-blue-500 text-neu-100 rounded-lg hover:bg-pri-blue-600 transition-colors"
+                    className="w-full px-4 py-2 bg-pri-pur-500 text-neu-whi-100 rounded-lg hover:bg-pri-pur-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                   >
                     Create Goal
                   </button>
@@ -307,9 +333,11 @@ export function Goals() {
           </AnimatePresence>
 
           {isLoading ? (
-            <div className="text-neu-400">Loading goals...</div>
+            <div className="text-neu-gre-600 text-center py-8">
+              Loading goals...
+            </div>
           ) : goals.length === 0 ? (
-            <div className="text-neu-400 text-center py-8">
+            <div className="text-neu-gre-600 text-center py-8">
               No goals yet. Add some to get started!
             </div>
           ) : (
@@ -319,18 +347,20 @@ export function Goals() {
                   key={goal.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-neu-800 rounded-lg p-6 space-y-4"
+                  className="bg-neu-whi-100 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-xl font-semibold text-neu-100">
+                      <h3 className="text-xl font-semibold text-neu-gre-800">
                         {goal.title}
                       </h3>
-                      <p className="text-neu-400 mt-1">{goal.description}</p>
+                      <p className="text-neu-gre-600 mt-1">
+                        {goal.description}
+                      </p>
                     </div>
                     <button
                       onClick={() => handleDeleteGoal(goal.id)}
-                      className="text-neu-400 hover:text-neu-200 transition-colors"
+                      className="text-neu-gre-600 hover:text-sup-err-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
                     >
                       <Icon
                         icon="mingcute:delete-fill"
@@ -341,7 +371,7 @@ export function Goals() {
                   </div>
 
                   <div className="space-y-2">
-                    <div className="flex justify-between text-sm text-neu-400">
+                    <div className="flex justify-between text-sm text-neu-gre-600">
                       <span>Progress</span>
                       <span>
                         {goal.progressType === "numerical"
@@ -349,7 +379,7 @@ export function Goals() {
                           : `${goal.progress}%`}
                       </span>
                     </div>
-                    <div className="h-2 bg-neu-700 rounded-full overflow-hidden">
+                    <div className="h-2 bg-neu-gre-200 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-pri-pur-500 transition-all duration-300"
                         style={{
@@ -364,14 +394,14 @@ export function Goals() {
                   </div>
 
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-neu-400">
+                    <span className="text-neu-gre-600">
                       Due: {goal.deadline.toLocaleDateString()}
                     </span>
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
                         goal.status === "completed"
-                          ? "bg-sup-suc-500 text-white"
-                          : "bg-neu-700 text-neu-300"
+                          ? "bg-sup-suc-500 text-neu-whi-100"
+                          : "bg-neu-gre-200 text-neu-gre-800"
                       }`}
                     >
                       {goal.status}
@@ -391,7 +421,7 @@ export function Goals() {
                               goal.totalSteps
                             )
                           }
-                          className="px-3 py-1 bg-neu-700 text-neu-300 rounded hover:bg-neu-600 transition-colors"
+                          className="px-3 py-1 bg-neu-gre-200 text-neu-gre-800 rounded-lg hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                         >
                           -1 Step
                         </button>
@@ -405,7 +435,7 @@ export function Goals() {
                               goal.totalSteps
                             )
                           }
-                          className="px-3 py-1 bg-neu-700 text-neu-300 rounded hover:bg-neu-600 transition-colors"
+                          className="px-3 py-1 bg-neu-gre-200 text-neu-gre-800 rounded-lg hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                         >
                           +1 Step
                         </button>
@@ -419,7 +449,7 @@ export function Goals() {
                               Math.max(0, goal.progress - 10)
                             )
                           }
-                          className="px-3 py-1 bg-neu-700 text-neu-300 rounded hover:bg-neu-600 transition-colors"
+                          className="px-3 py-1 bg-neu-gre-200 text-neu-gre-800 rounded-lg hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                         >
                           -10%
                         </button>
@@ -430,7 +460,7 @@ export function Goals() {
                               Math.min(100, goal.progress + 10)
                             )
                           }
-                          className="px-3 py-1 bg-neu-700 text-neu-300 rounded hover:bg-neu-600 transition-colors"
+                          className="px-3 py-1 bg-neu-gre-200 text-neu-gre-800 rounded-lg hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                         >
                           +10%
                         </button>
@@ -440,11 +470,11 @@ export function Goals() {
 
                   {/* Associated Tasks */}
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-neu-300 mb-2">
+                    <h4 className="text-sm font-medium text-neu-gre-800 mb-2">
                       Associated Tasks
                     </h4>
                     {tasks[goal.id]?.length === 0 ? (
-                      <p className="text-neu-400 text-sm">
+                      <p className="text-neu-gre-600 text-sm">
                         No tasks associated with this goal yet.
                       </p>
                     ) : (
@@ -452,13 +482,13 @@ export function Goals() {
                         {tasks[goal.id]?.map((task) => (
                           <li
                             key={task.id}
-                            className="flex items-center justify-between bg-neu-700 rounded-lg p-2"
+                            className="flex items-center justify-between bg-neu-gre-100 rounded-lg p-2"
                           >
                             <span
                               className={`text-sm ${
                                 task.completed
-                                  ? "line-through text-neu-400"
-                                  : "text-neu-100"
+                                  ? "line-through text-neu-gre-500"
+                                  : "text-neu-gre-800"
                               }`}
                             >
                               {task.title}
@@ -466,8 +496,8 @@ export function Goals() {
                             <span
                               className={`px-2 py-1 rounded-full text-xs ${
                                 task.completed
-                                  ? "bg-sup-suc-500 text-white"
-                                  : "bg-neu-600 text-neu-300"
+                                  ? "bg-sup-suc-500 text-neu-whi-100"
+                                  : "bg-neu-gre-200 text-neu-gre-800"
                               }`}
                             >
                               {task.completed ? "Done" : "In Progress"}
