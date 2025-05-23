@@ -1,5 +1,6 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useEffect, useState } from "react";
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -7,17 +8,24 @@ interface PrivateRouteProps {
 
 export function PrivateRoute({ children }: PrivateRouteProps) {
   const { currentUser, loading } = useAuth();
+  const location = useLocation();
+  const [isChecking, setIsChecking] = useState(true);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-neu-900 flex items-center justify-center">
-        <div className="text-neu-400">Loading...</div>
-      </div>
-    );
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => {
+        setIsChecking(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  if (loading || isChecking) {
+    return null;
   }
 
   if (!currentUser) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

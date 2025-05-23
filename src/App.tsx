@@ -7,11 +7,12 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ListProvider } from "./contexts/ListContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Layout } from "./components/Layout/Layout";
 import { Login } from "./pages/Login";
+import { LoginCentered } from "./alt-designs/LoginCentered";
 import { Dashboard } from "./pages/Dashboard";
 import { ListPage } from "./pages/ListPage";
 import { PrivateRoute } from "./components/PrivateRoute";
@@ -28,12 +29,13 @@ function AnimatedRoutes() {
   const [isLoading, setIsLoading] = useState(true);
   const [minimumLoadingTime, setMinimumLoadingTime] = useState(true);
   const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     // Start loading timer
     loadingTimerRef.current = setTimeout(() => {
       setMinimumLoadingTime(false);
-    }, 1500);
+    }, 500);
 
     // Cleanup
     return () => {
@@ -50,15 +52,23 @@ function AnimatedRoutes() {
     }
   }, [minimumLoadingTime]);
 
+  // Skip loading screen for login page
+  const shouldShowLoading =
+    isLoading && minimumLoadingTime && location.pathname !== "/login";
+
   return (
     <>
       <AnimatePresence mode="wait">
-        {(isLoading || minimumLoadingTime) && <LoadingScreen />}
+        {shouldShowLoading && <LoadingScreen />}
       </AnimatePresence>
       <AnimatePresence mode="wait">
-        {!isLoading && !minimumLoadingTime && (
+        {(!isLoading ||
+          !minimumLoadingTime ||
+          location.pathname === "/login" ||
+          location.pathname === "/login-centered") && (
           <Routes location={location} key={location.pathname}>
             <Route path="/login" element={<Login />} />
+            <Route path="/login-centered" element={<LoginCentered />} />
             <Route
               path="/"
               element={

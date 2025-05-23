@@ -11,15 +11,15 @@ module.exports = {
         },
         gradientMove: {
           "0%": { backgroundPosition: "0% 0%" },
-          "25%": { backgroundPosition: "100% 0%" },
-          "50%": { backgroundPosition: "100% 100%" },
-          "75%": { backgroundPosition: "0% 100%" },
+          "25%": { backgroundPosition: "100% 50%" },
+          "50%": { backgroundPosition: "50% 100%" },
+          "75%": { backgroundPosition: "0% 50%" },
           "100%": { backgroundPosition: "0% 0%" },
         },
       },
       animation: {
         fadeIn: "fadeIn 0.2s ease-out forwards",
-        gradientMove: "gradientMove 30s linear infinite",
+        gradientMove: "gradientMove 10s ease-in-out infinite",
       },
       fontFamily: {
         inter: ["Inter", "sans-serif"],
@@ -317,6 +317,8 @@ module.exports = {
           "linear-gradient(90deg, theme(colors.sec-rose.500) 0%, theme(colors.sec-pea.500) 50%, theme(colors.sec-rose.500) 100%)",
         "gradient-rose-peach-75":
           "linear-gradient(90deg, rgba(239, 112, 155, 0.75) 0%, rgba(250, 147, 114, 0.75) 100%)",
+        "gradient-purple-rose-peach":
+          "linear-gradient(90deg, theme(colors.pri-pur.500) 0%, theme(colors.sec-rose.500) 50%, theme(colors.sec-pea.500) 100%)",
       },
     },
   },

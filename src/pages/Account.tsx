@@ -26,6 +26,9 @@ interface UserDetails {
   lastName: string;
   createdAt: string;
   selectedAvatar?: number;
+  photoURL?: string | null;
+  authProvider?: string;
+  useGooglePhoto?: boolean;
 }
 
 const avatars = [
@@ -115,9 +118,19 @@ export function Account() {
 
     try {
       const db = getFirestore();
-      await updateDoc(doc(db, "users", currentUser.uid), {
-        selectedAvatar: avatarId,
-      });
+      if (avatarId === 0) {
+        // If selecting Google photo, update to use photoURL
+        await updateDoc(doc(db, "users", currentUser.uid), {
+          selectedAvatar: 0,
+          useGooglePhoto: true,
+        });
+      } else {
+        // If selecting custom avatar, update to use that and disable Google photo
+        await updateDoc(doc(db, "users", currentUser.uid), {
+          selectedAvatar: avatarId,
+          useGooglePhoto: false,
+        });
+      }
 
       setSelectedAvatar(avatarId);
       setUserDetails((prev) =>
@@ -125,6 +138,7 @@ export function Account() {
           ? {
               ...prev,
               selectedAvatar: avatarId,
+              useGooglePhoto: avatarId === 0,
             }
           : null
       );
@@ -393,11 +407,19 @@ export function Account() {
                   transition={{ duration: 0.2 }}
                   className="relative"
                 >
-                  <img
-                    src={avatars.find((a) => a.id === selectedAvatar)?.src}
-                    alt="Current profile avatar"
-                    className="w-32 h-32 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  />
+                  {selectedAvatar === 0 && userDetails?.photoURL ? (
+                    <img
+                      src={userDetails.photoURL}
+                      alt="Current profile avatar"
+                      className="w-32 h-32 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={avatars.find((a) => a.id === selectedAvatar)?.src}
+                      alt="Current profile avatar"
+                      className="w-32 h-32 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    />
+                  )}
                   <div
                     className="absolute -bottom-2 -right-2 bg-pri-pur-500 text-neu-whi-100 p-2 rounded-md shadow-lg"
                     role="presentation"
@@ -422,6 +444,28 @@ export function Account() {
                     role="radiogroup"
                     aria-labelledby="avatar-selection-label"
                   >
+                    {userDetails?.photoURL && (
+                      <motion.button
+                        onClick={() => handleAvatarSelect(0)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`p-1 rounded-md transition-all focus:outline-none focus:ring-4 focus:ring-pri-focus-500 ${
+                          selectedAvatar === 0
+                            ? "bg-pri-pur-500 ring-4 ring-pri-pur-400 shadow-lg"
+                            : "bg-neu-gre-200 hover:bg-neu-gre-300"
+                        }`}
+                        role="radio"
+                        aria-checked={selectedAvatar === 0}
+                        aria-label="Select Google profile picture"
+                      >
+                        <img
+                          src={userDetails.photoURL}
+                          alt=""
+                          className="w-full h-auto rounded-sm object-cover aspect-square"
+                          aria-hidden="true"
+                        />
+                      </motion.button>
+                    )}
                     {avatars.map((avatar) => (
                       <motion.button
                         key={avatar.id}
@@ -430,7 +474,7 @@ export function Account() {
                         whileTap={{ scale: 0.95 }}
                         className={`p-1 rounded-md transition-all focus:outline-none focus:ring-4 focus:ring-pri-focus-500 ${
                           selectedAvatar === avatar.id
-                            ? "bg-pri-pur-500 ring-2 ring-pri-pur-400 shadow-lg"
+                            ? "bg-pri-pur-500 ring-4 ring-pri-pur-400 shadow-lg"
                             : "bg-neu-gre-200 hover:bg-neu-gre-300"
                         }`}
                         role="radio"

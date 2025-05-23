@@ -83,6 +83,9 @@ interface UserDetails {
   firstName: string;
   selectedAvatar?: number;
   createdAt: string;
+  photoURL?: string | null;
+  authProvider?: string;
+  useGooglePhoto?: boolean;
 }
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
@@ -133,6 +136,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             firstName: data.firstName || "",
             selectedAvatar: data.selectedAvatar || 1,
             createdAt: data.createdAt || "",
+            photoURL: data.photoURL || undefined,
+            authProvider: data.authProvider || undefined,
+            useGooglePhoto: data.useGooglePhoto || false,
           });
         }
       } catch (err) {
@@ -153,6 +159,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             setUserDetails((prev) => ({
               ...prev,
               selectedAvatar: data.selectedAvatar || 1,
+              photoURL: data.photoURL || undefined,
+              useGooglePhoto: data.useGooglePhoto || false,
             }));
           }
         }
@@ -423,12 +431,21 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               aria-haspopup="true"
               aria-label="User profile menu"
             >
-              <img
-                src={avatars[(userDetails.selectedAvatar || 1) - 1].src}
-                alt=""
-                className="w-8 h-8 rounded-md"
-                aria-hidden="true"
-              />
+              {userDetails?.useGooglePhoto && userDetails?.photoURL ? (
+                <img
+                  src={userDetails.photoURL}
+                  alt=""
+                  className="w-8 h-8 rounded-md object-cover"
+                  aria-hidden="true"
+                />
+              ) : (
+                <img
+                  src={avatars[(userDetails?.selectedAvatar || 1) - 1].src}
+                  alt=""
+                  className="w-8 h-8 rounded-md"
+                  aria-hidden="true"
+                />
+              )}
               {isOpen && (
                 <div className="flex-1 min-w-0 ml-3">
                   <p className="text-base font-medium truncate">

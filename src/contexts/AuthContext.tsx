@@ -6,6 +6,8 @@ import {
   signOut,
   onAuthStateChanged,
   deleteUser,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 import {
@@ -27,6 +29,7 @@ interface AuthContextType {
     firstName: string,
     lastName: string
   ) => Promise<UserCredential>;
+  loginWithGoogle: () => Promise<UserCredential>;
   logout: () => Promise<void>;
   deleteUser: () => Promise<void>;
   loading: boolean;
@@ -59,6 +62,7 @@ function getCETTimeZone(): string {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -68,14 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const userData = userDoc.data();
 
-        console.log("=== User Authentication Status ===");
-        console.log(`User logged in: ${user.email}`);
-        console.log(`User ID: ${user.uid}`);
-        console.log(`Current timezone: ${userData?.timezone || "Not set"}`);
-
         if (userDoc.exists() && !userData?.timezone) {
           const timezone = getCETTimeZone();
-          console.log(`Setting timezone for user ${user.email} to ${timezone}`);
           await setDoc(
             doc(db, "users", user.uid),
             {
@@ -83,14 +81,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             },
             { merge: true }
           );
-          console.log("Timezone updated successfully");
         }
-      } else {
-        console.log("=== User Authentication Status ===");
-        console.log("No user logged in");
       }
       setCurrentUser(user);
       setLoading(false);
+      setIsInitialized(true);
     });
 
     return () => unsubscribe();
@@ -101,16 +96,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string
   ): Promise<UserCredential> {
     try {
-      console.log(`Attempting login for user: ${email}`);
+      setLoading(true);
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
-      console.log("Login successful");
+
+      // Wait for the auth state to be updated
+      await new Promise<void>((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (user) {
+            unsubscribe();
+            resolve();
+          }
+        });
+      });
+
       return userCredential;
     } catch (error: any) {
-      console.error("Login error:", error.code, error.message);
+      setLoading(false);
       throw error;
     }
   }
@@ -122,7 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     lastName: string
   ): Promise<UserCredential> {
     try {
-      console.log(`Creating new account for: ${email}`);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -131,9 +135,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Get the appropriate timezone
       const timezone = getCETTimeZone();
-      console.log(
-        `Setting default timezone for new user ${email} to ${timezone}`
-      );
 
       // Initialize Firestore and store user profile data
       const db = getFirestore();
@@ -144,24 +145,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         createdAt: new Date().toISOString(),
         timezone: timezone,
       });
-      console.log("User profile created successfully");
 
       return userCredential;
     } catch (error: any) {
-      console.error("Signup error:", error.code, error.message);
       throw error;
     }
   }
 
   async function logout() {
     try {
-      if (currentUser) {
-        console.log(`Logging out user: ${currentUser.email}`);
-      }
       await signOut(auth);
-      console.log("Logout successful");
     } catch (error: any) {
-      console.error("Logout error:", error.code, error.message);
       throw error;
     }
   }
@@ -176,10 +170,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Delete the user account
       await currentUser.delete();
-
-      console.log("User account deleted successfully");
     } catch (error: any) {
-      console.error("Error deleting user:", error.code, error.message);
+      throw error;
+    }
+  }
+
+  async function loginWithGoogle(): Promise<UserCredential> {
+    try {
+      setLoading(true);
+      const provider = new GoogleAuthProvider();
+      // Request additional scopes for profile picture
+      provider.addScope("profile");
+      const userCredential = await signInWithPopup(auth, provider);
+
+      // Check if this is a new user
+      const db = getFirestore();
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+
+      if (!userDoc.exists()) {
+        // If it's a new user, create their profile
+        const displayName = userCredential.user.displayName || "";
+        const [firstName = "", lastName = ""] = displayName.split(" ");
+        const photoURL = userCredential.user.photoURL || null;
+
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          email: userCredential.user.email,
+          firstName: firstName,
+          lastName: lastName,
+          createdAt: new Date().toISOString(),
+          timezone: getCETTimeZone(),
+          photoURL: photoURL,
+          authProvider: "google",
+        });
+      } else {
+        // Update existing user's photo URL if they're using Google auth
+        const userData = userDoc.data();
+        if (
+          userData?.authProvider === "google" &&
+          userCredential.user.photoURL
+        ) {
+          await setDoc(
+            doc(db, "users", userCredential.user.uid),
+            {
+              photoURL: userCredential.user.photoURL,
+            },
+            { merge: true }
+          );
+        }
+      }
+
+      return userCredential;
+    } catch (error: any) {
+      setLoading(false);
       throw error;
     }
   }
@@ -188,14 +230,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     currentUser,
     login,
     signup,
+    loginWithGoogle,
     logout,
     deleteUser,
-    loading,
+    loading: loading || !isInitialized,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
