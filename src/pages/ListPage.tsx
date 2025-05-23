@@ -6,6 +6,197 @@ import { listService } from "../services/listService";
 import { listItemService } from "../services/listItemService";
 import type { ListItem } from "../services/listItemService";
 import { Icon } from "@iconify/react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
+
+type DragItem = {
+  id: string;
+  index: number;
+  item: ListItem;
+};
+
+const DraggableListItem = ({
+  item,
+  index,
+  moveItem,
+  onToggle,
+  onDelete,
+}: {
+  item: ListItem;
+  index: number;
+  moveItem: (dragIndex: number, hoverIndex: number) => void;
+  onToggle: (itemId: string, completed: boolean) => void;
+  onDelete: (itemId: string) => void;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [{ isDragging }, drag] = useDrag({
+    type: "LIST_ITEM",
+    item: { id: item.id, index, item },
+    collect: (monitor: DragSourceMonitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const [{ isOver, canDrop, dropPosition }, drop] = useDrop<
+    DragItem,
+    void,
+    {
+      isOver: boolean;
+      canDrop: boolean;
+      dropPosition: "before" | "after" | null;
+    }
+  >({
+    accept: "LIST_ITEM",
+    collect: (monitor: DropTargetMonitor) => {
+      const isOver = monitor.isOver();
+      const canDrop = monitor.canDrop();
+      const clientOffset = monitor.getClientOffset();
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+
+      let dropPosition: "before" | "after" | null = null;
+      if (isOver && hoverBoundingRect && clientOffset) {
+        const hoverMiddleY =
+          (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+        dropPosition = hoverClientY < hoverMiddleY * 0.8 ? "before" : "after";
+      }
+
+      return { isOver, canDrop, dropPosition };
+    },
+    canDrop: (draggedItem: DragItem) => !(draggedItem.id === item.id),
+    hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
+      if (!ref.current) return;
+
+      const dragIndex = draggedItem.index;
+      const hoverIndex = index;
+
+      if (dragIndex === hoverIndex) return;
+
+      const hoverBoundingRect = ref.current.getBoundingClientRect();
+      const hoverMiddleY =
+        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
+
+      const dropThreshold = hoverMiddleY * 0.8;
+
+      if (dragIndex < hoverIndex && hoverClientY < dropThreshold) return;
+      if (dragIndex > hoverIndex && hoverClientY > dropThreshold) return;
+
+      moveItem(dragIndex, hoverIndex);
+      draggedItem.index = hoverIndex;
+    },
+  });
+
+  drag(drop(ref));
+
+  const opacity = isDragging ? 0.4 : 1;
+
+  const getDropZoneStyles = () => {
+    if (!isOver || !canDrop) return {};
+
+    const baseStyle = {
+      position: "relative" as const,
+      transition: "all 0.2s ease-in-out",
+    };
+
+    if (dropPosition === "before") {
+      return {
+        ...baseStyle,
+        borderTop: "2px solid theme(colors.pri-pur.500)",
+        marginTop: "2px",
+      };
+    } else if (dropPosition === "after") {
+      return {
+        ...baseStyle,
+        borderBottom: "2px solid theme(colors.pri-pur.500)",
+        marginBottom: "2px",
+      };
+    }
+
+    return baseStyle;
+  };
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity,
+        ...getDropZoneStyles(),
+      }}
+      className={`transition-all duration-200 ${
+        isDragging ? "cursor-grabbing" : "cursor-grab"
+      } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
+      role="button"
+      tabIndex={0}
+      aria-grabbed={isDragging}
+      aria-dropeffect="move"
+    >
+      <div
+        key={item.id}
+        role="listitem"
+        className={`flex items-center gap-3 p-2 rounded-lg border-2 transition-all duration-300 ${
+          item.completed
+            ? "bg-pri-pur-400 bg-opacity-50 border-pri-pur-800/30"
+            : "bg-neu-gre-200 border-neu-gre-400/30 hover:border-neu-gre-500"
+        }`}
+      >
+        <button
+          onClick={() => onToggle(item.id, !item.completed)}
+          className={`transition-all duration-300 flex items-center justify-center ${
+            item.completed
+              ? "text-pri-pur-800 hover:text-pri-pur-700 scale-95"
+              : "text-neu-gre-800 hover:text-pri-pur-500 hover:scale-95"
+          } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md p-1`}
+          aria-label={`Mark item "${item.text}" as ${
+            item.completed ? "incomplete" : "complete"
+          }`}
+          aria-pressed={item.completed}
+        >
+          {item.completed ? (
+            <Icon
+              icon="mingcute:check-2-fill"
+              className="w-6 h-6"
+              aria-hidden="true"
+            />
+          ) : (
+            <Icon
+              icon="mingcute:round-line"
+              className="w-6 h-6"
+              aria-hidden="true"
+            />
+          )}
+        </button>
+        <span
+          className={`flex-1 font-inter text-base font-medium ${
+            item.completed
+              ? "text-pri-pur-800 line-through"
+              : "text-neu-gre-800"
+          }`}
+          aria-label={item.completed ? `${item.text} (completed)` : item.text}
+        >
+          {item.text}
+        </span>
+        <button
+          onClick={() => onDelete(item.id)}
+          className={`p-1 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md ${
+            item.completed
+              ? "text-pri-pur-800 hover:text-pri-pur-700"
+              : "text-neu-gre-600 hover:text-sup-err-400"
+          }`}
+          aria-label={`Delete item "${item.text}"`}
+        >
+          <Icon
+            icon="mingcute:delete-2-fill"
+            className="w-5 h-5"
+            aria-hidden="true"
+          />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export function ListPage() {
   const { listId } = useParams<{ listId: string }>();
@@ -165,6 +356,26 @@ export function ListPage() {
     }
   };
 
+  const moveItem = async (dragIndex: number, hoverIndex: number) => {
+    const newItems = [...listItems];
+    const [movedItem] = newItems.splice(dragIndex, 1);
+    newItems.splice(hoverIndex, 0, movedItem);
+
+    // Update state immediately
+    setListItems(newItems);
+
+    // Save the new order to the database
+    try {
+      if (currentUser && listId) {
+        await listItemService.updateListItemsOrder(listId, newItems);
+      }
+    } catch (error) {
+      console.error("Error saving item order:", error);
+      // Revert state changes if the database update fails
+      setListItems(listItems);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-8">
@@ -192,11 +403,12 @@ export function ListPage() {
   }
 
   return (
-    <div className="p-8 font-inter">
-      <div className="max-w-4xl mx-auto">
-        <div className="max-w-4xl mx-auto rounded-5xl p-[4px] bg-gradient-to-r from-[rgba(147,51,234,0.5)] to-[rgba(168,85,247,0.5)]">
+    <DndProvider backend={HTML5Backend}>
+      <div className="mt-16 font-inter">
+        <div className="max-w-4xl mx-auto">
           <div className="bg-neu-whi-100 rounded-5xl pl-16 pr-16 pt-16 pb-16 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
-            <div className="flex justify-between items-center mb-16">
+            <div className="text-sm text-neu-gre-600 mb-2">List title</div>
+            <div className="flex justify-between items-center mb-8">
               {isEditingName ? (
                 <div
                   className="flex items-center space-x-3 flex-1 bg-neu-gre-200 rounded-md p-4"
@@ -258,7 +470,7 @@ export function ListPage() {
               )}
               <button
                 onClick={handleDeleteList}
-                className="ml-4 px-4 py-2 bg-neu-whi-100 font-medium font-inter text-neu-gre-800 rounded-md hover:bg-sup-err-400 hover:text-neu-whi-100 transition-colors duration-200 font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 flex items-center gap-2"
+                className="ml-4 px-4 py-2 bg-neu-whi-100 font-medium text-neu-gre-800 rounded-md hover:bg-sup-err-400 hover:text-neu-whi-100 transition-colors duration-200 font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 flex items-center gap-2"
                 tabIndex={1001}
                 onFocus={() => console.log("Focused: Delete list button")}
               >
@@ -269,10 +481,11 @@ export function ListPage() {
 
             <form
               onSubmit={handleAddItem}
-              className="mb-4"
+              className="mb-16"
               role="form"
               aria-label="Add new item"
             >
+              <div className="text-sm text-neu-gre-600 mb-2">New item</div>
               <div className="flex gap-4">
                 <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 rounded-md px-4 py-2 ring-2 ring-pri-pur-500/25 focus-within:ring-2 focus-within:ring-pri-pur-500/75 transition-all duration-200 ease-in-out">
                   <div className="flex items-center justify-center">
@@ -291,7 +504,7 @@ export function ListPage() {
                       if (e.key === "Escape") setNewItemText("");
                     }}
                     onFocus={() => console.log("Focused: New item input")}
-                    placeholder="Add new item..."
+                    placeholder="Add item..."
                     className="flex-1 bg-transparent py-2 font-inter text-base text-neu-gre-800 placeholder-neu-gre-600 focus:outline-none"
                     aria-label="New item text"
                     tabIndex={1002}
@@ -299,7 +512,7 @@ export function ListPage() {
                 </div>
                 <button
                   type="submit"
-                  className="px-16 py-4 text-base bg-pri-pur-500 font-inter font-medium text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md flex items-center gap-2"
+                  className="px-16 py-4 text-base bg-pri-pur-500 font-inter font-medium text-neu-whi-100 hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md flex items-center gap-2"
                   aria-label="Add new item to list"
                   tabIndex={1003}
                   onFocus={() => console.log("Focused: Add item button")}
@@ -310,89 +523,33 @@ export function ListPage() {
                     height={20}
                     aria-hidden="true"
                   />
-                  Add item
+                  Add to list
                 </button>
               </div>
             </form>
 
+            <div className="text-sm text-neu-gre-600 mb-2">Listed items</div>
             <div className="space-y-3">
-              {listItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  role="listitem"
-                  className={`flex items-center gap-3 p-2 rounded-lg border-2 transition-all duration-300 ${
-                    item.completed
-                      ? "bg-pri-pur-400 bg-opacity-50 border-pri-pur-800/30"
-                      : "bg-neu-gre-200 border-neu-gre-400/30 hover:border-neu-gre-500"
-                  }`}
-                >
-                  <button
-                    onClick={() => handleToggleItem(item.id, !item.completed)}
-                    className={`transition-all duration-300 flex items-center justify-center ${
-                      item.completed
-                        ? "text-pri-pur-800 hover:text-pri-pur-700 scale-95"
-                        : "text-neu-gre-800 hover:text-pri-pur-500 hover:scale-95"
-                    } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md p-1`}
-                    aria-label={`Mark item "${item.text}" as ${
-                      item.completed ? "incomplete" : "complete"
-                    }`}
-                    aria-pressed={item.completed}
-                    tabIndex={1004 + index * 2}
-                    onFocus={() =>
-                      console.log(`Focused: Toggle item ${index + 1} button`)
-                    }
-                  >
-                    {item.completed ? (
-                      <Icon
-                        icon="mingcute:check-2-fill"
-                        className="w-6 h-6"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Icon
-                        icon="mingcute:round-line"
-                        className="w-6 h-6"
-                        aria-hidden="true"
-                      />
-                    )}
-                  </button>
-                  <span
-                    className={`flex-1 font-inter text-base font-medium ${
-                      item.completed
-                        ? "text-pri-pur-800 line-through"
-                        : "text-neu-gre-800"
-                    }`}
-                    aria-label={
-                      item.completed ? `${item.text} (completed)` : item.text
-                    }
-                  >
-                    {item.text}
-                  </span>
-                  <button
-                    onClick={() => handleDeleteItem(item.id)}
-                    className={`p-1 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md ${
-                      item.completed
-                        ? "text-pri-pur-800 hover:text-pri-pur-700"
-                        : "text-neu-gre-600 hover:text-sup-err-400"
-                    }`}
-                    aria-label={`Delete item "${item.text}"`}
-                    tabIndex={1005 + index * 2}
-                    onFocus={() =>
-                      console.log(`Focused: Delete item ${index + 1} button`)
-                    }
-                  >
-                    <Icon
-                      icon="mingcute:delete-2-fill"
-                      className="w-5 h-5"
-                      aria-hidden="true"
-                    />
-                  </button>
+              {listItems.length === 0 ? (
+                <div className="text-neu-gre-600 text-center py-8 bg-transparent rounded-lg">
+                  There are no items in this list yet. Add some items above.
                 </div>
-              ))}
+              ) : (
+                listItems.map((item, index) => (
+                  <DraggableListItem
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    moveItem={moveItem}
+                    onToggle={handleToggleItem}
+                    onDelete={handleDeleteItem}
+                  />
+                ))
+              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </DndProvider>
   );
 }

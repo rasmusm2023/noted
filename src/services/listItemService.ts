@@ -8,6 +8,7 @@ import {
   getDocs,
   query,
   where,
+  writeBatch,
 } from "firebase/firestore";
 
 export interface ListItem {
@@ -16,6 +17,7 @@ export interface ListItem {
   completed: boolean;
   listId: string;
   userId: string;
+  order?: number;
 }
 
 export const listItemService = {
@@ -66,8 +68,15 @@ export const listItemService = {
           } as ListItem)
       );
 
-      console.log("Found items:", items);
-      return items;
+      // Sort items by order field, defaulting to 0 if order is not set
+      const sortedItems = items.sort((a, b) => {
+        const orderA = a.order ?? 0;
+        const orderB = b.order ?? 0;
+        return orderA - orderB;
+      });
+
+      console.log("Found items:", sortedItems);
+      return sortedItems;
     } catch (error) {
       console.error("Error getting list items:", error);
       throw error;
@@ -100,5 +109,16 @@ export const listItemService = {
       console.error("Error deleting item:", error);
       throw error;
     }
+  },
+
+  async updateListItemsOrder(listId: string, items: ListItem[]): Promise<void> {
+    const batch = writeBatch(db);
+
+    items.forEach((item, index) => {
+      const itemRef = doc(db, "lists", listId, "items", item.id);
+      batch.update(itemRef, { order: index });
+    });
+
+    await batch.commit();
   },
 };
