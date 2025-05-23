@@ -17,6 +17,7 @@
     "@types/react-dnd": "^3.0.2",
     "@types/react-transition-group": "^4.4.12",
     "canvas-confetti": "^1.9.3",
+    "date-fns": "^4.1.0",
     "firebase": "^11.6.1",
     "framer-motion": "^12.11.3",
     "react": "^19.1.0",

@@ -15,7 +15,7 @@ export interface Goal {
   userId: string;
   title: string;
   description: string;
-  deadline: Date;
+  deadline: Date | null;
   progress: number;
   progressType: "percentage" | "numerical";
   totalSteps: number;
@@ -72,7 +72,7 @@ export const goalService = {
     return querySnapshot.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
-      deadline: doc.data().deadline.toDate(),
+      deadline: doc.data().deadline?.toDate(),
       createdAt: doc.data().createdAt.toDate(),
       updatedAt: doc.data().updatedAt.toDate(),
     })) as Goal[];

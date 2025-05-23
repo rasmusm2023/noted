@@ -8,29 +8,197 @@ import { Icon } from "@iconify/react";
 import { PageTransition } from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import {
+  format,
+  isToday,
+  parseISO,
+  parse,
+  getYear,
+  getMonth,
+  getDate,
+} from "date-fns";
 
 type ProgressType = "percentage" | "numerical";
 
+const generateDateOptions = () => {
+  const currentYear = getYear(new Date());
+  const years = Array.from({ length: 10 }, (_, i) => currentYear + i);
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
+  return { years, months, days };
+};
+
+const DatePicker = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (date: string) => void;
+}) => {
+  const { years, months, days } = generateDateOptions();
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedDay, setSelectedDay] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+
+  useEffect(() => {
+    if (value) {
+      try {
+        const date = parse(value, "MMMM d, yyyy", new Date());
+        setSelectedMonth(months[getMonth(date)]);
+        setSelectedDay(getDate(date).toString());
+        setSelectedYear(getYear(date).toString());
+      } catch (e) {
+        // If parsing fails, reset the fields
+        setSelectedMonth("");
+        setSelectedDay("");
+        setSelectedYear("");
+      }
+    }
+  }, [value]);
+
+  const handleChange = (month: string, day: string, year: string) => {
+    if (
+      month &&
+      day &&
+      year &&
+      month !== "Month" &&
+      day !== "Day" &&
+      year !== "Year"
+    ) {
+      const dateStr = `${month} ${day}, ${year}`;
+      onChange(dateStr);
+    } else {
+      onChange("None, no stress");
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <select
+          value={selectedMonth}
+          onChange={(e) => {
+            setSelectedMonth(e.target.value);
+            handleChange(e.target.value, selectedDay, selectedYear);
+          }}
+          className="flex-1 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+        >
+          <option value="Month">Month</option>
+          {months.map((month) => (
+            <option key={month} value={month}>
+              {month}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedDay}
+          onChange={(e) => {
+            setSelectedDay(e.target.value);
+            handleChange(selectedMonth, e.target.value, selectedYear);
+          }}
+          className="w-24 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+        >
+          <option value="Day">Day</option>
+          {days.map((day) => (
+            <option key={day} value={day}>
+              {day}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedYear}
+          onChange={(e) => {
+            setSelectedYear(e.target.value);
+            handleChange(selectedMonth, selectedDay, e.target.value);
+          }}
+          className="w-28 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+        >
+          <option value="Year">Year</option>
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+      </div>
+      <p className="text-sm text-neu-gre-500">
+        No rush, unless you want to! 😉
+      </p>
+    </div>
+  );
+};
+
+const GOAL_PLACEHOLDERS = [
+  "Move daily 🏃‍♂️",
+  "Build a reading habit 📚",
+  "Stick to a sleep routine 😴",
+  "Keep my space tidy 🧹",
+  "Limit screen time 📵",
+  "Work on my side project 🛠️",
+  "Practice mindfulness 🧘‍♀️",
+  "Cook more at home 🍳",
+  "Strengthen relationships ❤️",
+  "Be more organized 🗂️",
+  "Write something every day ✍️",
+  "Level up my skills 🚀",
+  "Stay hydrated 💧",
+  "Track my spending 💸",
+  "Spend more time outside 🌿",
+];
+
 export function Goals() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tasks, setTasks] = useState<Record<string, Task[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
   const [newGoal, setNewGoal] = useState({
     title: "",
     description: "",
     deadline: "",
     progressType: "percentage" as ProgressType,
     totalSteps: 10,
-    currentStep: 0,
   });
+  const [titlePlaceholder, setTitlePlaceholder] = useState("");
 
   useEffect(() => {
     if (currentUser) {
       loadGoals();
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    // Set initial placeholder when component mounts
+    setTitlePlaceholder(
+      GOAL_PLACEHOLDERS[Math.floor(Math.random() * GOAL_PLACEHOLDERS.length)]
+    );
+  }, []);
+
+  // Update placeholder when form is shown
+  useEffect(() => {
+    if (showForm) {
+      setTitlePlaceholder(
+        GOAL_PLACEHOLDERS[Math.floor(Math.random() * GOAL_PLACEHOLDERS.length)]
+      );
+    }
+  }, [showForm]);
 
   const loadGoals = async () => {
     if (!currentUser) return;
@@ -57,13 +225,23 @@ export function Goals() {
     if (!currentUser) return;
 
     try {
+      let parsedDate: Date | null = null;
+      if (newGoal.deadline && newGoal.deadline !== "None, no stress") {
+        try {
+          parsedDate = parse(newGoal.deadline, "MMMM d, yyyy", new Date());
+        } catch (e) {
+          console.error("Error parsing date:", e);
+        }
+      }
+
       const goal = await goalService.createGoal(currentUser.uid, {
         ...newGoal,
-        deadline: new Date(newGoal.deadline),
+        currentStep: 0,
+        deadline: parsedDate,
         progress:
           newGoal.progressType === "percentage"
             ? 0
-            : (newGoal.currentStep / newGoal.totalSteps) * 100,
+            : (0 / newGoal.totalSteps) * 100,
         status: "active",
       });
       setGoals([...goals, goal]);
@@ -74,7 +252,6 @@ export function Goals() {
         deadline: "",
         progressType: "percentage",
         totalSteps: 10,
-        currentStep: 0,
       });
       setShowForm(false);
       toast.success("Goal created successfully!");
@@ -99,6 +276,19 @@ export function Goals() {
         currentStep,
         totalSteps
       );
+
+      // Check if goal is completed after updating progress
+      const isCompleted =
+        progress >= 100 ||
+        (currentStep !== undefined &&
+          totalSteps !== undefined &&
+          currentStep >= totalSteps);
+
+      // Update the goal's status in the database
+      if (isCompleted) {
+        await goalService.updateGoal(goalId, { status: "completed" });
+      }
+
       setGoals(
         goals.map((goal) =>
           goal.id === goalId
@@ -107,12 +297,13 @@ export function Goals() {
                 progress,
                 currentStep: currentStep ?? goal.currentStep,
                 totalSteps: totalSteps ?? goal.totalSteps,
-                status: progress >= 100 ? "completed" : "active",
+                status: isCompleted ? "completed" : "active",
               }
             : goal
         )
       );
-      if (progress >= 100) {
+
+      if (isCompleted) {
         toast.success("Goal completed! 🎉");
       }
     } catch (error) {
@@ -134,6 +325,70 @@ export function Goals() {
     }
   };
 
+  const handleTaskClick = (task: Task) => {
+    if (isToday(task.date)) {
+      navigate("/dashboard");
+    } else {
+      navigate("/next7days");
+    }
+  };
+
+  const handleEditGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser || !editingGoalId) return;
+
+    try {
+      const goalToUpdate = goals.find((g) => g.id === editingGoalId);
+      if (!goalToUpdate) return;
+
+      let parsedDate: Date | null = null;
+      if (newGoal.deadline && newGoal.deadline !== "None, no stress") {
+        try {
+          parsedDate = parse(newGoal.deadline, "MMMM d, yyyy", new Date());
+        } catch (e) {
+          console.error("Error parsing date:", e);
+        }
+      }
+
+      await goalService.updateGoal(editingGoalId, {
+        ...newGoal,
+        deadline: parsedDate,
+      });
+
+      setGoals(
+        goals.map((goal) =>
+          goal.id === editingGoalId
+            ? { ...goal, ...newGoal, deadline: parsedDate }
+            : goal
+        )
+      );
+
+      setEditingGoalId(null);
+      setNewGoal({
+        title: "",
+        description: "",
+        deadline: "",
+        progressType: "percentage",
+        totalSteps: 10,
+      });
+      toast.success("Goal updated successfully!");
+    } catch (error) {
+      console.error("Error updating goal:", error);
+      toast.error("Failed to update goal");
+    }
+  };
+
+  const startEditing = (goal: Goal) => {
+    setEditingGoalId(goal.id);
+    setNewGoal({
+      title: goal.title,
+      description: goal.description,
+      deadline: goal.deadline ? format(goal.deadline, "MMMM d, yyyy") : "",
+      progressType: goal.progressType,
+      totalSteps: goal.totalSteps,
+    });
+  };
+
   return (
     <PageTransition>
       <Toaster
@@ -146,8 +401,8 @@ export function Goals() {
           },
         }}
       />
-      <div className="p-8">
-        <div className="max-w-5xl mx-auto space-y-8">
+      <div className="p-8 mt-16">
+        <div className="max-w-[1920px] mx-auto space-y-8 px-16 pb-[1000px]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Icon
@@ -158,7 +413,7 @@ export function Goals() {
             </div>
             <button
               onClick={() => setShowForm(!showForm)}
-              className="px-4 py-2 bg-pri-pur-500 text-neu-whi-100 rounded-lg hover:bg-pri-pur-600 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+              className="px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
             >
               <Icon
                 icon={showForm ? "mingcute:close-fill" : "mingcute:add-fill"}
@@ -169,169 +424,6 @@ export function Goals() {
             </button>
           </div>
 
-          <AnimatePresence>
-            {showForm && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-neu-whi-100 rounded-5xl p-8 shadow-lg"
-              >
-                <form onSubmit={handleCreateGoal} className="space-y-6">
-                  <div>
-                    <label
-                      htmlFor="title"
-                      className="block text-neu-gre-800 mb-2 font-medium"
-                    >
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      id="title"
-                      value={newGoal.title}
-                      onChange={(e) =>
-                        setNewGoal({ ...newGoal, title: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="description"
-                      className="block text-neu-gre-800 mb-2 font-medium"
-                    >
-                      Description
-                    </label>
-                    <textarea
-                      id="description"
-                      value={newGoal.description}
-                      onChange={(e) =>
-                        setNewGoal({ ...newGoal, description: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
-                      rows={3}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="deadline"
-                      className="block text-neu-gre-800 mb-2 font-medium"
-                    >
-                      Deadline
-                    </label>
-                    <input
-                      type="date"
-                      id="deadline"
-                      value={newGoal.deadline}
-                      onChange={(e) =>
-                        setNewGoal({ ...newGoal, deadline: e.target.value })
-                      }
-                      className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-neu-gre-800 mb-2 font-medium">
-                      Progress Type
-                    </label>
-                    <div className="flex items-center space-x-4">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="percentage"
-                          checked={newGoal.progressType === "percentage"}
-                          onChange={(e) =>
-                            setNewGoal({
-                              ...newGoal,
-                              progressType: e.target.value as ProgressType,
-                            })
-                          }
-                          className="text-pri-pur-500 focus:ring-pri-pur-500"
-                        />
-                        <span className="text-neu-gre-800">Percentage</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="numerical"
-                          checked={newGoal.progressType === "numerical"}
-                          onChange={(e) =>
-                            setNewGoal({
-                              ...newGoal,
-                              progressType: e.target.value as ProgressType,
-                            })
-                          }
-                          className="text-pri-pur-500 focus:ring-pri-pur-500"
-                        />
-                        <span className="text-neu-gre-800">Numerical</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  {newGoal.progressType === "numerical" && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label
-                          htmlFor="totalSteps"
-                          className="block text-neu-gre-800 mb-2 font-medium"
-                        >
-                          Total Steps
-                        </label>
-                        <input
-                          type="number"
-                          id="totalSteps"
-                          min="1"
-                          value={newGoal.totalSteps}
-                          onChange={(e) =>
-                            setNewGoal({
-                              ...newGoal,
-                              totalSteps: parseInt(e.target.value),
-                            })
-                          }
-                          className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="currentStep"
-                          className="block text-neu-gre-800 mb-2 font-medium"
-                        >
-                          Current Step
-                        </label>
-                        <input
-                          type="number"
-                          id="currentStep"
-                          min="0"
-                          max={newGoal.totalSteps}
-                          value={newGoal.currentStep}
-                          onChange={(e) =>
-                            setNewGoal({
-                              ...newGoal,
-                              currentStep: parseInt(e.target.value),
-                            })
-                          }
-                          className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 focus:outline-none focus:ring-2 focus:ring-pri-pur-500 border-2 border-transparent focus:border-pri-pur-500 transition-all duration-200"
-                          required
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    className="w-full px-4 py-2 bg-pri-pur-500 text-neu-whi-100 rounded-lg hover:bg-pri-pur-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
-                  >
-                    Create Goal
-                  </button>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {isLoading ? (
             <div className="text-neu-gre-600 text-center py-8">
               Loading goals...
@@ -341,13 +433,17 @@ export function Goals() {
               No goals yet. Add some to get started!
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {goals.map((goal) => (
                 <motion.div
                   key={goal.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-neu-whi-100 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className={`rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 ${
+                    goal.status === "completed"
+                      ? "bg-sup-suc-100/75"
+                      : "bg-neu-gre-100"
+                  }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -358,157 +454,439 @@ export function Goals() {
                         {goal.description}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteGoal(goal.id)}
-                      className="text-neu-gre-600 hover:text-sup-err-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
-                    >
-                      <Icon
-                        icon="mingcute:delete-fill"
-                        width={20}
-                        height={20}
-                      />
-                    </button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm text-neu-gre-600">
-                      <span>Progress</span>
-                      <span>
-                        {goal.progressType === "numerical"
-                          ? `${goal.currentStep}/${goal.totalSteps}`
-                          : `${goal.progress}%`}
-                      </span>
-                    </div>
-                    <div className="h-2 bg-neu-gre-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-pri-pur-500 transition-all duration-300"
-                        style={{
-                          width: `${
-                            goal.progressType === "numerical"
-                              ? (goal.currentStep / goal.totalSteps) * 100
-                              : goal.progress
-                          }%`,
-                        }}
-                      />
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => startEditing(goal)}
+                        className="text-neu-gre-600 hover:text-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
+                      >
+                        <Icon
+                          icon="mingcute:pencil-fill"
+                          width={20}
+                          height={20}
+                        />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteGoal(goal.id)}
+                        className="text-neu-gre-600 hover:text-sup-err-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
+                      >
+                        <Icon
+                          icon="mingcute:delete-2-fill"
+                          width={20}
+                          height={20}
+                        />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-neu-gre-600">
-                      Due: {goal.deadline.toLocaleDateString()}
-                    </span>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        goal.status === "completed"
-                          ? "bg-sup-suc-500 text-neu-whi-100"
-                          : "bg-neu-gre-200 text-neu-gre-800"
-                      }`}
-                    >
-                      {goal.status}
-                    </span>
-                  </div>
+                  {editingGoalId === goal.id ? (
+                    <form onSubmit={handleEditGoal} className="space-y-4 mt-4">
+                      <div>
+                        <label
+                          htmlFor={`title-${goal.id}`}
+                          className="block text-neu-gre-800 mb-1 font-medium"
+                        >
+                          Title
+                        </label>
+                        <input
+                          type="text"
+                          id={`title-${goal.id}`}
+                          value={newGoal.title}
+                          onChange={(e) =>
+                            setNewGoal({ ...newGoal, title: e.target.value })
+                          }
+                          className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`description-${goal.id}`}
+                          className="block text-neu-gre-800 mb-1 font-medium"
+                        >
+                          Description{" "}
+                          <span className="text-sm font-normal text-neu-gre-600">
+                            (optional)
+                          </span>
+                        </label>
+                        <textarea
+                          id={`description-${goal.id}`}
+                          value={newGoal.description}
+                          onChange={(e) =>
+                            setNewGoal({
+                              ...newGoal,
+                              description: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor={`deadline-${goal.id}`}
+                          className="block text-neu-gre-800 mb-1 font-medium"
+                        >
+                          Deadline{" "}
+                          <span className="text-sm font-normal text-neu-gre-600">
+                            (optional)
+                          </span>
+                        </label>
+                        <DatePicker
+                          value={newGoal.deadline}
+                          onChange={(date) =>
+                            setNewGoal({ ...newGoal, deadline: date })
+                          }
+                        />
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        <button
+                          type="submit"
+                          className="flex-1 px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                        >
+                          Save changes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingGoalId(null);
+                            setNewGoal({
+                              title: "",
+                              description: "",
+                              deadline: "",
+                              progressType: "percentage",
+                              totalSteps: 10,
+                            });
+                          }}
+                          className="px-4 py-2 text-base font-inter font-semibold bg-neu-gre-300 text-neu-gre-800 rounded-md hover:bg-neu-gre-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm text-neu-gre-800 font-inter font-medium">
+                          <span className="flex items-center space-x-2 gap-2">
+                            <Icon
+                              icon="mingcute:loading-fill"
+                              className="w-4 h-4"
+                            />
+                            Progress
+                          </span>
+                          <span>
+                            {goal.progressType === "numerical"
+                              ? `${goal.currentStep}/${goal.totalSteps}`
+                              : `${goal.progress}%`}
+                          </span>
+                        </div>
+                        <div className="h-2 bg-neu-gre-300 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-pri-pur-500 transition-all duration-300"
+                            style={{
+                              width: `${
+                                goal.progressType === "numerical"
+                                  ? (goal.currentStep / goal.totalSteps) * 100
+                                  : goal.progress
+                              }%`,
+                            }}
+                          />
+                        </div>
+                      </div>
 
-                  <div className="flex gap-2">
-                    {goal.progressType === "numerical" ? (
-                      <>
-                        <button
-                          onClick={() =>
-                            handleUpdateProgress(
-                              goal.id,
-                              goal.progress,
-                              "numerical",
-                              Math.max(0, goal.currentStep - 1),
-                              goal.totalSteps
-                            )
-                          }
-                          className="px-3 py-1 bg-neu-gre-200 text-neu-gre-800 rounded-lg hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
-                        >
-                          -1 Step
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleUpdateProgress(
-                              goal.id,
-                              goal.progress,
-                              "numerical",
-                              Math.min(goal.totalSteps, goal.currentStep + 1),
-                              goal.totalSteps
-                            )
-                          }
-                          className="px-3 py-1 bg-neu-gre-200 text-neu-gre-800 rounded-lg hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
-                        >
-                          +1 Step
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() =>
-                            handleUpdateProgress(
-                              goal.id,
-                              Math.max(0, goal.progress - 10)
-                            )
-                          }
-                          className="px-3 py-1 bg-neu-gre-200 text-neu-gre-800 rounded-lg hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
-                        >
-                          -10%
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleUpdateProgress(
-                              goal.id,
-                              Math.min(100, goal.progress + 10)
-                            )
-                          }
-                          className="px-3 py-1 bg-neu-gre-200 text-neu-gre-800 rounded-lg hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
-                        >
-                          +10%
-                        </button>
-                      </>
-                    )}
-                  </div>
+                      <div className="flex gap-2">
+                        {goal.progressType === "numerical" ? (
+                          <>
+                            <button
+                              onClick={() =>
+                                handleUpdateProgress(
+                                  goal.id,
+                                  goal.progress,
+                                  "numerical",
+                                  Math.max(0, goal.currentStep - 1),
+                                  goal.totalSteps
+                                )
+                              }
+                              className="px-3 py-1 text-base font-inter font-semibold bg-neu-gre-300 text-neu-gre-800 rounded-md hover:bg-sup-err-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                            >
+                              -1 Step
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleUpdateProgress(
+                                  goal.id,
+                                  goal.progress,
+                                  "numerical",
+                                  Math.min(
+                                    goal.totalSteps,
+                                    goal.currentStep + 1
+                                  ),
+                                  goal.totalSteps
+                                )
+                              }
+                              className="px-3 py-1 text-base font-inter font-semibold bg-pri-pur-100 text-neu-gre-800 rounded-md hover:bg-pri-pur-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                            >
+                              +1 Step
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() =>
+                                handleUpdateProgress(
+                                  goal.id,
+                                  Math.max(0, goal.progress - 10)
+                                )
+                              }
+                              className="px-3 py-1 text-base font-inter font-semibold bg-neu-gre-300 text-neu-gre-800 rounded-md hover:bg-sup-err-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                            >
+                              -10%
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleUpdateProgress(
+                                  goal.id,
+                                  Math.min(100, goal.progress + 10)
+                                )
+                              }
+                              className="px-3 py-1 text-base font-inter font-semibold bg-pri-pur-100 text-neu-gre-800 rounded-md hover:bg-pri-pur-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                            >
+                              +10%
+                            </button>
+                          </>
+                        )}
+                      </div>
 
-                  {/* Associated Tasks */}
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium text-neu-gre-800 mb-2">
-                      Associated Tasks
-                    </h4>
-                    {tasks[goal.id]?.length === 0 ? (
-                      <p className="text-neu-gre-600 text-sm">
-                        No tasks associated with this goal yet.
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {tasks[goal.id]?.map((task) => (
-                          <li
-                            key={task.id}
-                            className="flex items-center justify-between bg-neu-gre-100 rounded-lg p-2"
-                          >
-                            <span
-                              className={`text-sm ${
-                                task.completed
-                                  ? "line-through text-neu-gre-500"
-                                  : "text-neu-gre-800"
-                              }`}
-                            >
-                              {task.title}
-                            </span>
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs ${
-                                task.completed
-                                  ? "bg-sup-suc-500 text-neu-whi-100"
-                                  : "bg-neu-gre-200 text-neu-gre-800"
-                              }`}
-                            >
-                              {task.completed ? "Done" : "In Progress"}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                      {/* Associated Tasks */}
+                      <div className="mt-4">
+                        <h4 className="text-sm gap-2 mt-16 font-inter font-medium text-neu-gre-800 mb-2 flex items-center space-x-2">
+                          <Icon icon="mingcute:link-fill" className="w-4 h-4" />
+                          Associated Tasks
+                        </h4>
+                        {tasks[goal.id]?.length === 0 ? (
+                          <p className="text-neu-gre-600 text-sm">
+                            No tasks associated with this goal yet.
+                          </p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {tasks[goal.id]?.map((task) => (
+                              <li
+                                key={task.id}
+                                className="flex items-center justify-between bg-sec-rose-200 rounded-md p-2 cursor-pointer hover:bg-sec-rose-300 transition-colors"
+                                onClick={() => handleTaskClick(task)}
+                              >
+                                <span
+                                  className={`text-sm ml-2 font-inter font-regular ${
+                                    task.completed
+                                      ? "line-through text-neu-gre-500"
+                                      : "text-neu-gre-800"
+                                  }`}
+                                >
+                                  {task.title}
+                                </span>
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs mr-2 ${
+                                    task.completed
+                                      ? "bg-sup-suc-500 text-neu-whi-100"
+                                      : "bg-neu-gre-200 text-neu-gre-800"
+                                  }`}
+                                >
+                                  {task.completed ? "Done" : "In Progress"}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      <div className="flex justify-between items-center text-sm mt-4 pt-4 border-t border-neu-gre-200">
+                        <span className="text-neu-gre-600">
+                          Deadline:{" "}
+                          {goal.deadline instanceof Date
+                            ? format(goal.deadline, "MMMM d, yyyy")
+                            : "None, no stress"}
+                        </span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            goal.status === "completed"
+                              ? "bg-sup-suc-500 text-neu-whi-100"
+                              : "bg-sup-sys-100 text-neu-gre-800"
+                          }`}
+                        >
+                          {goal.status}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </motion.div>
               ))}
+              {showForm ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-pri-pur-100/30 rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <form onSubmit={handleCreateGoal} className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="title"
+                        className="block text-neu-gre-800 mb-1 font-medium"
+                      >
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        id="title"
+                        value={newGoal.title}
+                        onChange={(e) =>
+                          setNewGoal({ ...newGoal, title: e.target.value })
+                        }
+                        placeholder={titlePlaceholder}
+                        className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="description"
+                        className="block text-neu-gre-800 mb-1 font-medium"
+                      >
+                        Description{" "}
+                        <span className="text-sm font-normal text-neu-gre-600">
+                          (optional)
+                        </span>
+                      </label>
+                      <textarea
+                        id="description"
+                        value={newGoal.description}
+                        onChange={(e) =>
+                          setNewGoal({
+                            ...newGoal,
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="What's your game plan? Break it down into bite-sized pieces. 🎯"
+                        className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="deadline"
+                        className="block text-neu-gre-800 mb-1 font-medium"
+                      >
+                        Deadline{" "}
+                        <span className="text-sm font-normal text-neu-gre-600">
+                          (optional)
+                        </span>
+                      </label>
+                      <DatePicker
+                        value={newGoal.deadline}
+                        onChange={(date) =>
+                          setNewGoal({ ...newGoal, deadline: date })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-neu-gre-800 mb-1 font-medium">
+                        Track progress as
+                      </label>
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            value="percentage"
+                            checked={newGoal.progressType === "percentage"}
+                            onChange={(e) =>
+                              setNewGoal({
+                                ...newGoal,
+                                progressType: e.target.value as ProgressType,
+                              })
+                            }
+                            className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200 accent-pri-pur-500"
+                          />
+                          <span className="text-neu-gre-800">Percentage</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            value="numerical"
+                            checked={newGoal.progressType === "numerical"}
+                            onChange={(e) =>
+                              setNewGoal({
+                                ...newGoal,
+                                progressType: e.target.value as ProgressType,
+                              })
+                            }
+                            className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200 accent-pri-pur-500"
+                          />
+                          <span className="text-neu-gre-800">Steps</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {newGoal.progressType === "numerical" && (
+                      <div>
+                        <div>
+                          <label
+                            htmlFor="totalSteps"
+                            className="block text-neu-gre-800 mb-1 font-medium"
+                          >
+                            Total Steps
+                          </label>
+                          <input
+                            type="number"
+                            id="totalSteps"
+                            min="1"
+                            value={newGoal.totalSteps}
+                            onChange={(e) =>
+                              setNewGoal({
+                                ...newGoal,
+                                totalSteps: parseInt(e.target.value),
+                              })
+                            }
+                            placeholder="How many steps to greatness? 🚀"
+                            className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        type="submit"
+                        className="flex-1 px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                      >
+                        Create Goal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowForm(false)}
+                        className="px-4 py-4 text-base font-inter font-semibold bg-neu-gre-100 text-neu-gre-800 rounded-md hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-pri-pur-100/25 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-dashed border-pri-pur-500/50 cursor-pointer"
+                  onClick={() => setShowForm(!showForm)}
+                >
+                  <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-neu-gre-600 hover:text-pri-pur-500 transition-colors">
+                    <Icon icon="mingcute:add-fill" className="w-12 h-12 mb-4" />
+                    <span className="text-lg font-medium">Add Goal</span>
+                    <span className="text-sm mt-2">
+                      Click to create a new goal
+                    </span>
+                  </div>
+                </motion.div>
+              )}
             </div>
           )}
         </div>
