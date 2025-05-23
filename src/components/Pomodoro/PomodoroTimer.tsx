@@ -234,14 +234,20 @@ export const PomodoroTimer = ({
       role="dialog"
       aria-modal="true"
       aria-label="Pomodoro Timer"
+      id="pomodoro-timer"
     >
-      <div className="absolute top-4 right-4 flex items-center gap-2">
+      <div
+        className="absolute top-4 right-4 flex items-center gap-2"
+        role="toolbar"
+        aria-label="Timer controls"
+      >
         <button
           onClick={requestNotificationPermission}
-          className="p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+          className="p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100/50 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
           aria-label={
             hasPermission ? "Disable notifications" : "Enable notifications"
           }
+          aria-pressed={hasPermission}
         >
           <Icon
             icon={
@@ -250,25 +256,38 @@ export const PomodoroTimer = ({
                 : "mingcute:notification-fill"
             }
             className="w-6 h-6"
+            aria-hidden="true"
           />
         </button>
         <button
           onClick={onClose}
-          className="p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+          className="p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100/50 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
           aria-label="Close Timer"
         >
-          <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
+          <Icon
+            icon="mingcute:close-circle-fill"
+            className="w-6 h-6"
+            aria-hidden="true"
+          />
         </button>
       </div>
       <div className="flex flex-col items-center gap-8">
         {/* Main Timer Section */}
         <div className="flex items-center justify-between w-full max-w-3xl">
           {/* Work Timers */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center space-x-3 mb-3">
+          <div
+            className="flex flex-col gap-3"
+            role="group"
+            aria-labelledby="work-timers-heading"
+          >
+            <div
+              className="flex items-center space-x-3 mb-3"
+              id="work-timers-heading"
+            >
               <Icon
                 icon="mingcute:work-fill"
                 className="text-neu-gre-800 w-5 h-5"
+                aria-hidden="true"
               />
               <h3 className="text-md font-medium font-inter text-neu-gre-800">
                 Work
@@ -280,11 +299,13 @@ export const PomodoroTimer = ({
                 <button
                   key={interval.label}
                   onClick={() => setSelectedInterval(interval)}
-                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
+                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
                     selectedInterval.label === interval.label
                       ? "bg-pri-pur-400 text-neu-whi-100"
                       : "bg-neu-gre-300 text-neu-gre-800 hover:bg-pri-pur-100/50"
                   }`}
+                  aria-pressed={selectedInterval.label === interval.label}
+                  aria-label={`${interval.label} timer (${interval.minutes} minutes)`}
                 >
                   {interval.label}
                 </button>
@@ -292,15 +313,31 @@ export const PomodoroTimer = ({
           </div>
 
           {/* Timer Display and Controls */}
-          <div className="flex flex-col items-center gap-6">
-            <div className="text-7xl font-bold font-inter text-neu-gre-800">
+          <div
+            className="flex flex-col items-center gap-6"
+            role="group"
+            aria-label="Timer display and controls"
+          >
+            <div
+              className="text-7xl font-bold font-inter text-neu-gre-800"
+              role="timer"
+              aria-live="polite"
+              aria-label={`${Math.floor(timeLeft / 60)} minutes and ${
+                timeLeft % 60
+              } seconds remaining`}
+            >
               {formatTime(timeLeft)}
             </div>
-            <div className="flex gap-4">
+            <div
+              className="flex gap-4"
+              role="group"
+              aria-label="Timer action buttons"
+            >
               <button
                 onClick={handleStart}
-                className="p-4 rounded-full bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                className="p-4 rounded-full bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
                 aria-label={isRunning ? "Pause Timer" : "Start Timer"}
+                aria-pressed={isRunning}
               >
                 <Icon
                   icon={
@@ -308,24 +345,38 @@ export const PomodoroTimer = ({
                   }
                   width={24}
                   height={24}
+                  aria-hidden="true"
                 />
               </button>
               <button
                 onClick={handleReset}
-                className="p-4 rounded-full bg-neu-gre-300 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                className="p-4 rounded-full bg-neu-gre-300 text-neu-gre-700 hover:bg-neu-gre-200 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
                 aria-label="Reset Timer"
               >
-                <Icon icon="mingcute:back-2-fill" width={24} height={24} />
+                <Icon
+                  icon="mingcute:back-2-fill"
+                  width={24}
+                  height={24}
+                  aria-hidden="true"
+                />
               </button>
             </div>
           </div>
 
           {/* Break Timers */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center space-x-3 mb-3">
+          <div
+            className="flex flex-col gap-3"
+            role="group"
+            aria-labelledby="break-timers-heading"
+          >
+            <div
+              className="flex items-center space-x-3 mb-3"
+              id="break-timers-heading"
+            >
               <Icon
                 icon="mingcute:coffee-fill"
                 className="text-neu-gre-800 w-5 h-5"
+                aria-hidden="true"
               />
               <h3 className="text-md font-medium font-inter text-neu-gre-800">
                 Break
@@ -337,11 +388,13 @@ export const PomodoroTimer = ({
                 <button
                   key={interval.label}
                   onClick={() => setSelectedInterval(interval)}
-                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
+                  className={`px-4 py-2 rounded-lg font-inter transition-all text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
                     selectedInterval.label === interval.label
                       ? "bg-pri-pur-400 text-neu-whi-100"
                       : "bg-neu-gre-300 text-neu-gre-800 hover:bg-pri-pur-100/50"
                   }`}
+                  aria-pressed={selectedInterval.label === interval.label}
+                  aria-label={`${interval.label} timer (${interval.minutes} minutes)`}
                 >
                   {interval.label}
                 </button>

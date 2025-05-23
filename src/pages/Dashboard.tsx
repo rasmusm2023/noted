@@ -1215,7 +1215,7 @@ export function Dashboard() {
     <div
       className={`p-4 ${
         item.backgroundColor || "bg-neu-900"
-      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-pri-pur-500`}
+      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-4 focus:ring-pri-pur-500`}
       tabIndex={0}
       onClick={() => setSelectedSection(item)}
     >
@@ -1242,7 +1242,7 @@ export function Dashboard() {
               setSelectedSection(item);
             }
           }}
-          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg"
+          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg"
           aria-label={`Edit section "${item.text}"`}
         >
           <Pen size={24} color="currentColor" autoSize={false} />
@@ -1252,7 +1252,7 @@ export function Dashboard() {
             e.stopPropagation();
             handleDeleteSection(item.id);
           }}
-          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg"
+          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg"
           aria-label={`Delete section "${item.text}"`}
         >
           <TrashBinTrash size={24} color="currentColor" autoSize={false} />
@@ -1368,7 +1368,7 @@ export function Dashboard() {
           isNextTask
             ? "highlighted-task ring-2 ring-pri-pur-500 ring-opacity-60"
             : ""
-        } focus:outline-none focus:ring-2 focus:ring-pri-pur-500`}
+        } focus:outline-none focus:ring-4 focus:ring-pri-pur-500`}
         onClick={(e) => handleTaskClick(item, e)}
       >
         <div className="flex items-center space-x-4 flex-1">
@@ -1382,7 +1382,7 @@ export function Dashboard() {
                 item.completed
                   ? "text-neu-100 hover:text-neu-100 scale-95"
                   : "text-pri-pur-500 hover:text-sup-suc-500 hover:scale-95"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-full p-1`}
+              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-full p-1`}
               aria-label={`Mark task "${item.title}" as ${
                 item.completed ? "incomplete" : "complete"
               }`}
@@ -1477,7 +1477,7 @@ export function Dashboard() {
                   item.isSaved
                     ? "text-pri-pur-500 hover:text-pri-pur-400"
                     : "text-neu-400 hover:text-pri-pur-500"
-                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
+                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg`}
                 aria-label={`${item.isSaved ? "Unsave" : "Save"} task "${
                   item.title
                 }"`}
@@ -1493,7 +1493,7 @@ export function Dashboard() {
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-neu-100"
-                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
+                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg`}
                 aria-label={`Edit task "${item.title}"`}
               >
                 <Pen size={24} color="currentColor" autoSize={false} />
@@ -1507,7 +1507,7 @@ export function Dashboard() {
                   item.completed
                     ? "text-neu-100 hover:text-neu-100"
                     : "text-neu-400 hover:text-red-500"
-                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-pur-500 rounded-lg`}
+                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg`}
                 aria-label={`Delete task "${item.title}"`}
               >
                 <TrashBinTrash
@@ -1662,7 +1662,7 @@ export function Dashboard() {
       position: absolute;
       inset: 0;
       background: linear-gradient(90deg, rgba(167, 139, 250, 0.3) 0%, rgba(109, 40, 217, 0.3) 100%);
-      border-radius: 1rem;
+      border-radius: 0.5rem;
       z-index: 0;
     }
 

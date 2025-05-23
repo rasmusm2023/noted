@@ -477,8 +477,10 @@ export function TaskModal({
                       e.stopPropagation();
                       setShowColorPicker(!showColorPicker);
                     }}
-                    className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors flex items-center justify-center"
+                    className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                     aria-label="Change task background color"
+                    aria-expanded={showColorPicker}
+                    aria-haspopup="true"
                   >
                     <div
                       className={`w-8 h-8 rounded-md border-[2px] border-neu-gre-400 ${currentBackgroundColor}`}
@@ -499,7 +501,7 @@ export function TaskModal({
                             e.stopPropagation();
                             setShowColorPicker(false);
                           }}
-                          className="p-1 text-neu-gre-600 hover:text-neu-gre-800 transition-colors"
+                          className="p-1 text-neu-gre-600 hover:text-neu-gre-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                           aria-label="Close color picker"
                         >
                           <Icon
@@ -523,14 +525,17 @@ export function TaskModal({
                               e.stopPropagation();
                               handleColorSelect(color.value);
                             }}
-                            className={`w-8 h-8 rounded-sm ${
+                            className={`w-8 h-8 rounded-md ${
                               color.value
                             } ring-2 ring-neu-gre-300 ${
                               currentBackgroundColor === color.value
                                 ? "ring-4 ring-pri-pur-400"
                                 : ""
-                            }`}
+                            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
                             aria-label={`Select ${color.name} color`}
+                            aria-pressed={
+                              currentBackgroundColor === color.value
+                            }
                           />
                         ))}
                       </div>
@@ -539,11 +544,12 @@ export function TaskModal({
                 </div>
                 <button
                   ref={deleteTaskButtonRef}
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
-                    onDelete(task.id);
+                    await onDelete(task.id);
+                    onClose({ ...task, shouldClose: true });
                   }}
-                  className="p-2 text-neu-gre-600 hover:text-sup-err-400 transition-colors flex items-center justify-center"
+                  className="p-2 text-neu-gre-600 hover:text-sup-err-400 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                   aria-label="Delete task"
                 >
                   <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
@@ -554,7 +560,7 @@ export function TaskModal({
                     e.stopPropagation();
                     handleClose();
                   }}
-                  className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors flex items-center justify-center"
+                  className="p-2 text-neu-gre-600 hover:text-neu-gre-800 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                   aria-label="Close modal"
                 >
                   <Icon icon="mingcute:close-circle-fill" className="w-6 h-6" />
@@ -603,8 +609,9 @@ export function TaskModal({
                   }}
                   onClick={(e) => e.stopPropagation()}
                   placeholder="Add a subtask..."
-                  className="flex-1 bg-transparent py-2 font-inter text-base text-neu-gre-800 placeholder-neu-gre-500 focus:outline-none"
+                  className="flex-1 bg-transparent py-2 font-inter text-base text-neu-gre-800 placeholder-neu-gre-600 focus:outline-none"
                   tabIndex={0}
+                  aria-label="Add new subtask"
                 />
               </div>
             </div>
@@ -627,14 +634,15 @@ export function TaskModal({
                         e.stopPropagation();
                         handleSubtaskCompletion(subtask.id);
                       }}
-                      className={`transition-all duration-300 flex items-center justify-center ${
+                      className={`transition-all duration-300 flex items-center justify-center rounded-md p-2 ${
                         subtask.completed
                           ? "text-neu-gre-800 hover:text-neu-gre-600 scale-95"
                           : "text-neu-gre-800 hover:text-neu-gre-600 hover:scale-95"
-                      }`}
+                      } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
                       aria-label={`Mark subtask "${subtask.title}" as ${
                         subtask.completed ? "incomplete" : "complete"
                       }`}
+                      aria-pressed={subtask.completed}
                     >
                       {subtask.completed ? (
                         <Icon
@@ -660,7 +668,7 @@ export function TaskModal({
                       e.stopPropagation();
                       handleDeleteSubtask(subtask.id);
                     }}
-                    className="p-1 text-neu-gre-600 hover:text-sup-err-400 transition-colors flex items-center justify-center"
+                    className="p-2 text-neu-gre-600 hover:text-sup-err-400 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                     aria-label={`Delete subtask "${subtask.title}"`}
                   >
                     <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
@@ -676,6 +684,7 @@ export function TaskModal({
               <Icon
                 icon="mingcute:target-fill"
                 className="text-neu-gre-800 w-5 h-5"
+                aria-hidden="true"
               />
               <h3 className="text-md font-medium font-inter text-neu-gre-800">
                 Associated goals
@@ -684,7 +693,14 @@ export function TaskModal({
             <p className="text-sm font-inter text-neu-gre-600 mb-4">
               Associate this task with a goal to help you stay on track
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div
+              className="flex flex-wrap gap-2"
+              role="group"
+              aria-labelledby="goals-group-label"
+            >
+              <span id="goals-group-label" className="sr-only">
+                Select a goal to associate with this task
+              </span>
               {goals.map((goal) => (
                 <button
                   key={goal.id}
@@ -695,20 +711,34 @@ export function TaskModal({
                       },
                     } as React.ChangeEvent<HTMLSelectElement>)
                   }
-                  className={`px-3 py-2 rounded-full text-sm font-inter transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-3 py-2 rounded-full text-sm font-inter transition-all duration-200 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                     selectedGoalId === goal.id
                       ? "bg-pri-pur-400 text-neu-whi-100"
                       : "bg-neu-gre-100 text-neu-gre-600 hover:bg-pri-pur-100/50"
                   }`}
+                  aria-label={`${
+                    selectedGoalId === goal.id ? "Remove" : "Select"
+                  } goal "${goal.title}"`}
+                  aria-pressed={selectedGoalId === goal.id}
+                  role="checkbox"
+                  aria-checked={selectedGoalId === goal.id}
                 >
                   {goal.title}
                   {selectedGoalId === goal.id && (
-                    <Icon icon="mingcute:close-fill" className="w-4 h-4" />
+                    <Icon
+                      icon="mingcute:close-fill"
+                      className="w-4 h-4"
+                      aria-hidden="true"
+                      aria-label="Remove goal"
+                    />
                   )}
                 </button>
               ))}
               {goals.length === 0 && (
-                <span className="text-sm font-inter text-neu-gre-600">
+                <span
+                  className="text-sm font-inter text-neu-gre-600"
+                  role="status"
+                >
                   No goals available
                 </span>
               )}

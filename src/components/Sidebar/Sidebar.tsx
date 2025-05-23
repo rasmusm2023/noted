@@ -367,6 +367,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       className={`${
         isOpen ? "w-72" : "w-24"
       } bg-neu-whi-100 border-r border-neu-gre-300 transition-all duration-300 ease-in-out relative`}
+      role="navigation"
+      aria-label="Main navigation"
     >
       <div className="h-full flex flex-col">
         {/* Logo and Toggle */}
@@ -386,25 +388,29 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-md hover:bg-neu-gre-100 hover:text-neu-gre-700 text-neu-gre-500 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+            className="p-2 rounded-md hover:bg-neu-gre-100 hover:text-neu-gre-700 text-neu-gre-500 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+            aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+            aria-expanded={isOpen}
           >
             {isOpen ? (
               <Icon
                 icon="mingcute:layout-leftbar-close-fill"
                 width={24}
                 height={24}
+                aria-hidden="true"
               />
             ) : (
               <Icon
                 icon="mingcute:layout-leftbar-open-fill"
                 width={24}
                 height={24}
+                aria-hidden="true"
               />
             )}
           </button>
         </div>
 
-        {/* User Profile Section - Moved to top */}
+        {/* User Profile Section */}
         <div className="px-4 py-3 border-b border-neu-gre-300">
           <div className="relative" ref={profileMenuRef}>
             <button
@@ -412,14 +418,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
-              } p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
+              } p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-expanded={isProfileMenuOpen}
               aria-haspopup="true"
+              aria-label="User profile menu"
             >
               <img
                 src={avatars[(userDetails.selectedAvatar || 1) - 1].src}
-                alt="Profile"
+                alt=""
                 className="w-8 h-8 rounded-md"
+                aria-hidden="true"
               />
               {isOpen && (
                 <div className="flex-1 min-w-0 ml-3">
@@ -440,7 +448,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   isOpen ? "top-full left-0 mt-2" : "top-0 left-full ml-2"
                 } ${
                   isOpen ? "w-full" : "w-72"
-                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200`}
+                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="profile-menu-button"
@@ -452,10 +460,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       navigate("/account");
                       setIsProfileMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                     role="menuitem"
                   >
-                    <Icon icon="mingcute:user-3-fill" width={20} height={20} />
+                    <Icon
+                      icon="mingcute:user-3-fill"
+                      width={20}
+                      height={20}
+                      aria-hidden="true"
+                    />
                     <span>Account</span>
                   </button>
                 </div>
@@ -465,7 +478,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-4" aria-label="Main menu">
           <div className="px-4 space-y-6">
             {/* Tasks Section */}
             <div className="space-y-1">
@@ -473,40 +486,53 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 className={`text-sm font-medium text-neu-gre-600 mb-2 ${
                   isOpen ? "" : "text-center"
                 }`}
+                id="tasks-section"
               >
                 Tasks
               </h2>
-              <button
-                onClick={() => navigate("/")}
-                className={`w-full flex items-center ${
-                  isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
-                  location.pathname === "/"
-                    ? "bg-neu-gre-200 text-neu-gre-900"
-                    : ""
-                }`}
-              >
-                <Icon
-                  icon="mingcute:calendar-day-fill"
-                  width={20}
-                  height={20}
-                />
-                {isOpen && <span className="text-base">Today</span>}
-              </button>
+              <div role="group" aria-labelledby="tasks-section">
+                <button
+                  onClick={() => navigate("/")}
+                  className={`w-full flex items-center ${
+                    isOpen ? "space-x-3" : "justify-center"
+                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                    location.pathname === "/"
+                      ? "bg-neu-gre-200 text-neu-gre-900"
+                      : ""
+                  }`}
+                  aria-current={location.pathname === "/" ? "page" : undefined}
+                >
+                  <Icon
+                    icon="mingcute:calendar-day-fill"
+                    width={20}
+                    height={20}
+                    aria-hidden="true"
+                  />
+                  {isOpen && <span className="text-base">Today</span>}
+                </button>
 
-              <button
-                onClick={() => navigate("/next7days")}
-                className={`w-full flex items-center ${
-                  isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
-                  location.pathname === "/next7days"
-                    ? "bg-neu-gre-200 text-neu-gre-900"
-                    : ""
-                }`}
-              >
-                <Icon icon="mingcute:calendar-fill" width={20} height={20} />
-                {isOpen && <span className="text-base">Next 7 Days</span>}
-              </button>
+                <button
+                  onClick={() => navigate("/next7days")}
+                  className={`w-full flex items-center ${
+                    isOpen ? "space-x-3" : "justify-center"
+                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                    location.pathname === "/next7days"
+                      ? "bg-neu-gre-200 text-neu-gre-900"
+                      : ""
+                  }`}
+                  aria-current={
+                    location.pathname === "/next7days" ? "page" : undefined
+                  }
+                >
+                  <Icon
+                    icon="mingcute:calendar-fill"
+                    width={20}
+                    height={20}
+                    aria-hidden="true"
+                  />
+                  {isOpen && <span className="text-base">Next 7 Days</span>}
+                </button>
+              </div>
             </div>
 
             {/* Progress Section */}
@@ -515,35 +541,54 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 className={`text-sm font-medium text-neu-gre-600 mb-2 ${
                   isOpen ? "" : "text-center"
                 }`}
+                id="progress-section"
               >
                 Progress
               </h2>
-              <button
-                onClick={() => navigate("/goals")}
-                className={`w-full flex items-center ${
-                  isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
-                  location.pathname === "/goals"
-                    ? "bg-neu-gre-200 text-neu-gre-900"
-                    : ""
-                }`}
-              >
-                <Icon icon="mingcute:target-fill" width={20} height={20} />
-                {isOpen && <span className="text-base">Goals</span>}
-              </button>
-              <button
-                onClick={() => navigate("/habits")}
-                className={`w-full flex items-center ${
-                  isOpen ? "space-x-3" : "justify-center"
-                } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
-                  location.pathname === "/habits"
-                    ? "bg-neu-gre-200 text-neu-gre-900"
-                    : ""
-                }`}
-              >
-                <Icon icon="mingcute:heart-fill" width={20} height={20} />
-                {isOpen && <span className="text-base">Habits</span>}
-              </button>
+              <div role="group" aria-labelledby="progress-section">
+                <button
+                  onClick={() => navigate("/goals")}
+                  className={`w-full flex items-center ${
+                    isOpen ? "space-x-3" : "justify-center"
+                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                    location.pathname === "/goals"
+                      ? "bg-neu-gre-200 text-neu-gre-900"
+                      : ""
+                  }`}
+                  aria-current={
+                    location.pathname === "/goals" ? "page" : undefined
+                  }
+                >
+                  <Icon
+                    icon="mingcute:target-fill"
+                    width={20}
+                    height={20}
+                    aria-hidden="true"
+                  />
+                  {isOpen && <span className="text-base">Goals</span>}
+                </button>
+                <button
+                  onClick={() => navigate("/habits")}
+                  className={`w-full flex items-center ${
+                    isOpen ? "space-x-3" : "justify-center"
+                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                    location.pathname === "/habits"
+                      ? "bg-neu-gre-200 text-neu-gre-900"
+                      : ""
+                  }`}
+                  aria-current={
+                    location.pathname === "/habits" ? "page" : undefined
+                  }
+                >
+                  <Icon
+                    icon="mingcute:heart-fill"
+                    width={20}
+                    height={20}
+                    aria-hidden="true"
+                  />
+                  {isOpen && <span className="text-base">Habits</span>}
+                </button>
+              </div>
             </div>
 
             {/* Lists Section */}
@@ -557,15 +602,22 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   className={`text-sm font-medium text-neu-gre-600 ${
                     isOpen ? "" : "text-center"
                   }`}
+                  id="lists-section"
                 >
                   Lists
                 </h2>
                 {isOpen && (
                   <button
                     onClick={() => setIsAddingList(true)}
-                    className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                    aria-label="Add new list"
                   >
-                    <Icon icon="mingcute:add-fill" width={20} height={20} />
+                    <Icon
+                      icon="mingcute:add-fill"
+                      width={20}
+                      height={20}
+                      aria-hidden="true"
+                    />
                   </button>
                 )}
               </div>
@@ -575,13 +627,19 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      onToggle(); // Expand the sidebar
+                      onToggle();
                       setIsAddingList(true);
                     }
                   }}
-                  className="w-full p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 flex justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                  className="w-full p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 flex justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                  aria-label="Add new list"
                 >
-                  <Icon icon="mingcute:add-fill" width={20} height={20} />
+                  <Icon
+                    icon="mingcute:add-fill"
+                    width={20}
+                    height={20}
+                    aria-hidden="true"
+                  />
                 </button>
               )}
 
@@ -591,6 +649,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   className={`${
                     isOpen ? "px-2" : "px-1"
                   } py-2 transition-all duration-200 ease-in-out transform origin-top`}
+                  role="form"
+                  aria-label="Add new list form"
                 >
                   <div className="flex items-center gap-1 animate-fadeIn">
                     <input
@@ -608,17 +668,20 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       placeholder="List name"
                       className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 border border-neu-gre-300 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter"
                       autoFocus
+                      aria-label="New list name"
                     />
                     <div className="flex items-center gap-1">
                       <button
                         onClick={handleAddList}
                         disabled={!newListName.trim()}
-                        className="p-0 ml-2 text-pri-pur-500 hover:text-pri-pur-600 disabled:text-neu-gre-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out"
+                        className="p-0 ml-2 text-pri-pur-500 hover:text-pri-pur-600 disabled:text-neu-gre-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
+                        aria-label="Create new list"
                       >
                         <Icon
                           icon="mingcute:check-fill"
                           width={20}
                           height={20}
+                          aria-hidden="true"
                         />
                       </button>
                       <button
@@ -626,12 +689,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           setIsAddingList(false);
                           setNewListName("");
                         }}
-                        className="p-0 ml-2 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out"
+                        className="p-0 ml-2 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
+                        aria-label="Cancel creating new list"
                       >
                         <Icon
                           icon="mingcute:close-line"
                           width={20}
                           height={20}
+                          aria-hidden="true"
                         />
                       </button>
                     </div>
@@ -640,23 +705,33 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               )}
 
               {/* Lists */}
-              <div className="space-y-1">
+              <div
+                className="space-y-1"
+                role="group"
+                aria-labelledby="lists-section"
+              >
                 {lists.map((list) => (
                   <button
                     key={list.id}
                     onClick={() => navigate(`/list/${list.id}`)}
                     className={`w-full flex items-center ${
                       isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
+                    } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
                       location.pathname === `/list/${list.id}`
                         ? "bg-neu-gre-200 text-neu-gre-900"
                         : ""
                     }`}
+                    aria-current={
+                      location.pathname === `/list/${list.id}`
+                        ? "page"
+                        : undefined
+                    }
                   >
                     <Icon
                       icon="mingcute:minimize-line"
                       width={16}
                       height={16}
+                      aria-hidden="true"
                     />
                     {isOpen && <span className="text-base">{list.name}</span>}
                   </button>
@@ -674,11 +749,17 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
-              } text-base font-medium p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
+              } text-base font-medium p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-expanded={isSettingsMenuOpen}
               aria-haspopup="true"
+              aria-label="Settings menu"
             >
-              <Icon icon="mingcute:settings-3-fill" width={24} height={24} />
+              <Icon
+                icon="mingcute:settings-3-fill"
+                width={24}
+                height={24}
+                aria-hidden="true"
+              />
               {isOpen && <span className="ml-3">Settings</span>}
             </button>
 
@@ -689,7 +770,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   isOpen ? "bottom-full left-0 mb-2" : "bottom-0 left-full ml-2"
                 } ${
                   isOpen ? "w-full" : "w-72"
-                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200`}
+                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="settings-menu-button"
@@ -701,12 +782,22 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       toggleDarkMode();
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                     role="menuitem"
+                    aria-label={
+                      isDarkMode
+                        ? "Switch to light mode"
+                        : "Switch to dark mode"
+                    }
                   >
                     {isDarkMode ? (
                       <>
-                        <Icon icon="mingcute:sun-fill" width={20} height={20} />
+                        <Icon
+                          icon="mingcute:sun-fill"
+                          width={20}
+                          height={20}
+                          aria-hidden="true"
+                        />
                         <span>Light Mode</span>
                       </>
                     ) : (
@@ -715,6 +806,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           icon="mingcute:moon-fill"
                           width={20}
                           height={20}
+                          aria-hidden="true"
                         />
                         <span>Dark Mode</span>
                       </>
@@ -729,20 +821,26 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         setIsHighlightSubmenuOpen(!isHighlightSubmenuOpen)
                       }
                       onFocus={() => setIsHighlightSubmenuOpen(true)}
-                      className="w-full flex items-center justify-between px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                      className="w-full flex items-center justify-between px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                       role="menuitem"
                       aria-expanded={isHighlightSubmenuOpen}
                       aria-haspopup="true"
+                      aria-label="Highlight next task options"
                     >
                       <div className="flex items-center space-x-2">
                         <Icon
                           icon="mingcute:fullscreen-fill"
                           width={20}
                           height={20}
+                          aria-hidden="true"
                         />
                         <span>Highlight next task</span>
                       </div>
-                      <AltArrowRight size={15} color="currentColor" />
+                      <AltArrowRight
+                        size={15}
+                        color="currentColor"
+                        aria-hidden="true"
+                      />
                     </button>
 
                     {/* Submenu */}
@@ -751,7 +849,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 ${
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
                         isHighlightSubmenuOpen ? "block" : "hidden"
                       }`}
                       role="menu"
@@ -763,12 +861,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           handleHighlightNextTask(true);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-t-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
+                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-t-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
                           highlightNextTask
                             ? "text-pri-pur-500"
                             : "text-neu-gre-700"
                         }`}
                         role="menuitem"
+                        aria-label="Enable highlight next task"
+                        aria-pressed={highlightNextTask}
                       >
                         <span>Yes</span>
                         {highlightNextTask && (
@@ -776,6 +876,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             size={16}
                             color="currentColor"
                             className="ml-1 text-pri-pur-500"
+                            aria-hidden="true"
                           />
                         )}
                       </button>
@@ -785,12 +886,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           handleHighlightNextTask(false);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-b-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
+                        className={`w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-b-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
                           !highlightNextTask
                             ? "text-pri-pur-500"
                             : "text-neu-gre-700"
                         }`}
                         role="menuitem"
+                        aria-label="Disable highlight next task"
+                        aria-pressed={!highlightNextTask}
                       >
                         <span>No</span>
                         {!highlightNextTask && (
@@ -798,6 +901,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             size={16}
                             color="currentColor"
                             className="ml-1 text-pri-pur-500"
+                            aria-hidden="true"
                           />
                         )}
                       </button>
@@ -811,20 +915,26 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         setIsLanguageSubmenuOpen(!isLanguageSubmenuOpen)
                       }
                       onFocus={() => setIsLanguageSubmenuOpen(true)}
-                      className="w-full flex items-center justify-between px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                      className="w-full flex items-center justify-between px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                       role="menuitem"
                       aria-expanded={isLanguageSubmenuOpen}
                       aria-haspopup="true"
+                      aria-label="Language options"
                     >
                       <div className="flex items-center space-x-2">
                         <Icon
                           icon="mingcute:translate-2-fill"
                           width={20}
                           height={20}
+                          aria-hidden="true"
                         />
                         <span>Language</span>
                       </div>
-                      <AltArrowRight size={15} color="currentColor" />
+                      <AltArrowRight
+                        size={15}
+                        color="currentColor"
+                        aria-hidden="true"
+                      />
                     </button>
 
                     {/* Language Submenu */}
@@ -833,7 +943,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 ${
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
                         isLanguageSubmenuOpen ? "block" : "hidden"
                       }`}
                       role="menu"
@@ -845,14 +955,17 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           // Placeholder for language change
                           setIsSettingsMenuOpen(false);
                         }}
-                        className="w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-t-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 text-pri-pur-500"
+                        className="w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-t-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md text-pri-pur-500"
                         role="menuitem"
+                        aria-label="Select English language"
+                        aria-pressed={true}
                       >
                         <span>English</span>
                         <Unread
                           size={16}
                           color="currentColor"
                           className="ml-1 text-pri-pur-500"
+                          aria-hidden="true"
                         />
                       </button>
                       <button
@@ -861,8 +974,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           // Placeholder for language change
                           setIsSettingsMenuOpen(false);
                         }}
-                        className="w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-b-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 text-neu-gre-700"
+                        className="w-full flex items-center px-2 py-2 text-base hover:bg-neu-gre-100 hover:rounded-b-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md text-neu-gre-700"
                         role="menuitem"
+                        aria-label="Select Swedish language"
+                        aria-pressed={false}
                       >
                         <span>Swedish</span>
                       </button>
@@ -870,7 +985,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   </div>
 
                   {/* Divider */}
-                  <div className="border-t border-neu-gre-200 my-2"></div>
+                  <div
+                    className="border-t border-neu-gre-200 my-2"
+                    role="separator"
+                  ></div>
 
                   {/* Logout Button */}
                   <button
@@ -879,10 +997,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       logout();
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base text-neu-gre-700 hover:bg-neu-gre-100 hover:rounded-lg font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                     role="menuitem"
+                    aria-label="Logout"
                   >
-                    <Icon icon="mingcute:exit-fill" width={20} height={20} />
+                    <Icon
+                      icon="mingcute:exit-fill"
+                      width={20}
+                      height={20}
+                      aria-hidden="true"
+                    />
                     <span>Logout</span>
                   </button>
                 </div>
