@@ -50,28 +50,28 @@ export const DayColumn = ({
       {/* Add Today/Tomorrow label */}
       {isToday && (
         <div>
-          <span className="inline-block px-4 py-1 bg-neu-gre-800 text-neu-whi-100 text-base font-inter font-medium rounded-t-md">
+          <span className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg">
             Today
           </span>
         </div>
       )}
       {isTomorrow && (
         <div>
-          <span className="inline-block px-4 py-1 bg-neu-gre-800 text-neu-whi-100 text-base font-inter font-medium rounded-t-md">
+          <span className="inline-block px-4 py-1 bg-sec-rose-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg">
             Tomorrow
           </span>
         </div>
       )}
       <div
-        className={`bg-neu-800/90 p-4 h-fit ${
+        className={`bg-neu-gre-300 p-4 h-fit backdrop-blur-sm shadow-lg ${
           dayIndex <= 1
-            ? "rounded-tr-lg rounded-br-lg rounded-bl-lg"
-            : "rounded-lg"
+            ? "rounded-tr-xl rounded-br-xl rounded-bl-xl"
+            : "rounded-xl"
         }`}
       >
         <div className="flex flex-col">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-inter font-semibold text-neu-100">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-inter font-semibold text-neu-gre-800">
               {day.date.toLocaleDateString("en-US", {
                 weekday: "long",
               })}
@@ -87,12 +87,12 @@ export const DayColumn = ({
           </div>
 
           {/* Task creation */}
-          <div className="mb-2">
+          <div className="mb-4">
             <TaskCreationInput dayIndex={dayIndex} onAddTask={onAddTask} />
           </div>
 
           {/* Section creation */}
-          <div className="mb-8 pb-8 border-b-2 border-neu-700/75">
+          <div className="mb-8 pb-8 border-b-2 border-neu-gre-400">
             <SectionCreationInput
               dayIndex={dayIndex}
               onSectionAdded={onSectionAdded}
@@ -115,8 +115,8 @@ export const DayColumn = ({
                 return (
                   <div
                     key={item.id}
-                    className={`relative task-item ${
-                      isHiding ? "hiding" : "showing"
+                    className={`relative task-item transition-all duration-300 ${
+                      isHiding ? "opacity-0 scale-95" : "opacity-100 scale-100"
                     }`}
                   >
                     <DraggableItem

@@ -14,7 +14,7 @@ import { StatsModal } from "../components/Next7Days/StatsModal";
 import { TaskManagementHeader } from "../components/Next7Days/TaskManagementHeader";
 import { DayColumn } from "../components/Next7Days/DayColumn";
 import { TaskItem } from "../components/Next7Days/TaskItem";
-import { SectionItem } from "../components/Next7Days/SectionItem";
+import { SectionItem as SectionItemComponent } from "../components/Next7Days/SectionItem";
 
 type ListItem = Task | SectionItemType;
 
@@ -699,6 +699,38 @@ export function Next7Days() {
     }
   };
 
+  const handleSaveTask = async (taskId: string) => {
+    try {
+      const task = days
+        .flatMap((day) => day.items)
+        .find((item) => isTask(item) && item.id === taskId) as Task;
+
+      if (task) {
+        const updates = { isSaved: !task.isSaved };
+        await handleEditTask(taskId, updates);
+      }
+    } catch (error) {
+      console.error("Error saving task:", error);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await taskService.deleteTask(taskId);
+      setDays((prevDays) => {
+        const newDays = [...prevDays];
+        newDays.forEach((day) => {
+          day.items = day.items.filter(
+            (item) => !isTask(item) || item.id !== taskId
+          );
+        });
+        return newDays;
+      });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
+
   const handleEditSection = async (
     sectionId: string,
     updates: Partial<SectionItemType>
@@ -719,23 +751,6 @@ export function Next7Days() {
       setEditingSection(null);
     } catch (error) {
       console.error("Error updating section:", error);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    try {
-      await taskService.deleteTask(taskId);
-      setDays((prevDays) => {
-        const newDays = [...prevDays];
-        newDays.forEach((day) => {
-          day.items = day.items.filter(
-            (item) => !isTask(item) || item.id !== taskId
-          );
-        });
-        return newDays;
-      });
-    } catch (error) {
-      console.error("Error deleting task:", error);
     }
   };
 
@@ -808,12 +823,13 @@ export function Next7Days() {
         onTaskDelete={handleDeleteTask}
         onTaskEdit={handleEditTask}
         onEditingTaskChange={setEditingTask}
+        onTaskSave={handleSaveTask}
       />
     );
   };
 
   const renderSection = (item: SectionItemType) => (
-    <SectionItem
+    <SectionItemComponent
       section={item}
       onSectionClick={setSelectedSection}
       onSectionDelete={handleDeleteSection}
@@ -1222,7 +1238,7 @@ export function Next7Days() {
         {/* Days Container - Now with dynamic height */}
         <div className="flex-1 overflow-y-auto relative">
           <div className="days-container h-full overflow-x-auto">
-            <div className="flex space-x-8 p-4 pl-8 h-fit min-h-[calc(100vh-8rem)]">
+            <div className="flex space-x-6 p-4 pl-8 h-fit min-h-[calc(100vh-8rem)]">
               {days.map((day, dayIndex) => (
                 <DayColumn
                   key={day.date.toISOString()}

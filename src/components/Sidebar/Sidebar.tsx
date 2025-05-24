@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useTheme } from "../../contexts/ThemeContext";
+import { Next7DaysIcon } from "../Icons/Next7DaysIcon";
 
 // Import custom avatars
 import avatar1 from "../../assets/profile-avatars/PFP_option1.png";
@@ -48,9 +49,7 @@ const menuSections: MenuSection[] = [
       {
         id: "next7days",
         label: "Next 7 Days",
-        icon: () => (
-          <Icon icon="mingcute:trello-board-fill" width={24} height={24} />
-        ),
+        icon: () => <Next7DaysIcon />,
         path: "/next7days",
       },
     ],
@@ -541,12 +540,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     location.pathname === "/next7days" ? "page" : undefined
                   }
                 >
-                  <Icon
-                    icon="mingcute:calendar-fill"
-                    width={20}
-                    height={20}
-                    aria-hidden="true"
-                  />
+                  <Next7DaysIcon />
                   {isOpen && <span className="text-base">Next 7 Days</span>}
                 </button>
               </div>
