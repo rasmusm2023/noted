@@ -213,7 +213,7 @@ export const TaskItem = ({
               } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-label={`Edit task "${task.title}"`}
             >
-              <Icon icon="mingcute:edit-2-fill" width={24} height={24} />
+              <Icon icon="mingcute:pencil-fill" width={24} height={24} />
             </button>
             <button
               onClick={(e) => {
@@ -231,7 +231,7 @@ export const TaskItem = ({
                 task.isSaved
                   ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
                   : isNextTask
-                  ? "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-100 dark:hover:text-pri-pur-400"
+                  ? "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-neu-gre-700 dark:hover:text-neu-whi-100"
                   : task.completed
                   ? "text-sup-suc-800 dark:text-sup-suc-800 hover:text-sup-suc-700 dark:hover:text-sup-suc-700"
                   : "text-neu-gre-500 dark:text-neu-whi-100/70 hover:text-pri-pur-100 dark:hover:text-pri-pur-400"
@@ -240,7 +240,11 @@ export const TaskItem = ({
                 task.title
               }"`}
             >
-              <Icon icon="mingcute:bookmark-fill" width={24} height={24} />
+              <Icon
+                icon="mingcute:classify-add-2-fill"
+                width={24}
+                height={24}
+              />
             </button>
             <button
               onClick={(e) => {

@@ -168,7 +168,7 @@ export const TaskLibraryButton = ({
         }`}
       >
         <Icon
-          icon="mingcute:classify-add-2-fill"
+          icon="mingcute:classify-2-fill"
           className="w-6 h-6 text-neu-whi-100"
         />
         <span className="text-base font-inter font-medium">Task Library</span>
@@ -196,7 +196,7 @@ export const TaskLibraryButton = ({
               <div className="flex justify-between items-start mb-8">
                 <div className="flex items-center space-x-3">
                   <Icon
-                    icon="mingcute:classify-add-2-fill"
+                    icon="mingcute:classify-2-fill"
                     className="text-neu-gre-800 w-5 h-5"
                   />
                   <h3 className="text-md font-medium font-inter text-neu-gre-800">
