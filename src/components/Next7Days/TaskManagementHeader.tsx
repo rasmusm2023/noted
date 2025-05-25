@@ -18,11 +18,11 @@ export const TaskManagementHeader = ({
   children,
 }: TaskManagementHeaderProps) => {
   return (
-    <div className="flex-none pt-8 pb-8 bg-gradient-to-b from-pri-pur-100/50 to-transparent backdrop-blur-md sticky top-0 z-10">
+    <div className="flex-none pt-8 pb-8">
       <div className="max-w-[2000px] mx-auto">
         <div className="flex items-center justify-between pl-8 pr-8">
           {children}
-          <div className="bg-neu-800/50 backdrop-blur-sm rounded-5xl p-2 shadow-lg">
+          <div className="bg-neu-800/30 backdrop-blur-md rounded-5xl p-2 shadow-lg border border-neu-800/20">
             <div className="flex items-center space-x-2">
               <button
                 onClick={onStatsClick}

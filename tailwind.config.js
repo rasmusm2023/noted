@@ -319,6 +319,8 @@ module.exports = {
           "linear-gradient(90deg, rgba(239, 112, 155, 0.75) 0%, rgba(250, 147, 114, 0.75) 100%)",
         "gradient-purple-rose-peach":
           "linear-gradient(90deg, theme(colors.pri-pur.500) 0%, theme(colors.sec-rose.500) 50%, theme(colors.sec-pea.500) 100%)",
+        "gradient-highlighted-task":
+          "linear-gradient(90deg, rgba(167, 139, 250, 0.3) 0%, rgba(109, 40, 217, 0.3) 100%)",
       },
     },
   },

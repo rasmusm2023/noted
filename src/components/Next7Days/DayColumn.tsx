@@ -1,7 +1,7 @@
 import type { Task, SectionItem } from "../../types/task";
 import { TaskCreationInput } from "./TaskCreationInput";
-import { SectionCreationInput } from "./SectionCreationInput";
 import { DraggableItem } from "./DraggableItem";
+import { TaskLibraryButton } from "../Buttons/TaskLibraryButton";
 
 interface DayColumnProps {
   day: {
@@ -42,6 +42,14 @@ export const DayColumn = ({
   const isToday = dayIndex === 0;
   const isTomorrow = dayIndex === 1;
 
+  const handleTaskSelect = (task: Task) => {
+    onAddTask(dayIndex, task.title);
+  };
+
+  const handleRemoveTask = async (taskId: string) => {
+    // This will be handled by the TaskLibraryButton component
+  };
+
   return (
     <div
       key={day.date.toISOString()}
@@ -63,7 +71,7 @@ export const DayColumn = ({
         </div>
       )}
       <div
-        className={`bg-neu-gre-300 p-4 h-fit backdrop-blur-sm shadow-lg ${
+        className={`bg-neu-gre-300/75 py-4 px-2 h-fit shadow-lg ${
           dayIndex <= 1
             ? "rounded-tr-xl rounded-br-xl rounded-bl-xl"
             : "rounded-xl"
@@ -76,7 +84,7 @@ export const DayColumn = ({
                 weekday: "long",
               })}
             </h2>
-            <p className="text-base font-inter text-neu-400">
+            <p className="text-base font-inter text-neu-gre-600">
               {day.date
                 .toLocaleDateString("en-US", {
                   month: "short",
@@ -87,20 +95,21 @@ export const DayColumn = ({
           </div>
 
           {/* Task creation */}
-          <div className="mb-4">
+          <div className="mb-2">
             <TaskCreationInput dayIndex={dayIndex} onAddTask={onAddTask} />
           </div>
 
-          {/* Section creation */}
+          {/* Task Library Button */}
           <div className="mb-8 pb-8 border-b-2 border-neu-gre-400">
-            <SectionCreationInput
-              dayIndex={dayIndex}
-              onSectionAdded={onSectionAdded}
+            <TaskLibraryButton
+              onTaskSelect={handleTaskSelect}
+              onRemoveTask={handleRemoveTask}
+              variant="next7days"
             />
           </div>
 
           {/* Tasks and Sections */}
-          <div className="space-y-4">
+          <div className="space-y-4 p-0 mb-4">
             {isLoading ? (
               <div className="text-neu-400">Loading tasks...</div>
             ) : day.items.length === 0 ? (

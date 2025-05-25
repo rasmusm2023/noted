@@ -1229,20 +1229,26 @@ export function Next7Days() {
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
       <div className="h-screen flex flex-col bg-neu-whi-100">
-        <TaskManagementHeader
-          onClearCompleted={handleClearCompleted}
-          onStatsClick={() => setIsStatsModalOpen(true)}
-          completedPosition={completedPosition}
-          onCompletedPositionChange={setCompletedPosition}
-        >
-          <div className="flex items-center space-x-3">
-            <Next7DaysIcon className="text-pri-pur-500 w-8 h-8" />
-            <h1 className="text-3xl font-bold text-neu-gre-800">Next 7 Days</h1>
+        <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50">
+          <div className="max-w-[2000px] mx-auto bg-neu-whi-100 border-b border-neu-gre-300/50">
+            <TaskManagementHeader
+              onClearCompleted={handleClearCompleted}
+              onStatsClick={() => setIsStatsModalOpen(true)}
+              completedPosition={completedPosition}
+              onCompletedPositionChange={setCompletedPosition}
+            >
+              <div className="flex items-center space-x-3">
+                <Next7DaysIcon className="text-pri-pur-500 w-8 h-8" />
+                <h1 className="text-3xl font-bold text-neu-gre-800">
+                  Next 7 Days
+                </h1>
+              </div>
+            </TaskManagementHeader>
           </div>
-        </TaskManagementHeader>
+        </div>
 
         {/* Days Container - Now with dynamic height */}
-        <div className="flex-1 overflow-y-auto relative">
+        <div className="flex-1 overflow-y-auto relative pt-[128px]">
           <div className="days-container h-full overflow-x-auto">
             <div className="flex space-x-6 p-4 px-8 h-fit min-h-[calc(100vh-8rem)] pb-[1000px] w-fit">
               {days.map((day, dayIndex) => (

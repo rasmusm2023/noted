@@ -27,6 +27,14 @@ export function Layout() {
     localStorage.setItem("sidebarCollapsed", JSON.stringify(!newState));
   };
 
+  // Update CSS variable when sidebar state changes
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      isSidebarOpen ? "288px" : "96px"
+    );
+  }, [isSidebarOpen]);
+
   return (
     <div className="flex h-screen">
       <Sidebar isOpen={isSidebarOpen} onToggle={handleSidebarToggle} />

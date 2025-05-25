@@ -1,7 +1,8 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import type { Task } from "../../types/task";
 import { SubtaskList } from "./SubtaskList";
+import { createPortal } from "react-dom";
 
 interface TaskItemProps {
   task: Task;
@@ -34,6 +35,87 @@ export const TaskItem = ({
   onTaskSave,
 }: TaskItemProps) => {
   const taskInputRef = useRef<HTMLInputElement>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Close dropdown when clicking outside
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node) &&
+      buttonRef.current &&
+      !buttonRef.current.contains(event.target as Node)
+    ) {
+      setIsDropdownOpen(false);
+    }
+  };
+
+  // Add click outside listener
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const renderDropdown = () => {
+    if (!isDropdownOpen || !buttonRef.current) return null;
+
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const dropdownStyle = {
+      position: "fixed" as const,
+      top: buttonRect.bottom + window.scrollY + 4,
+      right: window.innerWidth - buttonRect.right,
+      zIndex: 9999,
+    };
+
+    return createPortal(
+      <div
+        ref={dropdownRef}
+        className="w-48 rounded-md shadow-lg bg-white dark:bg-neu-gre-800 ring-1 ring-black ring-opacity-5"
+        style={dropdownStyle}
+      >
+        <div className="py-1" role="menu" aria-orientation="vertical">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onTaskClick(task, e);
+              setIsDropdownOpen(false);
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-neu-gre-700 dark:text-neu-whi-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700"
+            role="menuitem"
+          >
+            <div className="flex items-center space-x-2">
+              <Icon icon="mingcute:pencil-fill" className="w-4 h-4" />
+              <span>Edit</span>
+            </div>
+          </button>
+          {onTaskSave && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onTaskSave(task.id);
+                setIsDropdownOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-neu-gre-700 dark:text-neu-whi-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700"
+              role="menuitem"
+            >
+              <div className="flex items-center space-x-2">
+                <Icon icon="mingcute:classify-add-2-fill" className="w-4 h-4" />
+                <span>
+                  {task.isSaved
+                    ? "Remove from Task Library"
+                    : "Save to Task Library"}
+                </span>
+              </div>
+            </button>
+          )}
+        </div>
+      </div>,
+      document.body
+    );
+  };
 
   return (
     <div
@@ -46,17 +128,30 @@ export const TaskItem = ({
           onTaskClick(task, e as unknown as React.MouseEvent);
         }
       }}
-      className={`task-item px-2 py-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
+      className={`task-item p-4 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px] ${
         task.completed
-          ? "bg-gradient-to-r from-sup-suc-400/50 to-sup-suc-400/30"
+          ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
           : task.backgroundColor
-          ? task.backgroundColor
-          : "bg-gradient-to-r from-neu-gre-800 to-neu-gre-800/80"
+          ? `${task.backgroundColor} ${
+              task.backgroundColor.includes("bg-task-")
+                ? `dark:${task.backgroundColor
+                    .replace("bg-task-", "bg-task-")
+                    .replace("-100", "-dark")} hover:${task.backgroundColor
+                    .replace("bg-task-", "hover:bg-task-")
+                    .replace(
+                      "-100",
+                      "-hover"
+                    )} dark:hover:${task.backgroundColor
+                    .replace("bg-task-", "hover:bg-task-")
+                    .replace("-100", "-dark-hover")}`
+                : task.backgroundColor
+            } border-2 border-neu-gre-400/30`
+          : "bg-neu-gre-100 dark:bg-neu-gre-800 border-2 border-neu-gre-400/30"
       } ${
         isNextTask
-          ? "highlighted-task ring-2 ring-pri-pur-500 ring-opacity-60"
+          ? "highlighted-task bg-gradient-highlighted-task ring-2 ring-pri-pur-500 ring-opacity-60"
           : ""
-      } focus:outline-none focus:ring-4 focus:ring-pri-pur-500 backdrop-blur-sm`}
+      } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500`}
       onClick={(e) => onTaskClick(task, e)}
     >
       <div className="flex items-center space-x-2 flex-1">
@@ -90,7 +185,7 @@ export const TaskItem = ({
         <div className="flex-1 flex items-center">
           <div className="flex-1">
             <h3
-              className={`text-base font-inter font-regular ${
+              className={`text-sm font-inter font-medium ${
                 editingTask?.id === task.id ? "" : "transition-all duration-300"
               } ${task.completed ? "text-neu-100 scale-95" : "text-neu-100"}`}
             >
@@ -132,7 +227,7 @@ export const TaskItem = ({
                 {task.subtasks.map((subtask) => (
                   <div key={subtask.id} className="flex items-center space-x-2">
                     <div
-                      className={`w-1.5 h-1.5 rounded-full ${
+                      className={`w-2 h-2 rounded-full ${
                         subtask.completed ? "bg-sup-suc-500" : "bg-neu-gre-500"
                       }`}
                     />
@@ -151,38 +246,24 @@ export const TaskItem = ({
             )}
           </div>
           <div className="flex flex-col items-center space-y-0 ml-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTaskClick(task, e);
-              }}
-              className={`p-1 flex items-center justify-center ${
-                task.completed
-                  ? "text-neu-gre-500 hover:text-neu-gre-800"
-                  : "text-neu-gre-500 hover:text-neu-gre-800"
-              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 transition-all duration-300 rounded-md hover:bg-neu-800/50`}
-              aria-label={`Edit task "${task.title}"`}
-            >
-              <Icon icon="mingcute:pencil-fill" className="w-5 h-5" />
-            </button>
-            {onTaskSave && (
+            <div className="relative" ref={dropdownRef}>
               <button
+                ref={buttonRef}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onTaskSave(task.id);
+                  setIsDropdownOpen(!isDropdownOpen);
                 }}
                 className={`p-1 flex items-center justify-center ${
-                  task.isSaved
-                    ? "text-neu-gre-500 hover:text-neu-gre-700"
-                    : "text-neu-gre-500 hover:text-neu-gre-700"
-                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-                aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
-                  task.title
-                }"`}
+                  task.completed
+                    ? "text-neu-gre-500 hover:text-neu-gre-800"
+                    : "text-neu-gre-500 hover:text-neu-gre-800"
+                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 transition-all duration-300 rounded-md hover:bg-neu-800/50`}
+                aria-label="Task options"
               >
-                <Icon icon="mingcute:classify-add-2-fill" className="w-5 h-5" />
+                <Icon icon="mingcute:more-1-fill" className="w-5 h-5" />
               </button>
-            )}
+              {renderDropdown()}
+            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
