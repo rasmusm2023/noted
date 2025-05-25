@@ -7,7 +7,7 @@ import { Icon } from "@iconify/react";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useTheme } from "../../contexts/ThemeContext";
-import { Next7DaysIcon } from "../Icons/Next7DaysIcon";
+import { Next7DaysIconForMenu } from "../Icons/Next7DaysIconForMenu";
 
 // Import custom avatars
 import avatar1 from "../../assets/profile-avatars/PFP_option1.png";
@@ -49,7 +49,7 @@ const menuSections: MenuSection[] = [
       {
         id: "next7days",
         label: "Next 7 Days",
-        icon: () => <Next7DaysIcon />,
+        icon: () => <Next7DaysIconForMenu />,
         path: "/next7days",
       },
     ],
@@ -540,7 +540,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     location.pathname === "/next7days" ? "page" : undefined
                   }
                 >
-                  <Next7DaysIcon />
+                  <Next7DaysIconForMenu />
                   {isOpen && <span className="text-base">Next 7 Days</span>}
                 </button>
               </div>

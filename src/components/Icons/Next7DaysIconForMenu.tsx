@@ -1,6 +1,6 @@
 import { Icon } from "@iconify/react";
 
-export const Next7DaysIcon = () => {
+export const Next7DaysIconForMenu = () => {
   return (
     <div className="relative w-6 h-6">
       <Icon icon="mingcute:calendar-fill" width={24} height={24} />

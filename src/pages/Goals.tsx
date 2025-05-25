@@ -418,7 +418,7 @@ export function Goals() {
         }}
       />
       <div className="p-8 mt-16">
-        <div className="max-w-[1920px] mx-auto space-y-8 px-16 pb-[1000px]">
+        <div className="max-w-[1920px] mx-auto space-y-8 px-16">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Icon
@@ -450,7 +450,7 @@ export function Goals() {
               Loading goals...
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
               {goals.map((goal) => (
                 <motion.div
                   key={goal.id}
@@ -629,7 +629,7 @@ export function Goals() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mt-4">
                         {goal.progressType === "numerical" ? (
                           <>
                             <button
@@ -956,7 +956,7 @@ export function Goals() {
                     </div>
                   ) : (
                     <div
-                      className="bg-pri-pur-100/25 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-dashed border-pri-pur-500/50 cursor-pointer"
+                      className="bg-pri-pur-100/25 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-dashed border-pri-pur-500/50 cursor-pointer h-full"
                       onClick={() => setShowForm(!showForm)}
                     >
                       <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-neu-gre-600 hover:text-pri-pur-500 transition-colors">

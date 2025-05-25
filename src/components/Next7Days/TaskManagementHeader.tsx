@@ -7,6 +7,7 @@ interface TaskManagementHeaderProps {
   onCompletedPositionChange: (position: "top" | "bottom" | "mixed") => void;
   onClearCompleted: () => void;
   onStatsClick: () => void;
+  children?: React.ReactNode;
 }
 
 export const TaskManagementHeader = ({
@@ -14,17 +15,13 @@ export const TaskManagementHeader = ({
   onCompletedPositionChange,
   onClearCompleted,
   onStatsClick,
+  children,
 }: TaskManagementHeaderProps) => {
   return (
-    <div className="flex-none pt-8 pb-8 bg-gradient-to-b from-neu-gre-900/30 to-transparent backdrop-blur-md sticky top-0 z-10">
+    <div className="flex-none pt-8 pb-8 bg-gradient-to-b from-pri-pur-100/50 to-transparent backdrop-blur-md sticky top-0 z-10">
       <div className="max-w-[2000px] mx-auto">
         <div className="flex items-center justify-between pl-8 pr-8">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-4xl font-bold font-inter text-neu-100">
-              Next 7 Days
-            </h1>
-            <div className="h-8 w-1 bg-gradient-to-b from-pri-pur-500 to-pri-blue-500 rounded-full"></div>
-          </div>
+          {children}
           <div className="bg-neu-800/50 backdrop-blur-sm rounded-5xl p-2 shadow-lg">
             <div className="flex items-center space-x-2">
               <button

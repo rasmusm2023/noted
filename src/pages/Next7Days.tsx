@@ -15,6 +15,7 @@ import { TaskManagementHeader } from "../components/Next7Days/TaskManagementHead
 import { DayColumn } from "../components/Next7Days/DayColumn";
 import { TaskItem } from "../components/Next7Days/TaskItem";
 import { SectionItem as SectionItemComponent } from "../components/Next7Days/SectionItem";
+import { Next7DaysIcon } from "../components/Next7Days/Next7DaysIcon";
 
 type ListItem = Task | SectionItemType;
 
@@ -1227,18 +1228,23 @@ export function Next7Days() {
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
-      <div className="h-screen flex flex-col">
+      <div className="h-screen flex flex-col bg-neu-whi-100">
         <TaskManagementHeader
           onClearCompleted={handleClearCompleted}
           onStatsClick={() => setIsStatsModalOpen(true)}
           completedPosition={completedPosition}
           onCompletedPositionChange={setCompletedPosition}
-        />
+        >
+          <div className="flex items-center space-x-3">
+            <Next7DaysIcon className="text-pri-pur-500 w-8 h-8" />
+            <h1 className="text-3xl font-bold text-neu-gre-800">Next 7 Days</h1>
+          </div>
+        </TaskManagementHeader>
 
         {/* Days Container - Now with dynamic height */}
         <div className="flex-1 overflow-y-auto relative">
           <div className="days-container h-full overflow-x-auto">
-            <div className="flex space-x-6 p-4 pl-8 h-fit min-h-[calc(100vh-8rem)]">
+            <div className="flex space-x-6 p-4 px-8 h-fit min-h-[calc(100vh-8rem)] pb-[1000px] w-fit">
               {days.map((day, dayIndex) => (
                 <DayColumn
                   key={day.date.toISOString()}
