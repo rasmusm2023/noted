@@ -15,7 +15,6 @@ import { TaskManagementHeader } from "../components/Next7Days/TaskManagementHead
 import { DayColumn } from "../components/Next7Days/DayColumn";
 import { TaskItem } from "../components/Next7Days/TaskItem";
 import { SectionItem as SectionItemComponent } from "../components/Next7Days/SectionItem";
-import { Next7DaysIcon } from "../components/Next7Days/Next7DaysIcon";
 
 type ListItem = Task | SectionItemType;
 
