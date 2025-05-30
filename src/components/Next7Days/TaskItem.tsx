@@ -80,7 +80,13 @@ export const TaskItem = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onTaskClick(task, e);
+              // Create a synthetic event that won't be blocked by the button check
+              const syntheticEvent = new MouseEvent("click", {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+              });
+              onTaskClick(task, syntheticEvent as unknown as React.MouseEvent);
               setIsDropdownOpen(false);
             }}
             className="w-full text-left px-4 py-2 text-sm text-neu-gre-700 dark:text-neu-whi-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700"
@@ -163,8 +169,8 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
-                ? "text-neu-100 hover:text-neu-100 scale-95"
-                : "text-pri-pur-500 hover:text-sup-suc-500 hover:scale-95"
+                ? "text-sup-suc-600 hover:text-sup-suc-600"
+                : "text-pri-pur-500 hover:text-sup-suc-500"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md`}
             aria-label={`Mark task "${task.title}" as ${
               task.completed ? "incomplete" : "complete"
@@ -228,13 +234,13 @@ export const TaskItem = ({
                   <div key={subtask.id} className="flex items-center space-x-2">
                     <div
                       className={`w-2 h-2 rounded-full ${
-                        subtask.completed ? "bg-sup-suc-500" : "bg-neu-gre-500"
+                        subtask.completed ? "bg-sup-suc-800" : "bg-neu-gre-500"
                       }`}
                     />
                     <span
                       className={`font-inter text-xs ${
                         subtask.completed
-                          ? "line-through text-neu-400"
+                          ? "line-through text-sup-suc-800"
                           : "text-neu-400"
                       }`}
                     >
@@ -255,7 +261,7 @@ export const TaskItem = ({
                 }}
                 className={`p-1 flex items-center justify-center ${
                   task.completed
-                    ? "text-neu-gre-500 hover:text-neu-gre-800"
+                    ? "text-sup-suc-800 hover:text-sup-suc-800"
                     : "text-neu-gre-500 hover:text-neu-gre-800"
                 } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 transition-all duration-300 rounded-md hover:bg-neu-800/50`}
                 aria-label="Task options"
@@ -271,7 +277,7 @@ export const TaskItem = ({
               }}
               className={`p-1 flex items-center justify-center ${
                 task.completed
-                  ? "text-neu-gre-500 hover:text-sup-err-500"
+                  ? "text-sup-suc-800 hover:text-sup-suc-800"
                   : "text-neu-gre-500 hover:text-sup-err-500"
               } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-300 hover:bg-neu-800/50`}
               aria-label={`Delete task "${task.title}"`}

@@ -7,7 +7,6 @@ import { Icon } from "@iconify/react";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useTheme } from "../../contexts/ThemeContext";
-import { Next7DaysIconForMenu } from "../Icons/Next7DaysIconForMenu";
 
 // Import custom avatars
 import avatar1 from "../../assets/profile-avatars/PFP_option1.png";
@@ -42,14 +41,14 @@ const menuSections: MenuSection[] = [
         id: "today",
         label: "Today",
         icon: () => (
-          <Icon icon="mingcute:schedule-fill" width={24} height={24} />
+          <Icon icon="mingcute:schedule-fill" width={20} height={20} />
         ),
         path: "/",
       },
       {
         id: "next7days",
         label: "Next 7 Days",
-        icon: () => <Next7DaysIconForMenu />,
+        icon: () => <Icon icon="mingcute:trello-fill" width={20} height={20} />,
         path: "/next7days",
       },
     ],
@@ -120,6 +119,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const highlightNoButtonRef = useRef<HTMLButtonElement>(null);
   const languageEnglishButtonRef = useRef<HTMLButtonElement>(null);
   const languageSwedishButtonRef = useRef<HTMLButtonElement>(null);
+  const [isNext7DaysHovered, setIsNext7DaysHovered] = useState(false);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -540,7 +540,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     location.pathname === "/next7days" ? "page" : undefined
                   }
                 >
-                  <Next7DaysIconForMenu />
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <Icon
+                      icon="mingcute:trello-board-fill"
+                      width={20}
+                      height={20}
+                      className="text-neu-gre-700"
+                    />
+                  </div>
                   {isOpen && <span className="text-base">Next 7 Days</span>}
                 </button>
               </div>

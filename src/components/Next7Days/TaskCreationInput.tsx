@@ -34,28 +34,35 @@ export const TaskCreationInput = ({
   return (
     <div className="flex flex-col space-y-2">
       <div
-        className={`flex items-center space-x-4 bg-neu-900/50 rounded-lg p-4 transition-all duration-200 ${
-          isFocused ? "ring-2 ring-pri-blue-500" : ""
+        className={`p-4 bg-neu-whi-100 rounded-lg hover:bg-pri-pur-500/10 transition-colors ring-2 ring-pri-pur-500/50 ${
+          isFocused ? "ring-2 ring-pri-pur-500/75" : ""
         }`}
       >
-        <div className="p-2 bg-pri-blue-700 rounded-lg flex items-center justify-center">
-          <Icon icon="mingcute:add-fill" className="w-5 h-5 text-white" />
-        </div>
-        <div className="flex-1">
-          <input
-            ref={inputRef}
-            type="text"
-            value={localInput}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder="Add new task..."
-            className="w-full bg-transparent text-base font-inter font-semibold text-neu-100 placeholder-neu-400 focus:outline-none"
-          />
-          <p className="text-sm font-inter text-neu-600 mt-2">
-            Press Enter to add
-          </p>
+        <div className="flex items-center space-x-4">
+          <div className="p-2 bg-pri-pur-500 rounded-md flex items-center justify-center">
+            <Icon
+              icon="mingcute:add-fill"
+              width={16}
+              height={16}
+              color="#FFF5F8"
+            />
+          </div>
+          <div className="text-left font-inter text-sm flex-1">
+            <input
+              ref={inputRef}
+              type="text"
+              value={localInput}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              placeholder="Add new task..."
+              className="w-full bg-transparent font-semibold text-gre-800 placeholder-neu-gre-600 focus-visible:outline-none"
+            />
+            <p className="text-neu-gre-500 text-xs font-inter mt-2">
+              Press Enter to add
+            </p>
+          </div>
         </div>
       </div>
     </div>

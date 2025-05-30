@@ -71,14 +71,16 @@ export const DayColumn = ({
         </div>
       )}
       <div
-        className={`bg-neu-gre-300/75 py-4 px-2 h-fit shadow-lg ${
+        className={`py-4 px-2 h-fit shadow-lg ${
           dayIndex <= 1
-            ? "rounded-tr-xl rounded-br-xl rounded-bl-xl"
-            : "rounded-xl"
+            ? dayIndex === 0
+              ? "bg-gradient-to-b from-pri-pur-500/10 to-neu-gre-300/75 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+              : "bg-gradient-to-b from-sec-rose-500/10 to-neu-gre-300/75 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+            : "bg-neu-gre-300/75 rounded-xl"
         }`}
       >
         <div className="flex flex-col">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 px-4">
             <h2 className="text-lg font-inter font-semibold text-neu-gre-800">
               {day.date.toLocaleDateString("en-US", {
                 weekday: "long",
@@ -95,12 +97,12 @@ export const DayColumn = ({
           </div>
 
           {/* Task creation */}
-          <div className="mb-2">
+          <div className="mb-4 px-4">
             <TaskCreationInput dayIndex={dayIndex} onAddTask={onAddTask} />
           </div>
 
           {/* Task Library Button */}
-          <div className="mb-8 pb-8 border-b-2 border-neu-gre-400">
+          <div className="mb-8 pb-8 border-b-2 border-neu-gre-400 px-4">
             <TaskLibraryButton
               onTaskSelect={handleTaskSelect}
               onRemoveTask={handleRemoveTask}
