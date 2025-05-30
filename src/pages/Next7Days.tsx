@@ -145,6 +145,13 @@ export function Next7Days() {
   // Add this near the top with other state declarations
   const hasLoadedData = useRef(false);
 
+  // Add this near the top with other state declarations
+  const [pendingUpdates, setPendingUpdates] = useState<{
+    sourceDay: number;
+    targetDay: number;
+    items: ListItem[];
+  } | null>(null);
+
   // Add online/offline detection
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -266,7 +273,6 @@ export function Next7Days() {
     try {
       setIsLoading(true);
       const tasks = await taskService.getUserTasks(currentUser.uid);
-      console.log("All tasks from database:", tasks);
       const sections = await taskService.getUserSections(currentUser.uid);
 
       // Group tasks by day
@@ -274,14 +280,6 @@ export function Next7Days() {
         (acc: Record<number, Task[]>, task: Task) => {
           // Parse the date from the task's date field (not scheduledTime)
           const taskDate = parseDateString(task.date);
-          console.log(
-            "Task:",
-            task.title,
-            "Date:",
-            task.date,
-            "Parsed date:",
-            taskDate
-          );
 
           const dayIndex = days.findIndex((day) => {
             const dayDate = new Date(day.date);
@@ -292,17 +290,8 @@ export function Next7Days() {
             // Compare dates using time values to avoid timezone issues
             const dayTime = dayDate.getTime();
             const taskTime = taskDateCopy.getTime();
-            console.log("Comparing dates:", {
-              dayDate: dayDate.toISOString(),
-              taskDate: taskDateCopy.toISOString(),
-              dayTime,
-              taskTime,
-              isMatch: dayTime === taskTime,
-            });
             return dayTime === taskTime;
           });
-
-          console.log("Day index for task:", task.title, "is:", dayIndex);
 
           if (dayIndex !== -1) {
             if (!acc[dayIndex]) {
@@ -327,8 +316,6 @@ export function Next7Days() {
         },
         {}
       );
-
-      console.log("Tasks grouped by day:", tasksByDay);
 
       // Distribute sections across days based on their date
       const sectionsByDay: Record<number, SectionItemType[]> = {};
@@ -412,13 +399,10 @@ export function Next7Days() {
 
   // Helper function to parse date strings
   const parseDateString = (dateStr: string): Date => {
-    console.log("Parsing date string:", dateStr);
-
     // If it's an ISO string or YYYY-MM-DD format, parse it directly
     if (dateStr.includes("T") || dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
       const date = new Date(dateStr);
       date.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
-      console.log("Parsed ISO date:", date.toISOString());
       return date;
     }
 
@@ -444,7 +428,6 @@ export function Next7Days() {
       date.setSeconds(0);
       date.setMilliseconds(0);
 
-      console.log("Parsed YYYY-MM-DD date:", date.toISOString());
       return date;
     }
 
@@ -462,7 +445,6 @@ export function Next7Days() {
     date.setSeconds(0);
     date.setMilliseconds(0);
 
-    console.log("Parsed DD/MM/YYYY date:", date.toISOString());
     return date;
   };
 
@@ -1242,13 +1224,67 @@ export function Next7Days() {
     );
   };
 
-  // Update moveItem function
+  // Add this after other useEffect hooks
+  useEffect(() => {
+    if (pendingUpdates) {
+      const timeoutId = setTimeout(async () => {
+        try {
+          const { sourceDay, targetDay, items } = pendingUpdates;
+          const targetDate = new Date(days[targetDay].date);
+          targetDate.setHours(12, 0, 0, 0);
+
+          // Update all items in both days to ensure order consistency
+          const updatePromises = items.map((item, index) => {
+            if (isTask(item)) {
+              return taskService.updateTask(item.id, {
+                order: index,
+                scheduledTime: targetDate.toLocaleString(),
+                date: targetDate.toISOString(),
+              });
+            } else if (isSection(item)) {
+              return taskService.updateSection(item.id, {
+                order: index,
+                scheduledTime: targetDate.toLocaleString(),
+              });
+            }
+            return Promise.resolve();
+          });
+
+          await Promise.all(updatePromises);
+          console.log("Debounced database update completed:", {
+            sourceDay,
+            targetDay,
+            itemsCount: items.length,
+          });
+        } catch (error) {
+          console.error("Error in debounced update:", error);
+          // Revert the state if the update fails
+          setDays(days);
+        } finally {
+          setPendingUpdates(null);
+        }
+      }, 500); // 500ms debounce
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [pendingUpdates, days]);
+
+  // Update the moveItem function
   const moveItem = async (
     dragIndex: number,
     hoverIndex: number,
     sourceDay: number,
     targetDay: number
   ) => {
+    console.log("Drag and Drop Debug:", {
+      dragIndex,
+      hoverIndex,
+      sourceDay,
+      targetDay,
+      sourceItem: days[sourceDay].items[dragIndex],
+      targetItem: days[targetDay].items[hoverIndex],
+    });
+
     // Create a new array of days to avoid mutating state directly
     const newDays = [...days];
     const sourceItems = [...newDays[sourceDay].items];
@@ -1257,10 +1293,6 @@ export function Next7Days() {
     if (sourceDay === targetDay) {
       // Same day reordering
       sourceItems.splice(hoverIndex, 0, movedItem);
-      newDays[sourceDay] = {
-        ...newDays[sourceDay],
-        items: sourceItems,
-      };
 
       // Update the order of all items in the day
       const updatedItems = sourceItems.map((item, index) => ({
@@ -1269,20 +1301,21 @@ export function Next7Days() {
       }));
 
       // Update the state immediately for smooth UI
-      setDays(newDays);
+      setDays((prevDays) => {
+        const updatedDays = [...prevDays];
+        updatedDays[sourceDay] = {
+          ...updatedDays[sourceDay],
+          items: updatedItems,
+        };
+        return updatedDays;
+      });
 
-      // Update the order in the database
-      try {
-        if (isTask(movedItem)) {
-          await taskService.updateTask(movedItem.id, { order: hoverIndex });
-        } else if (isSection(movedItem)) {
-          await taskService.updateSection(movedItem.id, { order: hoverIndex });
-        }
-      } catch (error) {
-        console.error("Error updating item order:", error);
-        // Revert the state if the update fails
-        setDays(days);
-      }
+      // Queue the database update
+      setPendingUpdates({
+        sourceDay,
+        targetDay,
+        items: updatedItems,
+      });
       return;
     }
 
@@ -1290,55 +1323,37 @@ export function Next7Days() {
     const targetItems = [...newDays[targetDay].items];
     targetItems.splice(hoverIndex, 0, movedItem);
 
-    // Update the target date
-    const targetDate = new Date(days[targetDay].date);
-    targetDate.setHours(12, 0, 0, 0);
+    // Update both source and target days
+    setDays((prevDays) => {
+      const updatedDays = [...prevDays];
 
-    // Update the task's date and order
-    try {
-      if (isTask(movedItem)) {
-        await taskService.updateTask(movedItem.id, {
-          scheduledTime: targetDate.toLocaleString(),
-          date: targetDate.toISOString(),
-          order: hoverIndex,
-        });
-      } else if (isSection(movedItem)) {
-        await taskService.updateSection(movedItem.id, {
-          scheduledTime: targetDate.toLocaleString(),
-          order: hoverIndex,
-        });
-      }
-
-      // Update both source and target days
-      newDays[sourceDay] = {
-        ...newDays[sourceDay],
-        items: sourceItems,
-      };
-      newDays[targetDay] = {
-        ...newDays[targetDay],
-        items: targetItems,
-      };
-
-      // Update orders for all items in both days
-      newDays[sourceDay].items = newDays[sourceDay].items.map(
-        (item, index) => ({
+      // Update source day
+      updatedDays[sourceDay] = {
+        ...updatedDays[sourceDay],
+        items: sourceItems.map((item, index) => ({
           ...item,
           order: index,
-        })
-      );
-      newDays[targetDay].items = newDays[targetDay].items.map(
-        (item, index) => ({
+        })),
+      };
+
+      // Update target day
+      updatedDays[targetDay] = {
+        ...updatedDays[targetDay],
+        items: targetItems.map((item, index) => ({
           ...item,
           order: index,
-        })
-      );
+        })),
+      };
 
-      setDays(newDays);
-    } catch (error) {
-      console.error("Error updating item:", error);
-      // Revert the state if the update fails
-      setDays(days);
-    }
+      return updatedDays;
+    });
+
+    // Queue the database update for both days
+    setPendingUpdates({
+      sourceDay,
+      targetDay,
+      items: [...sourceItems, ...targetItems],
+    });
   };
 
   const handleClearCompleted = async () => {
@@ -1404,7 +1419,7 @@ export function Next7Days() {
       <style>{globalStyles}</style>
       <div className="h-screen flex flex-col bg-neu-whi-100">
         <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50">
-          <div className="max-w-[2000px] mx-auto bg-neu-whi-100 border-b border-neu-gre-300/50">
+          <div className="max-w-[2000px] mx-auto bg-neu-whi-100 border-b-1">
             <TaskManagementHeader onClearCompleted={handleClearCompleted}>
               <div className="flex items-center space-x-3">
                 <Icon
@@ -1418,6 +1433,7 @@ export function Next7Days() {
                 </h1>
               </div>
             </TaskManagementHeader>
+            <div className="border-b border-neu-gre-300/50"></div>
           </div>
         </div>
 
