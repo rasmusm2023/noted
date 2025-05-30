@@ -134,7 +134,7 @@ export const TaskItem = ({
           onTaskClick(task, e as unknown as React.MouseEvent);
         }
       }}
-      className={`task-item py-4 px-2 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px] ${
+      className={`task-item py-3 px-2 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px] ${
         task.completed
           ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
           : task.backgroundColor
@@ -160,7 +160,7 @@ export const TaskItem = ({
       } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500`}
       onClick={(e) => onTaskClick(task, e)}
     >
-      <div className="flex items-start space-x-2 flex-1 min-w-0">
+      <div className="flex items-center space-x-2 flex-1 min-w-0">
         <div className="flex items-center justify-center h-full flex-shrink-0">
           <button
             onClick={(e) => {
@@ -170,7 +170,7 @@ export const TaskItem = ({
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
                 ? "text-sup-suc-600 hover:text-sup-suc-600"
-                : "text-pri-pur-500 hover:text-sup-suc-500"
+                : "text-neu-gre-800 hover:text-sup-suc-500"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md`}
             aria-label={`Mark task "${task.title}" as ${
               task.completed ? "incomplete" : "complete"
@@ -188,7 +188,7 @@ export const TaskItem = ({
             )}
           </button>
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex items-center">
           <div className="min-w-0">
             <h3
               className={`text-sm font-inter font-medium truncate ${
