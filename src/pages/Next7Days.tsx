@@ -1024,16 +1024,10 @@ export function Next7Days() {
           const hoverMiddleY =
             (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-          // Make the top 40% of the item a "before" drop zone
-          dropPosition = hoverClientY < hoverMiddleY * 0.8 ? "before" : "after";
+          dropPosition = hoverClientY < hoverMiddleY ? "before" : "after";
         }
 
         return { isOver, canDrop, dropPosition };
-      },
-      canDrop: (draggedItem: DragItem) => {
-        return !(
-          draggedItem.id === item.id && draggedItem.dayIndex === dayIndex
-        );
       },
       hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
         if (!ref.current) return;
@@ -1055,18 +1049,20 @@ export function Next7Days() {
         const clientOffset = monitor.getClientOffset();
         const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
 
-        // Make the drop zones more forgiving by using 40% of the item height
-        const dropThreshold = hoverMiddleY * 0.8;
+        // Only perform the move when the mouse has crossed half of the items height
+        // When dragging downwards, only move when the cursor is below 50%
+        // When dragging upwards, only move when the cursor is above 50%
+        const isDraggingDown = dragIndex < hoverIndex;
+        const isDraggingUp = dragIndex > hoverIndex;
 
-        // For same-day moves, only perform the move when the mouse has crossed the threshold
-        if (sourceDay === targetDay) {
-          // If we're moving an item down, only move when we've crossed the threshold
-          if (dragIndex < hoverIndex && hoverClientY < dropThreshold) return;
-          // If we're moving an item up, only move when we've crossed the threshold
-          if (dragIndex > hoverIndex && hoverClientY > dropThreshold) return;
+        if (isDraggingDown && hoverClientY < hoverMiddleY) {
+          return;
+        }
+        if (isDraggingUp && hoverClientY > hoverMiddleY) {
+          return;
         }
 
-        // For cross-day moves, always allow the move
+        // Time to actually perform the action
         moveItem(dragIndex, hoverIndex, sourceDay, targetDay);
 
         // Update the dragged item's index and day
@@ -1137,34 +1133,96 @@ export function Next7Days() {
     sourceDay: number,
     targetDay: number
   ) => {
+    // Create a new array of days to avoid mutating state directly
+    const newDays = [...days];
+    const sourceItems = [...newDays[sourceDay].items];
+    const [movedItem] = sourceItems.splice(dragIndex, 1);
+
     if (sourceDay === targetDay) {
-      // Handle same-day reordering
-      const newItems = [...days];
-      const [movedItem] = newItems[sourceDay].items.splice(dragIndex, 1);
-      newItems[sourceDay].items.splice(hoverIndex, 0, movedItem);
-      setDays(newItems);
+      // Same day reordering
+      sourceItems.splice(hoverIndex, 0, movedItem);
+      newDays[sourceDay] = {
+        ...newDays[sourceDay],
+        items: sourceItems,
+      };
+
+      // Update the order of all items in the day
+      const updatedItems = sourceItems.map((item, index) => ({
+        ...item,
+        order: index,
+      }));
+
+      // Update the state immediately for smooth UI
+      setDays(newDays);
+
+      // Update the order in the database
+      try {
+        if (isTask(movedItem)) {
+          await taskService.updateTask(movedItem.id, { order: hoverIndex });
+        } else if (isSection(movedItem)) {
+          await taskService.updateSection(movedItem.id, { order: hoverIndex });
+        }
+      } catch (error) {
+        console.error("Error updating item order:", error);
+        // Revert the state if the update fails
+        setDays(days);
+      }
       return;
     }
 
-    // Get the target date from the target day
+    // Cross-day move
+    const targetItems = [...newDays[targetDay].items];
+    targetItems.splice(hoverIndex, 0, movedItem);
+
+    // Update the target date
     const targetDate = new Date(days[targetDay].date);
-    // Set to noon for better visibility
     targetDate.setHours(12, 0, 0, 0);
 
-    // Get the item being moved
-    const movedItem = days[sourceDay].items[dragIndex];
-    if (!movedItem) return;
+    // Update the task's date and order
+    try {
+      if (isTask(movedItem)) {
+        await taskService.updateTask(movedItem.id, {
+          scheduledTime: targetDate.toLocaleString(),
+          date: targetDate.toISOString(),
+          order: hoverIndex,
+        });
+      } else if (isSection(movedItem)) {
+        await taskService.updateSection(movedItem.id, {
+          scheduledTime: targetDate.toLocaleString(),
+          order: hoverIndex,
+        });
+      }
 
-    // Update the task's date
-    if (isTask(movedItem)) {
-      await taskService.updateTaskDate(movedItem.id, targetDate);
+      // Update both source and target days
+      newDays[sourceDay] = {
+        ...newDays[sourceDay],
+        items: sourceItems,
+      };
+      newDays[targetDay] = {
+        ...newDays[targetDay],
+        items: targetItems,
+      };
+
+      // Update orders for all items in both days
+      newDays[sourceDay].items = newDays[sourceDay].items.map(
+        (item, index) => ({
+          ...item,
+          order: index,
+        })
+      );
+      newDays[targetDay].items = newDays[targetDay].items.map(
+        (item, index) => ({
+          ...item,
+          order: index,
+        })
+      );
+
+      setDays(newDays);
+    } catch (error) {
+      console.error("Error updating item:", error);
+      // Revert the state if the update fails
+      setDays(days);
     }
-
-    // Update the UI
-    const newDays = [...days];
-    const [removedItem] = newDays[sourceDay].items.splice(dragIndex, 1);
-    newDays[targetDay].items.splice(hoverIndex, 0, removedItem);
-    setDays(newDays);
   };
 
   const handleClearCompleted = async () => {

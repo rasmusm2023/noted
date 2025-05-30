@@ -393,6 +393,16 @@ export function Login() {
           </div>
         </div>
       </div>
+      <div className="w-[45%] flex items-center">
+        <div className="max-w-3xl space-y-16 px-12 opacity-75">
+          <h1 className="text-6xl font-medium text-neu-whi-100 mb-4xl animate-fadeIn font-inte">
+            Structure your days.
+          </h1>
+          <h2 className="text-6xl font-medium text-neu-whi-100 mb-4xl animate-fadeIn font-inter">
+            Manage your goals.
+          </h2>
+        </div>
+      </div>
     </div>
   );
 }
