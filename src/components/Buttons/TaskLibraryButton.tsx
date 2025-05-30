@@ -175,28 +175,26 @@ export const TaskLibraryButton = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`task-library-button flex items-center ${
-          variant === "next7days" ? "justify-center w-full" : "gap-2"
-        } px-4 ${
-          variant === "next7days" ? "py-2 gap-2" : "py-2"
-        } rounded-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
+          variant === "next7days"
+            ? "justify-center w-8 h-8 rounded-full bg-pri-pur-400/10 hover:bg-pri-pur-400/20"
+            : "gap-2 px-4 py-2 rounded-md"
+        } transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
           isOpen
             ? "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600"
+            : variant === "next7days"
+            ? "text-pri-pur-400 hover:text-pri-pur-500"
             : "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600"
         }`}
       >
         <Icon
           icon="mingcute:classify-2-fill"
-          className={`${
-            variant === "next7days" ? "w-5 h-5" : "w-6 h-6"
-          } text-neu-whi-100`}
-        />
-        <span
-          className={`font-inter font-medium ${
-            variant === "next7days" ? "text-sm" : "text-base"
+          className={`${variant === "next7days" ? "w-5 h-5" : "w-6 h-6"} ${
+            variant === "next7days" ? "text-pri-pur-400" : "text-neu-whi-100"
           }`}
-        >
-          Task Library
-        </span>
+        />
+        {variant !== "next7days" && (
+          <span className="font-inter font-medium text-base">Task Library</span>
+        )}
       </button>
 
       <AnimatePresence mode="wait">

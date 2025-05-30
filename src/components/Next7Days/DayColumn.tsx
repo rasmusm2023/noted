@@ -53,7 +53,7 @@ export const DayColumn = ({
   return (
     <div
       key={day.date.toISOString()}
-      className={`flex-shrink-0 w-[280px] ${dayIndex > 1 ? "mt-7" : ""}`}
+      className={`flex-shrink-0 w-[320px] ${dayIndex > 1 ? "mt-7" : ""}`}
     >
       {/* Add Today/Tomorrow label */}
       {isToday && (
@@ -79,21 +79,29 @@ export const DayColumn = ({
             : "bg-neu-gre-300/75 rounded-xl"
         }`}
       >
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full">
           <div className="flex items-center justify-between mb-4 px-4">
-            <h2 className="text-lg font-inter font-semibold text-neu-gre-800">
-              {day.date.toLocaleDateString("en-US", {
-                weekday: "long",
-              })}
-            </h2>
-            <p className="text-base font-inter text-neu-gre-600">
-              {day.date
-                .toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
-                .toUpperCase()}
-            </p>
+            <div className="flex items-center space-x-2">
+              <h2 className="text-lg font-semibold text-neu-gre-800">
+                {day.date.toLocaleDateString("en-US", { weekday: "long" })}
+              </h2>
+              <span className="text-sm text-neu-gre-600">
+                {day.date
+                  .toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                  .toUpperCase()}
+              </span>
+            </div>
+            <TaskLibraryButton
+              onTaskSelect={(task) => onAddTask(dayIndex, task.title, task)}
+              onRemoveTask={async (taskId) => {
+                // Handle task removal if needed
+              }}
+              variant="next7days"
+              selectedDate={day.date}
+            />
           </div>
 
           {/* Task creation */}
@@ -101,18 +109,8 @@ export const DayColumn = ({
             <TaskCreationInput dayIndex={dayIndex} onAddTask={onAddTask} />
           </div>
 
-          {/* Task Library Button */}
-          <div className="mb-8 pb-8 border-b-2 border-neu-gre-400 px-4">
-            <TaskLibraryButton
-              onTaskSelect={handleTaskSelect}
-              onRemoveTask={handleRemoveTask}
-              variant="next7days"
-              selectedDate={day.date}
-            />
-          </div>
-
           {/* Tasks and Sections */}
-          <div className="space-y-4 p-0 mb-4">
+          <div className="space-y-4 px-4 mb-4">
             {isLoading ? (
               <div className="text-neu-400">Loading tasks...</div>
             ) : day.items.length === 0 ? (

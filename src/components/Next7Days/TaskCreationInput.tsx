@@ -35,8 +35,8 @@ export const TaskCreationInput = ({
   return (
     <div className="flex flex-col space-y-2">
       <div
-        className={`p-4 bg-neu-whi-100 rounded-md hover:bg-pri-pur-500/10 transition-colors ring-2 ring-pri-pur-500/50 ${
-          isFocused ? "ring-2 ring-pri-pur-500/75" : ""
+        className={`p-4 bg-pri-pur-500/10 rounded-md hover:bg-neu-whi-100 transition-colors border-2 border-dashed border-pri-pur-500/75 ${
+          isFocused ? "bg-pri-pur-500/20 border-pri-pur-500" : ""
         }`}
       >
         <div className="flex items-center space-x-4">
@@ -57,7 +57,7 @@ export const TaskCreationInput = ({
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              placeholder="Add new task..."
+              placeholder="New task"
               className="w-full bg-transparent font-semibold text-gre-800 placeholder-neu-gre-600 focus-visible:outline-none"
             />
             <p className="text-neu-gre-500 text-xs font-inter mt-2">

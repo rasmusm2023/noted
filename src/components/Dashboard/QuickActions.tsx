@@ -31,8 +31,8 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
   return (
     <div className="grid grid-cols-1 gap-6">
       <div
-        className={`p-6 bg-neu-whi-100 rounded-lg hover:bg-pri-pur-500/10 transition-colors ring-2 ring-pri-pur-500/50 ${
-          focusedInput === "task" ? "ring-2 ring-pri-pur-500/75" : ""
+        className={`p-6 bg-pri-pur-500/10 rounded-lg hover:bg-neu-whi-100 transition-colors border-2 border-dashed border-pri-pur-500/75 ${
+          focusedInput === "task" ? "bg-pri-pur-500/20 border-pri-pur-500" : ""
         }`}
       >
         <div className="flex items-center space-x-4">
@@ -53,7 +53,7 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
               onKeyDown={handleTaskKeyPress}
               onFocus={() => setFocusedInput("task")}
               onBlur={() => setFocusedInput(null)}
-              placeholder="Add new task..."
+              placeholder="New task"
               className="w-full bg-transparent font-semibold text-gre-800 placeholder-neu-gre-600 focus-visible:outline-none"
               autoFocus
             />

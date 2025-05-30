@@ -1422,7 +1422,7 @@ export function Next7Days() {
         </div>
 
         {/* Days Container - Now with dynamic height */}
-        <div className="flex-1 overflow-y-auto relative pt-[128px]">
+        <div className="flex-1 overflow-y-auto relative pt-20">
           <div className="days-container h-full overflow-x-auto">
             <div className="flex space-x-6 p-4 px-8 h-fit min-h-[calc(100vh-8rem)] pb-[1000px] w-fit">
               {days.map((day, dayIndex) => (

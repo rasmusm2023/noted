@@ -136,23 +136,9 @@ export const TaskItem = ({
       }}
       className={`task-item py-3 px-2 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px] ${
         task.completed
-          ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
-          : task.backgroundColor
-          ? `${task.backgroundColor} ${
-              task.backgroundColor.includes("bg-task-")
-                ? `dark:${task.backgroundColor
-                    .replace("bg-task-", "bg-task-")
-                    .replace("-100", "-dark")} hover:${task.backgroundColor
-                    .replace("bg-task-", "hover:bg-task-")
-                    .replace(
-                      "-100",
-                      "-hover"
-                    )} dark:hover:${task.backgroundColor
-                    .replace("bg-task-", "hover:bg-task-")
-                    .replace("-100", "-dark-hover")}`
-                : task.backgroundColor
-            } border-2 border-neu-gre-400/30`
-          : "bg-neu-gre-100 dark:bg-neu-gre-800 border-2 border-neu-gre-400/30"
+          ? "bg-sup-suc-400 bg-opacity-75"
+          : task.backgroundColor ||
+            "bg-task-stone-100 dark:bg-neu-gre-800 border-2 border-neu-gre-400/30"
       } ${
         isNextTask
           ? "highlighted-task bg-gradient-highlighted-task ring-2 ring-pri-pur-500 ring-opacity-60"

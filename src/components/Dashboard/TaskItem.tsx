@@ -54,22 +54,8 @@ export const TaskItem = ({
       className={`task-item p-3 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px] ${
         task.completed
           ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
-          : task.backgroundColor
-          ? `${task.backgroundColor} ${
-              task.backgroundColor.includes("bg-task-")
-                ? `dark:${task.backgroundColor
-                    .replace("bg-task-", "bg-task-")
-                    .replace("-100", "-dark")} hover:${task.backgroundColor
-                    .replace("bg-task-", "hover:bg-task-")
-                    .replace(
-                      "-100",
-                      "-hover"
-                    )} dark:hover:${task.backgroundColor
-                    .replace("bg-task-", "hover:bg-task-")
-                    .replace("-100", "-dark-hover")}`
-                : task.backgroundColor
-            } border-2 border-neu-gre-400/30`
-          : "bg-neu-gre-100 dark:bg-neu-gre-800 border-2 border-neu-gre-400/30"
+          : task.backgroundColor ||
+            "bg-task-stone-100 dark:bg-neu-gre-800 border-2 border-neu-gre-400/30"
       } ${
         isNextTask ? "highlighted-task border-2 border-pri-pur-500/30" : ""
       } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500`}
