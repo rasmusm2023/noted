@@ -709,7 +709,7 @@ export const taskService = {
     }
   },
 
-  async getTasksByGoal(goalId: string): Promise<Task[]> {
+  async getTasksByGoal(goalId: string, userId: string): Promise<Task[]> {
     tracker.trackOperation({
       type: "read",
       collection: tasksCollection,
@@ -719,16 +719,28 @@ export const taskService = {
 
     try {
       const tasksRef = collection(db, tasksCollection);
-      const q = query(tasksRef, where("goalId", "==", goalId));
+      const q = query(
+        tasksRef,
+        where("goalIds", "array-contains", goalId),
+        where("userId", "==", userId)
+      );
       const querySnapshot = await getDocs(q);
 
-      return querySnapshot.docs.map((doc) => {
+      console.log(
+        `Query for goal ${goalId} returned ${querySnapshot.size} tasks`
+      );
+      const tasks = querySnapshot.docs.map((doc) => {
         const data = doc.data();
+        console.log("Task data:", data);
         return {
           id: doc.id,
           ...data,
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
         } as Task;
       });
+      console.log("Processed tasks:", tasks);
+      return tasks;
     } catch (error) {
       console.error("Error in getTasksByGoal:", error);
       throw error;

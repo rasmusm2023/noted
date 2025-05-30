@@ -219,9 +219,14 @@ export function Goals() {
       // Load tasks for each goal
       const tasksByGoal: Record<string, Task[]> = {};
       for (const goal of userGoals) {
-        const goalTasks = await taskService.getTasksByGoal(goal.id);
+        const goalTasks = await taskService.getTasksByGoal(
+          goal.id,
+          currentUser.uid
+        );
+        console.log(`Tasks for goal ${goal.title}:`, goalTasks);
         tasksByGoal[goal.id] = goalTasks;
       }
+      console.log("All tasks by goal:", tasksByGoal);
       setTasks(tasksByGoal);
     } catch (error) {
       console.error("Error loading goals:", error);

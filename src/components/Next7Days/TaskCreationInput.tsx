@@ -35,12 +35,12 @@ export const TaskCreationInput = ({
   return (
     <div className="flex flex-col space-y-2">
       <div
-        className={`p-4 bg-neu-whi-100 rounded-lg hover:bg-pri-pur-500/10 transition-colors ring-2 ring-pri-pur-500/50 ${
+        className={`p-4 bg-neu-whi-100 rounded-md hover:bg-pri-pur-500/10 transition-colors ring-2 ring-pri-pur-500/50 ${
           isFocused ? "ring-2 ring-pri-pur-500/75" : ""
         }`}
       >
         <div className="flex items-center space-x-4">
-          <div className="p-2 bg-pri-pur-500 rounded-md flex items-center justify-center">
+          <div className="p-1 bg-pri-pur-500 rounded-sm flex items-center justify-center">
             <Icon
               icon="mingcute:add-fill"
               width={16}

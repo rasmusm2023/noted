@@ -89,8 +89,8 @@ export function TaskModal({
     task.backgroundColor || "bg-neu-gre-100"
   );
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [selectedGoalId, setSelectedGoalId] = useState<string | undefined>(
-    task.goalId
+  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>(
+    task.goalIds || []
   );
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -195,9 +195,9 @@ export function TaskModal({
         backgroundColor: currentBackgroundColor,
       };
 
-      // Only add goalId if it has a value
-      if (selectedGoalId) {
-        updates.goalId = selectedGoalId;
+      // Only add goalIds if they have a value
+      if (selectedGoalIds.length > 0) {
+        updates.goalIds = selectedGoalIds;
       }
 
       // Start closing animation
@@ -405,14 +405,17 @@ export function TaskModal({
   }, [isOpen, currentUser]);
 
   // Handle goal selection
-  const handleGoalChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const goalId = e.target.value || undefined;
-    setSelectedGoalId(goalId);
+  const handleGoalChange = async (goalId: string) => {
+    const newSelectedGoalIds = selectedGoalIds.includes(goalId)
+      ? selectedGoalIds.filter((id) => id !== goalId)
+      : [...selectedGoalIds, goalId];
+
+    setSelectedGoalIds(newSelectedGoalIds);
     try {
-      await onUpdate(task.id, { goalId });
+      await onUpdate(task.id, { goalIds: newSelectedGoalIds });
     } catch (error) {
-      console.error("Error updating task goal:", error);
-      setSelectedGoalId(task.goalId); // Revert on error
+      console.error("Error updating task goals:", error);
+      setSelectedGoalIds(task.goalIds || []); // Revert on error
     }
   };
 
@@ -691,7 +694,8 @@ export function TaskModal({
               </h3>
             </div>
             <p className="text-sm font-inter text-neu-gre-600 mb-4">
-              Associate this task with a goal to help you stay on track
+              Associate this task with one or more goals to help you stay on
+              track
             </p>
             <div
               className="flex flex-wrap gap-2"
@@ -699,32 +703,26 @@ export function TaskModal({
               aria-labelledby="goals-group-label"
             >
               <span id="goals-group-label" className="sr-only">
-                Select a goal to associate with this task
+                Select goals to associate with this task
               </span>
               {goals.map((goal) => (
                 <button
                   key={goal.id}
-                  onClick={() =>
-                    handleGoalChange({
-                      target: {
-                        value: selectedGoalId === goal.id ? "" : goal.id,
-                      },
-                    } as React.ChangeEvent<HTMLSelectElement>)
-                  }
+                  onClick={() => handleGoalChange(goal.id)}
                   className={`px-3 py-2 rounded-full text-sm font-inter transition-all duration-200 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
-                    selectedGoalId === goal.id
+                    selectedGoalIds.includes(goal.id)
                       ? "bg-pri-pur-400 text-neu-whi-100"
                       : "bg-neu-gre-100 text-neu-gre-600 hover:bg-pri-pur-100/50"
                   }`}
                   aria-label={`${
-                    selectedGoalId === goal.id ? "Remove" : "Select"
+                    selectedGoalIds.includes(goal.id) ? "Remove" : "Select"
                   } goal "${goal.title}"`}
-                  aria-pressed={selectedGoalId === goal.id}
+                  aria-pressed={selectedGoalIds.includes(goal.id)}
                   role="checkbox"
-                  aria-checked={selectedGoalId === goal.id}
+                  aria-checked={selectedGoalIds.includes(goal.id)}
                 >
                   {goal.title}
-                  {selectedGoalId === goal.id && (
+                  {selectedGoalIds.includes(goal.id) && (
                     <Icon
                       icon="mingcute:close-fill"
                       className="w-4 h-4"

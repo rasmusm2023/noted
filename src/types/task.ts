@@ -23,7 +23,7 @@ export interface Task extends BaseItem {
   subtasks?: Subtask[];
   shouldClose?: boolean; // Optional property to control modal closing
   backgroundColor?: string; // Optional property for task background color
-  goalId?: string; // Optional property to link task to a goal
+  goalIds?: string[]; // Optional property to link task to multiple goals
   isSaved?: boolean; // Optional property to mark task as saved for quick reuse
   originalTaskId?: string; // Optional property to link saved task to original task
 }
@@ -48,7 +48,7 @@ export interface ListItem {
   scheduledTime?: string;
   backgroundColor?: string;
   subtasks?: Subtask[];
-  goalId?: string;
+  goalIds?: string[];
   isSaved?: boolean;
 }
 

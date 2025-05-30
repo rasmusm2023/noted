@@ -45,8 +45,9 @@ service cloud.firestore {
     match /tasks/{taskId} {
       allow read: if isAuthenticated() && (
         isOwner(resource.data.userId) || 
-        (resource.data.goalId != null && exists(/databases/$(database)/documents/goals/$(resource.data.goalId)) && 
-        isOwner(get(/databases/$(database)/documents/goals/$(resource.data.goalId)).data.userId))
+        (resource.data.goalIds != null && 
+        resource.data.goalIds.size() > 0 && 
+        resource.data.goalIds.hasAny([request.auth.uid]))
       );
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
       allow update: if isAuthenticated() && isOwner(resource.data.userId);
@@ -55,6 +56,12 @@ service cloud.firestore {
       allow write: if isAuthenticated() && (
         isOwner(resource.data.userId) || 
         isOwner(request.resource.data.userId)
+      );
+      // Allow querying by goalIds
+      allow list: if isAuthenticated() && (
+        request.query.filters.size() == 1 &&
+        request.query.filters[0].field == "goalIds" &&
+        request.query.filters[0].op == "array-contains"
       );
     }
 
