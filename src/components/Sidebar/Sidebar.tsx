@@ -788,7 +788,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   isOpen ? "bottom-full left-0 mb-2" : "bottom-0 left-full ml-2"
                 } ${
                   isOpen ? "w-full" : "w-72"
-                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
+                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 z-[9999]`}
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="settings-menu-button"
@@ -867,7 +867,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500${
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 z-[9999] ${
                         isHighlightSubmenuOpen ? "block" : "hidden"
                       }`}
                       role="menu"
@@ -961,7 +961,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500${
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 z-[9999] ${
                         isLanguageSubmenuOpen ? "block" : "hidden"
                       }`}
                       role="menu"

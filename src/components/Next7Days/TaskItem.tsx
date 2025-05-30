@@ -160,8 +160,8 @@ export const TaskItem = ({
       } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500`}
       onClick={(e) => onTaskClick(task, e)}
     >
-      <div className="flex items-center space-x-2 flex-1">
-        <div className="flex items-center justify-center h-full">
+      <div className="flex items-start space-x-2 flex-1 min-w-0">
+        <div className="flex items-center justify-center h-full flex-shrink-0">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -188,10 +188,10 @@ export const TaskItem = ({
             )}
           </button>
         </div>
-        <div className="flex-1 flex items-center">
-          <div className="flex-1">
+        <div className="flex-1 min-w-0">
+          <div className="min-w-0">
             <h3
-              className={`text-sm font-inter font-medium ${
+              className={`text-sm font-inter font-medium truncate ${
                 editingTask?.id === task.id ? "" : "transition-all duration-300"
               } ${task.completed ? "text-neu-100 scale-95" : "text-neu-100"}`}
             >
@@ -229,16 +229,19 @@ export const TaskItem = ({
               )}
             </h3>
             {task.subtasks && task.subtasks.length > 0 && (
-              <div className="mt-2 space-y-1">
+              <div className="mt-2 space-y-1 pl-1">
                 {task.subtasks.map((subtask) => (
-                  <div key={subtask.id} className="flex items-center space-x-2">
+                  <div
+                    key={subtask.id}
+                    className="flex items-center space-x-2 min-w-0"
+                  >
                     <div
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         subtask.completed ? "bg-sup-suc-800" : "bg-neu-gre-500"
                       }`}
                     />
                     <span
-                      className={`font-inter text-xs ${
+                      className={`font-inter text-xs truncate ${
                         subtask.completed
                           ? "line-through text-sup-suc-800"
                           : "text-neu-400"
@@ -251,44 +254,44 @@ export const TaskItem = ({
               </div>
             )}
           </div>
-          <div className="flex flex-col items-center space-y-0 ml-2">
-            <div className="relative" ref={dropdownRef}>
-              <button
-                ref={buttonRef}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsDropdownOpen(!isDropdownOpen);
-                }}
-                className={`p-1 flex items-center justify-center ${
-                  task.completed
-                    ? "text-sup-suc-800 hover:text-sup-suc-800"
-                    : isNextTask
-                    ? "text-pri-pur-400 hover:text-pri-pur-800"
-                    : "text-neu-gre-500 hover:text-neu-gre-800"
-                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 transition-all duration-300 rounded-md hover:bg-neu-800/50`}
-                aria-label="Task options"
-              >
-                <Icon icon="mingcute:more-1-fill" className="w-5 h-5" />
-              </button>
-              {renderDropdown()}
-            </div>
+        </div>
+        <div className="flex flex-col items-center space-y-0 ml-2 flex-shrink-0">
+          <div className="relative" ref={dropdownRef}>
             <button
+              ref={buttonRef}
               onClick={(e) => {
                 e.stopPropagation();
-                onTaskDelete(task.id);
+                setIsDropdownOpen(!isDropdownOpen);
               }}
               className={`p-1 flex items-center justify-center ${
                 task.completed
-                  ? "text-sup-suc-800 hover:text-sup-err-500"
+                  ? "text-sup-suc-800 hover:text-sup-suc-800"
                   : isNextTask
-                  ? "text-pri-pur-400 hover:text-sup-err-500"
-                  : "text-neu-gre-500 hover:text-sup-err-500"
-              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-              aria-label={`Delete task "${task.title}"`}
+                  ? "text-pri-pur-400 hover:text-pri-pur-800"
+                  : "text-neu-gre-500 hover:text-neu-gre-800"
+              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 transition-all duration-300 rounded-md hover:bg-neu-800/50`}
+              aria-label="Task options"
             >
-              <Icon icon="mingcute:delete-2-fill" className="w-5 h-5" />
+              <Icon icon="mingcute:more-1-fill" className="w-5 h-5" />
             </button>
+            {renderDropdown()}
           </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onTaskDelete(task.id);
+            }}
+            className={`p-1 flex items-center justify-center ${
+              task.completed
+                ? "text-sup-suc-800 hover:text-sup-err-500"
+                : isNextTask
+                ? "text-pri-pur-400 hover:text-sup-err-500"
+                : "text-neu-gre-500 hover:text-sup-err-500"
+            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+            aria-label={`Delete task "${task.title}"`}
+          >
+            <Icon icon="mingcute:delete-2-fill" className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
