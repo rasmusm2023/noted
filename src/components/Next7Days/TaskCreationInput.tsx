@@ -1,18 +1,19 @@
 import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
+import type { Task } from "../../types/task";
 
 interface TaskCreationInputProps {
   dayIndex: number;
-  onAddTask: (dayIndex: number, title: string) => void;
+  onAddTask: (dayIndex: number, title: string, task?: Task) => void;
 }
 
 export const TaskCreationInput = ({
   dayIndex,
   onAddTask,
 }: TaskCreationInputProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [localInput, setLocalInput] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;

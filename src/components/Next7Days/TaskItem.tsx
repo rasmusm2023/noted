@@ -262,6 +262,8 @@ export const TaskItem = ({
                 className={`p-1 flex items-center justify-center ${
                   task.completed
                     ? "text-sup-suc-800 hover:text-sup-suc-800"
+                    : isNextTask
+                    ? "text-pri-pur-400 hover:text-pri-pur-800"
                     : "text-neu-gre-500 hover:text-neu-gre-800"
                 } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 transition-all duration-300 rounded-md hover:bg-neu-800/50`}
                 aria-label="Task options"
@@ -277,7 +279,9 @@ export const TaskItem = ({
               }}
               className={`p-1 flex items-center justify-center ${
                 task.completed
-                  ? "text-sup-suc-800 hover:text-sup-suc-800"
+                  ? "text-sup-suc-800 hover:text-sup-err-500"
+                  : isNextTask
+                  ? "text-pri-pur-400 hover:text-sup-err-500"
                   : "text-neu-gre-500 hover:text-sup-err-500"
               } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-300 hover:bg-neu-800/50`}
               aria-label={`Delete task "${task.title}"`}

@@ -12,7 +12,7 @@ interface DayColumnProps {
   dayIndex: number;
   isLoading: boolean;
   hidingItems: Set<string>;
-  onAddTask: (dayIndex: number, title: string) => void;
+  onAddTask: (dayIndex: number, title: string, task?: Task) => void;
   onSectionAdded: () => void;
   moveItem: (
     dragIndex: number,
@@ -43,7 +43,7 @@ export const DayColumn = ({
   const isTomorrow = dayIndex === 1;
 
   const handleTaskSelect = (task: Task) => {
-    onAddTask(dayIndex, task.title);
+    onAddTask(dayIndex, task.title, task);
   };
 
   const handleRemoveTask = async (taskId: string) => {
@@ -107,6 +107,7 @@ export const DayColumn = ({
               onTaskSelect={handleTaskSelect}
               onRemoveTask={handleRemoveTask}
               variant="next7days"
+              selectedDate={day.date}
             />
           </div>
 

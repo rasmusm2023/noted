@@ -15,6 +15,7 @@ import { TaskManagementHeader } from "../components/Next7Days/TaskManagementHead
 import { DayColumn } from "../components/Next7Days/DayColumn";
 import { TaskItem } from "../components/Next7Days/TaskItem";
 import { SectionItem as SectionItemComponent } from "../components/Next7Days/SectionItem";
+import { toast } from "react-hot-toast";
 
 type ListItem = Task | SectionItemType;
 
@@ -265,26 +266,43 @@ export function Next7Days() {
     try {
       setIsLoading(true);
       const tasks = await taskService.getUserTasks(currentUser.uid);
+      console.log("All tasks from database:", tasks);
       const sections = await taskService.getUserSections(currentUser.uid);
 
       // Group tasks by day
       const tasksByDay = tasks.reduce(
         (acc: Record<number, Task[]>, task: Task) => {
-          // Parse the date from the task's scheduledTime field
-          const taskDate = parseDateString(task.scheduledTime);
-          // Reset time part for comparison in local timezone
-          taskDate.setHours(0, 0, 0, 0);
+          // Parse the date from the task's date field (not scheduledTime)
+          const taskDate = parseDateString(task.date);
+          console.log(
+            "Task:",
+            task.title,
+            "Date:",
+            task.date,
+            "Parsed date:",
+            taskDate
+          );
 
           const dayIndex = days.findIndex((day) => {
             const dayDate = new Date(day.date);
-            // Reset time part for comparison in local timezone
             dayDate.setHours(0, 0, 0, 0);
+            const taskDateCopy = new Date(taskDate);
+            taskDateCopy.setHours(0, 0, 0, 0);
 
-            const taskDateStr = taskDate.toISOString().split("T")[0];
-            const dayDateStr = dayDate.toISOString().split("T")[0];
-
-            return taskDateStr === dayDateStr;
+            // Compare dates using time values to avoid timezone issues
+            const dayTime = dayDate.getTime();
+            const taskTime = taskDateCopy.getTime();
+            console.log("Comparing dates:", {
+              dayDate: dayDate.toISOString(),
+              taskDate: taskDateCopy.toISOString(),
+              dayTime,
+              taskTime,
+              isMatch: dayTime === taskTime,
+            });
+            return dayTime === taskTime;
           });
+
+          console.log("Day index for task:", task.title, "is:", dayIndex);
 
           if (dayIndex !== -1) {
             if (!acc[dayIndex]) {
@@ -297,7 +315,7 @@ export function Next7Days() {
               description: task.description || "",
               scheduledTime: task.scheduledTime,
               completed: task.completed || false,
-              date: task.scheduledTime, // Use scheduledTime as the date
+              date: task.date, // Use the original date field
               userId: task.userId,
               createdAt: task.createdAt,
               updatedAt: task.updatedAt,
@@ -310,6 +328,8 @@ export function Next7Days() {
         {}
       );
 
+      console.log("Tasks grouped by day:", tasksByDay);
+
       // Distribute sections across days based on their date
       const sectionsByDay: Record<number, SectionItemType[]> = {};
 
@@ -318,18 +338,18 @@ export function Next7Days() {
         const sectionDate = parseDateString(
           section.scheduledTime || section.createdAt
         );
-        // Reset time part for comparison in local timezone
-        sectionDate.setHours(0, 0, 0, 0);
 
         // Find the corresponding day index
         const dayIndex = days.findIndex((day) => {
           const dayDate = new Date(day.date);
           dayDate.setHours(0, 0, 0, 0);
+          const sectionDateCopy = new Date(sectionDate);
+          sectionDateCopy.setHours(0, 0, 0, 0);
 
-          const sectionDateStr = sectionDate.toISOString().split("T")[0];
-          const dayDateStr = dayDate.toISOString().split("T")[0];
-
-          return sectionDateStr === dayDateStr;
+          // Compare dates using time values to avoid timezone issues
+          const dayTime = dayDate.getTime();
+          const sectionTime = sectionDateCopy.getTime();
+          return dayTime === sectionTime;
         });
 
         if (dayIndex !== -1) {
@@ -392,9 +412,14 @@ export function Next7Days() {
 
   // Helper function to parse date strings
   const parseDateString = (dateStr: string): Date => {
+    console.log("Parsing date string:", dateStr);
+
     // If it's an ISO string or YYYY-MM-DD format, parse it directly
     if (dateStr.includes("T") || dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
-      return new Date(dateStr);
+      const date = new Date(dateStr);
+      date.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+      console.log("Parsed ISO date:", date.toISOString());
+      return date;
     }
 
     // Handle format "DD/MM/YYYY, HH:mm:ss" or "YYYY-MM-DD, HH:mm:ss"
@@ -419,6 +444,7 @@ export function Next7Days() {
       date.setSeconds(0);
       date.setMilliseconds(0);
 
+      console.log("Parsed YYYY-MM-DD date:", date.toISOString());
       return date;
     }
 
@@ -436,6 +462,7 @@ export function Next7Days() {
     date.setSeconds(0);
     date.setMilliseconds(0);
 
+    console.log("Parsed DD/MM/YYYY date:", date.toISOString());
     return date;
   };
 
@@ -474,20 +501,23 @@ export function Next7Days() {
     });
   };
 
-  const handleAddTask = async (dayIndex: number, title: string) => {
+  const handleAddTask = async (
+    dayIndex: number,
+    title: string,
+    task?: Task
+  ) => {
     if (!currentUser) {
       console.error("No user logged in");
       return;
     }
 
-    if (!title.trim()) {
-      console.log("Empty title, skipping task creation");
-      return;
-    }
+    if (!title.trim()) return;
 
     try {
-      const taskDate = days[dayIndex].date;
+      const taskDate = new Date(days[dayIndex].date);
       taskDate.setHours(12, 0, 0, 0);
+
+      console.log("Creating task for date:", taskDate.toLocaleString());
 
       const taskData: Omit<
         Task,
@@ -495,27 +525,25 @@ export function Next7Days() {
       > = {
         type: "task" as const,
         title: title.trim(),
-        description: "",
-        scheduledTime: taskDate.toLocaleString(),
+        description: task?.description || "",
+        scheduledTime: taskDate.toISOString(), // Store in ISO format
         completed: false,
-        date: taskDate.toISOString(),
+        date: taskDate.toISOString(), // Store in ISO format
+        subtasks:
+          task?.subtasks?.map((subtask) => ({
+            ...subtask,
+            completed: false,
+          })) || [],
       };
 
-      if (!isOnline) {
-        // Queue the operation if offline
-        queueOperation({
-          type: "task",
-          operation: "create",
-          data: taskData,
-          timestamp: Date.now(),
-        });
-        return;
-      }
+      console.log("Task data being created:", taskData);
 
       const newTask = await taskService.createTask(currentUser.uid, taskData);
+      console.log("New task created:", newTask);
+
       updateTaskCache(newTask);
 
-      // Update UI
+      // Update UI - only add to the selected day
       setDays((prevDays) => {
         const newDays = [...prevDays];
         const day = newDays[dayIndex];
@@ -538,7 +566,51 @@ export function Next7Days() {
       }));
     } catch (error) {
       console.error("Error creating task:", error);
-      alert("Failed to create task. Please try again.");
+      toast.error("Failed to create task");
+    }
+  };
+
+  const handleAddSection = async (dayIndex: number) => {
+    if (!currentUser) {
+      console.error("No user logged in");
+      return;
+    }
+
+    try {
+      const taskDate = days[dayIndex].date;
+      taskDate.setHours(12, 0, 0, 0);
+
+      const sectionData = {
+        text: "New Section",
+        time: "",
+        scheduledTime: taskDate.toISOString(),
+      };
+
+      const newSection = await taskService.createSection(
+        currentUser.uid,
+        sectionData
+      );
+      updateSectionCache(newSection);
+
+      // Update UI
+      setDays((prevDays) => {
+        const newDays = [...prevDays];
+        const day = newDays[dayIndex];
+        const updatedItems = day.items.map((item) => ({
+          ...item,
+          order: (item.order ?? 0) + 1,
+        }));
+
+        newDays[dayIndex] = {
+          ...day,
+          items: [{ ...newSection, type: "section" as const }, ...updatedItems],
+        };
+
+        return newDays;
+      });
+    } catch (error) {
+      console.error("Error creating section:", error);
+      toast.error("Failed to create section");
     }
   };
 
@@ -700,17 +772,62 @@ export function Next7Days() {
   };
 
   const handleSaveTask = async (taskId: string) => {
+    if (!currentUser) return;
+
     try {
+      // Get the task from days
       const task = days
         .flatMap((day) => day.items)
         .find((item) => isTask(item) && item.id === taskId) as Task;
+      if (!task) return;
 
-      if (task) {
-        const updates = { isSaved: !task.isSaved };
-        await handleEditTask(taskId, updates);
+      // Get all saved tasks first
+      const savedTasks = await taskService.getSavedTasks(currentUser.uid);
+
+      // Check if this task is already saved (by matching originalTaskId)
+      const existingSavedTask = savedTasks.find(
+        (savedTask) => savedTask.originalTaskId === taskId
+      );
+
+      if (existingSavedTask) {
+        // If task is already saved, unsave it
+        await taskService.unsaveTask(existingSavedTask.id);
+
+        // Update local state
+        setDays((prevDays) =>
+          prevDays.map((day) => ({
+            ...day,
+            items: day.items.map((item) =>
+              isTask(item) && item.id === taskId
+                ? { ...item, isSaved: false }
+                : item
+            ),
+          }))
+        );
+
+        toast.success("Task removed from library");
+        return;
       }
+
+      // If task is not saved, save it
+      await taskService.saveTask(taskId);
+
+      // Update local state
+      setDays((prevDays) =>
+        prevDays.map((day) => ({
+          ...day,
+          items: day.items.map((item) =>
+            isTask(item) && item.id === taskId
+              ? { ...item, isSaved: true }
+              : item
+          ),
+        }))
+      );
+
+      toast.success("Task saved to library");
     } catch (error) {
-      console.error("Error saving task:", error);
+      console.error("Error saving/unsaving task:", error);
+      toast.error("Failed to update task library");
     }
   };
 
@@ -1288,12 +1405,7 @@ export function Next7Days() {
       <div className="h-screen flex flex-col bg-neu-whi-100">
         <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50">
           <div className="max-w-[2000px] mx-auto bg-neu-whi-100 border-b border-neu-gre-300/50">
-            <TaskManagementHeader
-              onClearCompleted={handleClearCompleted}
-              onStatsClick={() => setIsStatsModalOpen(true)}
-              completedPosition={completedPosition}
-              onCompletedPositionChange={setCompletedPosition}
-            >
+            <TaskManagementHeader onClearCompleted={handleClearCompleted}>
               <div className="flex items-center space-x-3">
                 <Icon
                   icon="mingcute:trello-board-fill"

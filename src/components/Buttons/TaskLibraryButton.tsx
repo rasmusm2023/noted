@@ -9,12 +9,14 @@ interface TaskLibraryButtonProps {
   onTaskSelect: (task: Task) => void;
   onRemoveTask: (taskId: string) => void;
   variant?: "default" | "next7days";
+  selectedDate?: Date;
 }
 
 export const TaskLibraryButton = ({
   onTaskSelect,
   onRemoveTask,
   variant = "default",
+  selectedDate,
 }: TaskLibraryButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [savedTasks, setSavedTasks] = useState<Task[]>([]);
@@ -106,16 +108,25 @@ export const TaskLibraryButton = ({
     try {
       setAddingTask(task);
 
-      const today = new Date();
-      today.setHours(12, 0, 0, 0);
+      // Create date in UTC to avoid timezone issues
+      const taskDate = selectedDate ? new Date(selectedDate) : new Date();
+      // Set to noon UTC
+      taskDate.setUTCHours(12, 0, 0, 0);
+      const isoDate = taskDate.toISOString();
+
+      console.log("Creating task with date:", {
+        originalDate: taskDate,
+        isoDate,
+        localTime: new Date(isoDate).toLocaleString(),
+      });
 
       const { id, userId, createdAt, updatedAt, isSaved, ...taskData } = task;
       const newTask = await taskService.createTask(currentUser.uid, {
         ...taskData,
         type: "task",
-        scheduledTime: today.toISOString(),
+        scheduledTime: isoDate,
         completed: false,
-        date: today.toISOString(),
+        date: isoDate,
         isSaved: false,
         subtasks: taskData.subtasks?.map((subtask) => ({
           ...subtask,

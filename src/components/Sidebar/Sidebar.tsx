@@ -395,7 +395,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-md hover:bg-neu-gre-100 hover:text-neu-gre-700 text-neu-gre-500 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+            className="p-2 rounded-md hover:bg-neu-gre-100 hover:text-neu-gre-700 text-neu-gre-500 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
             aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
             aria-expanded={isOpen}
           >
@@ -425,7 +425,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
-              } p-2 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
+              } p-2 text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
               aria-expanded={isProfileMenuOpen}
               aria-haspopup="true"
               aria-label="User profile menu"
@@ -464,7 +464,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   isOpen ? "top-full left-0 mt-2" : "top-0 left-full ml-2"
                 } ${
                   isOpen ? "w-full" : "w-72"
-                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
+                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="profile-menu-button"
@@ -511,7 +511,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/")}
                   className={`w-full flex items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/"
                       ? "bg-neu-gre-200 text-neu-gre-900"
                       : ""
@@ -531,7 +531,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/next7days")}
                   className={`w-full flex items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/next7days"
                       ? "bg-neu-gre-200 text-neu-gre-900"
                       : ""
@@ -568,7 +568,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/goals")}
                   className={`w-full flex items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/goals"
                       ? "bg-neu-gre-200 text-neu-gre-900"
                       : ""
@@ -589,7 +589,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/habits")}
                   className={`w-full flex items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/habits"
                       ? "bg-neu-gre-200 text-neu-gre-900"
                       : ""
@@ -627,7 +627,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 {isOpen && (
                   <button
                     onClick={() => setIsAddingList(true)}
-                    className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                    className="p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                     aria-label="Add new list"
                   >
                     <Icon
@@ -649,7 +649,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       setIsAddingList(true);
                     }
                   }}
-                  className="w-full p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 flex justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                  className="w-full p-2 rounded-md hover:bg-neu-gre-100 text-neu-gre-500 hover:text-neu-gre-700 flex justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                   aria-label="Add new list"
                 >
                   <Icon
@@ -734,7 +734,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     onClick={() => navigate(`/list/${list.id}`)}
                     className={`w-full flex items-center ${
                       isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                    } p-3 rounded-md text-neu-gre-700 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500transition-colors duration-200 ease-in-out ${
                       location.pathname === `/list/${list.id}`
                         ? "bg-neu-gre-200 text-neu-gre-900"
                         : ""
@@ -767,7 +767,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
-              } text-base font-medium p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
+              } text-base font-medium p-3 rounded-md text-neu-gre-600 hover:bg-neu-gre-100 hover:text-neu-gre-900 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
               aria-expanded={isSettingsMenuOpen}
               aria-haspopup="true"
               aria-label="Settings menu"
@@ -788,7 +788,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   isOpen ? "bottom-full left-0 mb-2" : "bottom-0 left-full ml-2"
                 } ${
                   isOpen ? "w-full" : "w-72"
-                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
+                } bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="settings-menu-button"
@@ -867,7 +867,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500${
                         isHighlightSubmenuOpen ? "block" : "hidden"
                       }`}
                       role="menu"
@@ -961,7 +961,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
+                      } w-24 bg-neu-whi-100 rounded-lg shadow-lg border border-neu-gre-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500${
                         isLanguageSubmenuOpen ? "block" : "hidden"
                       }`}
                       role="menu"
