@@ -252,7 +252,7 @@ export const TaskItem = ({
       }}
       className={`task-item py-3 px-2 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px] ${
         task.completed
-          ? "bg-sup-suc-400 bg-opacity-75"
+          ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
           : task.backgroundColor ||
             "bg-task-stone-100 dark:bg-neu-gre-800 border-2 border-neu-gre-400/30"
       } ${
