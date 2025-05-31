@@ -1417,7 +1417,7 @@ export function Next7Days() {
       <style>{globalStyles}</style>
       <div className="h-screen flex flex-col bg-neu-whi-100">
         <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50">
-          <div className="max-w-[2000px] mx-auto bg-neu-whi-100 border-b-1">
+          <div className="max-w-[2000px] mx-auto bg-neu-whi-100/95 backdrop-blur-sm border-b-1">
             <TaskManagementHeader onClearCompleted={handleClearCompleted}>
               <div className="flex items-center space-x-3">
                 <Icon
