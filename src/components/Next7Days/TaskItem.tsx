@@ -38,6 +38,8 @@ export const TaskItem = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const firstMenuItemRef = useRef<HTMLButtonElement>(null);
+  const lastMenuItemRef = useRef<HTMLButtonElement>(null);
 
   // Close dropdown when clicking outside
   const handleClickOutside = (event: MouseEvent) => {
@@ -50,6 +52,71 @@ export const TaskItem = ({
       setIsDropdownOpen(false);
     }
   };
+
+  // Handle keyboard navigation in dropdown
+  const handleDropdownKeyDown = (e: React.KeyboardEvent) => {
+    if (!isDropdownOpen) return;
+
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        setIsDropdownOpen(false);
+        buttonRef.current?.focus();
+        break;
+      case "Tab":
+        if (e.shiftKey && document.activeElement === firstMenuItemRef.current) {
+          e.preventDefault();
+          setIsDropdownOpen(false);
+          buttonRef.current?.focus();
+        } else if (
+          !e.shiftKey &&
+          document.activeElement === lastMenuItemRef.current
+        ) {
+          e.preventDefault();
+          setIsDropdownOpen(false);
+          buttonRef.current?.focus();
+        }
+        break;
+    }
+  };
+
+  // Focus trap for dropdown
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+
+    const handleFocusTrap = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        const focusableElements = dropdownRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusableElements?.length) return;
+
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[
+          focusableElements.length - 1
+        ] as HTMLElement;
+
+        if (e.shiftKey && document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement.focus();
+        } else if (!e.shiftKey && document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleFocusTrap);
+    return () => document.removeEventListener("keydown", handleFocusTrap);
+  }, [isDropdownOpen]);
+
+  // Focus management for dropdown
+  useEffect(() => {
+    if (isDropdownOpen) {
+      // Focus first menu item when dropdown opens
+      firstMenuItemRef.current?.focus();
+    }
+  }, [isDropdownOpen]);
 
   // Add click outside listener
   useEffect(() => {
@@ -75,9 +142,13 @@ export const TaskItem = ({
         ref={dropdownRef}
         className="w-48 rounded-md shadow-lg bg-white dark:bg-neu-gre-800 ring-1 ring-black ring-opacity-5"
         style={dropdownStyle}
+        onKeyDown={handleDropdownKeyDown}
+        role="menu"
+        aria-label="Task options"
       >
-        <div className="py-1" role="menu" aria-orientation="vertical">
+        <div className="py-1" role="none">
           <button
+            ref={firstMenuItemRef}
             onClick={(e) => {
               e.stopPropagation();
               // Create a synthetic event that won't be blocked by the button check
@@ -88,8 +159,33 @@ export const TaskItem = ({
               });
               onTaskClick(task, syntheticEvent as unknown as React.MouseEvent);
               setIsDropdownOpen(false);
+              // Ensure focus returns to dots button after a small delay
+              setTimeout(() => {
+                buttonRef.current?.focus();
+              }, 0);
             }}
-            className="w-full text-left px-4 py-2 text-sm text-neu-gre-700 dark:text-neu-whi-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                // Create a synthetic event that won't be blocked by the button check
+                const syntheticEvent = new MouseEvent("click", {
+                  bubbles: true,
+                  cancelable: true,
+                  view: window,
+                });
+                onTaskClick(
+                  task,
+                  syntheticEvent as unknown as React.MouseEvent
+                );
+                setIsDropdownOpen(false);
+                // Ensure focus returns to dots button after a small delay
+                setTimeout(() => {
+                  buttonRef.current?.focus();
+                }, 0);
+              }
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-neu-gre-700 dark:text-neu-whi-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md"
             role="menuitem"
           >
             <div className="flex items-center space-x-2">
@@ -99,12 +195,29 @@ export const TaskItem = ({
           </button>
           {onTaskSave && (
             <button
+              ref={lastMenuItemRef}
               onClick={(e) => {
                 e.stopPropagation();
                 onTaskSave(task.id);
                 setIsDropdownOpen(false);
+                // Ensure focus returns to dots button after a small delay
+                setTimeout(() => {
+                  buttonRef.current?.focus();
+                }, 0);
               }}
-              className="w-full text-left px-4 py-2 text-sm text-neu-gre-700 dark:text-neu-whi-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onTaskSave(task.id);
+                  setIsDropdownOpen(false);
+                  // Ensure focus returns to dots button after a small delay
+                  setTimeout(() => {
+                    buttonRef.current?.focus();
+                  }, 0);
+                }
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-neu-gre-700 dark:text-neu-whi-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md"
               role="menuitem"
             >
               <div className="flex items-center space-x-2">
@@ -134,6 +247,9 @@ export const TaskItem = ({
           onTaskClick(task, e as unknown as React.MouseEvent);
         }
       }}
+      onFocus={(e) => {
+        console.log("Focus on outer task item:", e.currentTarget);
+      }}
       className={`task-item py-3 px-2 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px] ${
         task.completed
           ? "bg-sup-suc-400 bg-opacity-75"
@@ -143,8 +259,13 @@ export const TaskItem = ({
         isNextTask
           ? "highlighted-task bg-gradient-highlighted-task ring-2 ring-pri-pur-500 ring-opacity-60"
           : ""
-      } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500`}
+      } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
       onClick={(e) => onTaskClick(task, e)}
+      role="button"
+      aria-label={`${task.title}${task.completed ? " (completed)" : ""}${
+        isNextTask ? " (next task)" : ""
+      }`}
+      aria-pressed={task.completed}
     >
       <div className="flex items-center space-x-2 flex-1 min-w-0">
         <div className="flex items-center justify-center h-full flex-shrink-0">
@@ -153,11 +274,26 @@ export const TaskItem = ({
               e.stopPropagation();
               onTaskCompletion(task.id, !task.completed, dayIndex, e);
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                onTaskCompletion(
+                  task.id,
+                  !task.completed,
+                  dayIndex,
+                  e as unknown as React.MouseEvent
+                );
+              }
+            }}
+            onFocus={(e) => {
+              console.log("Focus on complete button:", e.currentTarget);
+            }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
                 ? "text-sup-suc-600 hover:text-sup-suc-600"
                 : "text-neu-gre-800 hover:text-sup-suc-500"
-            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md`}
+            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
             aria-label={`Mark task "${task.title}" as ${
               task.completed ? "incomplete" : "complete"
             }`}
@@ -249,14 +385,26 @@ export const TaskItem = ({
                 e.stopPropagation();
                 setIsDropdownOpen(!isDropdownOpen);
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsDropdownOpen(!isDropdownOpen);
+                }
+              }}
+              onFocus={(e) => {
+                console.log("Focus on options button:", e.currentTarget);
+              }}
               className={`p-1 flex items-center justify-center ${
                 task.completed
                   ? "text-sup-suc-800 hover:text-sup-suc-800"
                   : isNextTask
                   ? "text-pri-pur-400 hover:text-pri-pur-800"
                   : "text-neu-gre-500 hover:text-neu-gre-800"
-              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 transition-all duration-300 rounded-md hover:bg-neu-800/50`}
-              aria-label="Task options"
+              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+              aria-label="Task options menu"
+              aria-expanded={isDropdownOpen}
+              aria-haspopup="true"
             >
               <Icon icon="mingcute:more-1-fill" className="w-5 h-5" />
             </button>
@@ -267,13 +415,23 @@ export const TaskItem = ({
               e.stopPropagation();
               onTaskDelete(task.id);
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                onTaskDelete(task.id);
+              }
+            }}
+            onFocus={(e) => {
+              console.log("Focus on delete button:", e.currentTarget);
+            }}
             className={`p-1 flex items-center justify-center ${
               task.completed
                 ? "text-sup-suc-800 hover:text-sup-err-500"
                 : isNextTask
                 ? "text-pri-pur-400 hover:text-sup-err-500"
                 : "text-neu-gre-500 hover:text-sup-err-500"
-            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
             aria-label={`Delete task "${task.title}"`}
           >
             <Icon icon="mingcute:delete-2-fill" className="w-5 h-5" />

@@ -179,8 +179,6 @@ const DraggableItem = ({
       className={`transition-all duration-200 ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
       } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
-      role="button"
-      tabIndex={0}
       aria-grabbed={isDragging}
       aria-dropeffect="move"
     >
@@ -221,18 +219,30 @@ export const DayColumn = ({
     <div
       key={day.date.toISOString()}
       className={`flex-shrink-0 w-[320px] ${dayIndex > 1 ? "mt-7" : ""}`}
+      role="region"
+      aria-label={`Tasks for ${day.date.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      })}`}
     >
       {/* Add Today/Tomorrow label */}
       {isToday && (
         <div>
-          <span className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg">
+          <span
+            className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg"
+            role="status"
+          >
             Today
           </span>
         </div>
       )}
       {isTomorrow && (
         <div>
-          <span className="inline-block px-4 py-1 bg-sec-rose-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg">
+          <span
+            className="inline-block px-4 py-1 bg-sec-rose-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg"
+            role="status"
+          >
             Tomorrow
           </span>
         </div>
@@ -252,7 +262,13 @@ export const DayColumn = ({
               <h2 className="text-lg font-semibold text-neu-gre-800">
                 {day.date.toLocaleDateString("en-US", { weekday: "long" })}
               </h2>
-              <span className="text-sm text-neu-gre-600">
+              <span
+                className="text-sm text-neu-gre-600"
+                aria-label={`Date: ${day.date.toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                })}`}
+              >
                 {day.date
                   .toLocaleDateString("en-US", {
                     month: "short",
@@ -268,20 +284,41 @@ export const DayColumn = ({
               }}
               variant="next7days"
               selectedDate={day.date}
+              aria-label={`Add task from library for ${day.date.toLocaleDateString(
+                "en-US",
+                { weekday: "long", month: "long", day: "numeric" }
+              )}`}
             />
           </div>
 
           {/* Task creation */}
           <div className="mb-4 px-4">
-            <TaskCreationInput dayIndex={dayIndex} onAddTask={onAddTask} />
+            <TaskCreationInput
+              dayIndex={dayIndex}
+              onAddTask={onAddTask}
+              aria-label={`Add new task for ${day.date.toLocaleDateString(
+                "en-US",
+                { weekday: "long", month: "long", day: "numeric" }
+              )}`}
+            />
           </div>
 
           {/* Tasks and Sections */}
-          <div className="space-y-4 px-4 mb-4">
+          <div
+            className="space-y-4 px-4 mb-4"
+            role="list"
+            aria-label={`Task list for ${day.date.toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}`}
+          >
             {isLoading ? (
-              <div className="text-neu-400">Loading tasks...</div>
+              <div className="text-neu-400" role="status">
+                Loading tasks...
+              </div>
             ) : day.items.length === 0 ? (
-              <div className="text-center text-neu-600 py-4">
+              <div className="text-center text-neu-600 py-4" role="status">
                 <p className="text-sm font-inter">No tasks for this day</p>
               </div>
             ) : (
@@ -295,6 +332,7 @@ export const DayColumn = ({
                     className={`relative task-item transition-all duration-300 ${
                       isHiding ? "opacity-0 scale-95" : "opacity-100 scale-100"
                     }`}
+                    role="listitem"
                   >
                     <DraggableItem
                       item={item}

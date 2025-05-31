@@ -1210,8 +1210,6 @@ export function Next7Days() {
         className={`transition-all duration-200 ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
-        role="button"
-        tabIndex={0}
         aria-grabbed={isDragging}
         aria-dropeffect="move"
       >

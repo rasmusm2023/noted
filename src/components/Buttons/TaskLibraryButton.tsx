@@ -176,7 +176,7 @@ export const TaskLibraryButton = ({
         onClick={() => setIsOpen(!isOpen)}
         className={`task-library-button flex items-center ${
           variant === "next7days"
-            ? "justify-center w-8 h-8 rounded-full bg-pri-pur-400/10 hover:bg-pri-pur-400/20"
+            ? "justify-center w-8 h-8 rounded-md bg-pri-pur-400/10 hover:bg-pri-pur-400/20"
             : "gap-2 px-4 py-2 rounded-md"
         } transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
           isOpen
