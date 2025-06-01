@@ -395,7 +395,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-md hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-700 dark:hover:text-neu-gre-100 text-neu-gre-500 dark:text-neu-gre-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
+            className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
             aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
             aria-expanded={isOpen}
           >
@@ -423,9 +423,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             onClick={() => navigate("/account")}
             className={`w-full flex items-center ${
               isOpen ? "space-x-3" : "justify-center"
-            } p-2 text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md ${
+            } p-2 text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md ${
               location.pathname === "/account"
-                ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
+                ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
                 : ""
             }`}
             aria-label="Go to account settings"
@@ -477,10 +477,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/")}
                   className={`w-full flex mb-2 items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/"
-                      ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                      : ""
+                      ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                      : "text-neu-gre-900 dark:text-neu-gre-500"
                   }`}
                   aria-current={location.pathname === "/" ? "page" : undefined}
                 >
@@ -488,8 +488,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     icon="mingcute:calendar-day-fill"
                     width={20}
                     height={20}
-                    className={`text-neu-gre-700 dark:text-neu-gre-100 ${
-                      location.pathname === "/" ? "dark:text-neu-gre-50" : ""
+                    className={`text-neu-gre-700 dark:text-neu-gre-500 ${
+                      location.pathname === "/" ? "dark:text-neu-whi-100" : ""
                     }`}
                     aria-hidden="true"
                   />
@@ -500,10 +500,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/next7days")}
                   className={`w-full flex mb-2 items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/next7days"
-                      ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                      : ""
+                      ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                      : "text-neu-gre-900 dark:text-neu-gre-500"
                   }`}
                   aria-current={
                     location.pathname === "/next7days" ? "page" : undefined
@@ -514,9 +514,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       icon="mingcute:trello-board-fill"
                       width={20}
                       height={20}
-                      className={`text-neu-gre-700 dark:text-neu-gre-100 ${
+                      className={`text-neu-gre-700 dark:text-neu-gre-500 ${
                         location.pathname === "/next7days"
-                          ? "dark:text-neu-gre-50"
+                          ? "dark:text-neu-whi-100"
                           : ""
                       }`}
                     />
@@ -543,10 +543,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/goals")}
                   className={`w-full flex mb-2 items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/goals"
-                      ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                      : ""
+                      ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                      : "text-neu-gre-900 dark:text-neu-gre-500"
                   }`}
                   aria-current={
                     location.pathname === "/goals" ? "page" : undefined
@@ -556,9 +556,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     icon="mingcute:target-fill"
                     width={20}
                     height={20}
-                    className={`text-neu-gre-700 dark:text-neu-gre-100 ${
+                    className={`text-neu-gre-700 dark:text-neu-gre-500 ${
                       location.pathname === "/goals"
-                        ? "dark:text-neu-gre-50"
+                        ? "dark:text-neu-whi-100"
                         : ""
                     }`}
                     aria-hidden="true"
@@ -571,10 +571,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/habits")}
                   className={`w-full flex mb-2 items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/habits"
-                      ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                      : ""
+                      ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                      : "text-neu-gre-900 dark:text-neu-gre-500"
                   }`}
                   aria-current={
                     location.pathname === "/habits" ? "page" : undefined
@@ -584,9 +584,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     icon="mingcute:heart-fill"
                     width={20}
                     height={20}
-                    className={`text-neu-gre-700 dark:text-neu-gre-100 ${
+                    className={`text-neu-gre-700 dark:text-neu-gre-500 ${
                       location.pathname === "/habits"
-                        ? "dark:text-neu-gre-50"
+                        ? "dark:text-neu-whi-100"
                         : ""
                     }`}
                     aria-hidden="true"
@@ -616,7 +616,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 {isOpen && (
                   <button
                     onClick={() => setIsAddingList(true)}
-                    className="p-2 rounded-md hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-700 dark:hover:text-neu-gre-100 text-neu-gre-500 dark:text-neu-gre-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
+                    className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                     aria-label="Add new list"
                   >
                     <Icon
@@ -702,10 +702,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     onClick={() => navigate(`/list/${list.id}`)}
                     className={`w-full flex mb-2 items-center ${
                       isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                       location.pathname === `/list/${list.id}`
-                        ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                        : ""
+                        ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                        : "text-neu-gre-900 dark:text-neu-gre-500"
                     }`}
                     aria-current={
                       location.pathname === `/list/${list.id}`
@@ -717,9 +717,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       icon="mingcute:minimize-line"
                       width={16}
                       height={16}
-                      className={`text-neu-gre-700 dark:text-neu-gre-100 ${
+                      className={`text-neu-gre-700 dark:text-neu-gre-500 ${
                         location.pathname === `/list/${list.id}`
-                          ? "dark:text-neu-gre-50"
+                          ? "dark:text-neu-whi-100"
                           : ""
                       }`}
                       aria-hidden="true"
@@ -748,7 +748,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               }}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
-              } text-base font-medium p-3 rounded-md text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500`}
+              } text-base font-medium p-3 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500`}
               aria-expanded={isSettingsMenuOpen}
               aria-haspopup="true"
               aria-label="Settings menu"

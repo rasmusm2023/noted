@@ -1231,18 +1231,31 @@ export function Next7Days() {
           const targetDate = new Date(days[targetDay].date);
           targetDate.setHours(12, 0, 0, 0);
 
-          // Update all items in both days to ensure order consistency
-          const updatePromises = items.map((item, index) => {
+          // Only update the moved item's date and order
+          const movedItem = items[0]; // The first item is always the moved item
+          if (isTask(movedItem)) {
+            await taskService.updateTask(movedItem.id, {
+              order: movedItem.order,
+              scheduledTime: targetDate.toLocaleString(),
+              date: targetDate.toISOString(),
+            });
+          } else if (isSection(movedItem)) {
+            await taskService.updateSection(movedItem.id, {
+              order: movedItem.order,
+              scheduledTime: targetDate.toLocaleString(),
+            });
+          }
+
+          // Update orders for other items that changed
+          const otherItems = items.slice(1); // Skip the moved item
+          const updatePromises = otherItems.map((item) => {
             if (isTask(item)) {
               return taskService.updateTask(item.id, {
-                order: index,
-                scheduledTime: targetDate.toLocaleString(),
-                date: targetDate.toISOString(),
+                order: item.order,
               });
             } else if (isSection(item)) {
               return taskService.updateSection(item.id, {
-                order: index,
-                scheduledTime: targetDate.toLocaleString(),
+                order: item.order,
               });
             }
             return Promise.resolve();
@@ -1274,13 +1287,14 @@ export function Next7Days() {
     sourceDay: number,
     targetDay: number
   ) => {
-    console.log("Drag and Drop Debug:", {
+    console.log("=== DRAG AND DROP DEBUG START ===");
+    console.log("Initial State:", {
       dragIndex,
       hoverIndex,
       sourceDay,
       targetDay,
-      sourceItem: days[sourceDay].items[dragIndex],
-      targetItem: days[targetDay].items[hoverIndex],
+      sourceDayItems: days[sourceDay].items,
+      targetDayItems: days[targetDay].items,
     });
 
     // Create a new array of days to avoid mutating state directly
@@ -1288,7 +1302,14 @@ export function Next7Days() {
     const sourceItems = [...newDays[sourceDay].items];
     const [movedItem] = sourceItems.splice(dragIndex, 1);
 
+    console.log("After removing item:", {
+      movedItem,
+      sourceItems,
+      sourceDayItemsLength: sourceItems.length,
+    });
+
     if (sourceDay === targetDay) {
+      console.log("Same day reordering");
       // Same day reordering
       sourceItems.splice(hoverIndex, 0, movedItem);
 
@@ -1297,6 +1318,11 @@ export function Next7Days() {
         ...item,
         order: index,
       }));
+
+      console.log("Updated items for same day:", {
+        updatedItems,
+        itemsLength: updatedItems.length,
+      });
 
       // Update the state immediately for smooth UI
       setDays((prevDays) => {
@@ -1314,44 +1340,81 @@ export function Next7Days() {
         targetDay,
         items: updatedItems,
       });
+      console.log("=== DRAG AND DROP DEBUG END (SAME DAY) ===");
       return;
     }
 
+    console.log("Cross-day move");
     // Cross-day move
     const targetItems = [...newDays[targetDay].items];
     targetItems.splice(hoverIndex, 0, movedItem);
 
-    // Update both source and target days
+    console.log("After inserting item:", {
+      targetItems,
+      targetDayItemsLength: targetItems.length,
+    });
+
+    // Update both source and target days with new orders
     setDays((prevDays) => {
       const updatedDays = [...prevDays];
 
-      // Update source day
+      // Update source day items with new orders
+      const updatedSourceItems = sourceItems.map((item, index) => ({
+        ...item,
+        order: index,
+      }));
+
+      // Update target day items with new orders
+      const updatedTargetItems = targetItems.map((item, index) => ({
+        ...item,
+        order: index,
+      }));
+
+      console.log("Items with updated orders:", {
+        updatedSourceItems,
+        updatedTargetItems,
+        sourceItemsLength: updatedSourceItems.length,
+        targetItemsLength: updatedTargetItems.length,
+      });
+
       updatedDays[sourceDay] = {
         ...updatedDays[sourceDay],
-        items: sourceItems.map((item, index) => ({
-          ...item,
-          order: index,
-        })),
+        items: updatedSourceItems,
       };
 
-      // Update target day
       updatedDays[targetDay] = {
         ...updatedDays[targetDay],
-        items: targetItems.map((item, index) => ({
-          ...item,
-          order: index,
-        })),
+        items: updatedTargetItems,
       };
 
       return updatedDays;
     });
 
     // Queue the database update for both days
+    // Only include the moved item and items that had their order changed
+    const changedItems = [
+      // Include the moved item with its new order
+      { ...movedItem, order: hoverIndex },
+      // Include source day items that had their order changed
+      ...sourceItems.map((item, index) => ({ ...item, order: index })),
+      // Include target day items that had their order changed
+      ...targetItems
+        .filter((item) => item.id !== movedItem.id)
+        .map((item, index) => ({ ...item, order: index })),
+    ];
+
+    console.log("Final state for database update:", {
+      changedItems,
+      totalItemsLength: changedItems.length,
+    });
+
     setPendingUpdates({
       sourceDay,
       targetDay,
-      items: [...sourceItems, ...targetItems],
+      items: changedItems,
     });
+
+    console.log("=== DRAG AND DROP DEBUG END (CROSS-DAY) ===");
   };
 
   const handleClearCompleted = async () => {

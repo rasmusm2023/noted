@@ -224,9 +224,9 @@ export function Account() {
   if (loading) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-neu-whi-100 p-8 font-inter">
+        <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800 p-8 font-inter">
           <div className="max-w-2xl mx-auto">
-            <div className="text-neu-gre-600 animate-pulse">
+            <div className="text-neu-gre-600 dark:text-neu-gre-300 animate-pulse">
               Loading account details...
             </div>
           </div>
@@ -238,9 +238,9 @@ export function Account() {
   if (error) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-neu-whi-100 p-8 font-inter">
+        <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800 p-8 font-inter">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-sup-err-100 text-sup-err-500 p-4 rounded-lg">
+            <div className="bg-sup-err-100 dark:bg-sup-err-900 text-sup-err-500 dark:text-sup-err-400 p-4 rounded-lg">
               {error}
             </div>
           </div>
@@ -251,15 +251,15 @@ export function Account() {
 
   return (
     <PageTransition>
-      <div className="p-8 mt-16">
+      <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800 p-8">
         <div className="max-w-[1920px] mx-auto space-y-8 px-16 pb-[1000px]">
           <div className="flex items-center space-x-3">
             <Icon
               icon="mingcute:user-3-fill"
-              className="text-pri-pur-500 w-8 h-8"
+              className="text-pri-pur-500 dark:text-pri-pur-400 w-8 h-8"
               aria-hidden="true"
             />
-            <h1 className="text-3xl font-bold text-neu-gre-800">
+            <h1 className="text-3xl font-bold text-neu-gre-800 dark:text-neu-gre-100">
               Account Details
             </h1>
           </div>
@@ -268,7 +268,7 @@ export function Account() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-neu-whi-100 rounded-5xl p-24 space-y-8 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-neu-gre-300/50"
+            className="bg-neu-whi-100 dark:bg-neu-gre-700 rounded-5xl p-24 space-y-8 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-neu-gre-300/50 dark:border-neu-gre-700/50"
             role="region"
             aria-label="Account Information"
           >
@@ -281,13 +281,13 @@ export function Account() {
               >
                 <div className="space-y-2">
                   <h2
-                    className="text-sm font-medium text-neu-gre-600"
+                    className="text-sm font-medium text-neu-gre-600 dark:text-neu-gre-300"
                     id="email-label"
                   >
                     Email
                   </h2>
                   <p
-                    className="text-lg text-neu-gre-800 bg-neu-gre-100 px-4 py-2 rounded-lg border-2 border-neu-gre-200 w-full"
+                    className="text-lg text-neu-gre-800 dark:text-neu-gre-100 bg-neu-gre-100 dark:bg-neu-gre-700 px-4 py-2 rounded-lg border-2 border-neu-gre-200 dark:border-neu-gre-600 w-full"
                     aria-labelledby="email-label"
                   >
                     {userDetails?.email}
@@ -297,13 +297,13 @@ export function Account() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <h2
-                      className="text-sm font-medium text-neu-gre-600"
+                      className="text-sm font-medium text-neu-gre-600 dark:text-neu-gre-300"
                       id="first-name-label"
                     >
                       First Name
                     </h2>
                     <p
-                      className="text-lg text-neu-gre-800 bg-neu-gre-100 px-4 py-2 rounded-lg border-2 border-neu-gre-200 w-full"
+                      className="text-lg text-neu-gre-800 dark:text-neu-gre-100 bg-neu-gre-100 dark:bg-neu-gre-700 px-4 py-2 rounded-lg border-2 border-neu-gre-200 dark:border-neu-gre-600 w-full"
                       aria-labelledby="first-name-label"
                     >
                       {userDetails?.firstName}
@@ -312,13 +312,13 @@ export function Account() {
 
                   <div className="space-y-2">
                     <h2
-                      className="text-sm font-medium text-neu-gre-600"
+                      className="text-sm font-medium text-neu-gre-600 dark:text-neu-gre-300"
                       id="last-name-label"
                     >
                       Last Name
                     </h2>
                     <p
-                      className="text-lg text-neu-gre-800 bg-neu-gre-100 px-4 py-2 rounded-lg border-2 border-neu-gre-200 w-full"
+                      className="text-lg text-neu-gre-800 dark:text-neu-gre-100 bg-neu-gre-100 dark:bg-neu-gre-700 px-4 py-2 rounded-lg border-2 border-neu-gre-200 dark:border-neu-gre-600 w-full"
                       aria-labelledby="last-name-label"
                     >
                       {userDetails?.lastName}
@@ -328,7 +328,7 @@ export function Account() {
 
                 <div className="space-y-2">
                   <h2
-                    className="text-sm font-medium text-neu-gre-600"
+                    className="text-sm font-medium text-neu-gre-600 dark:text-neu-gre-300"
                     id="password-label"
                   >
                     Password
@@ -340,14 +340,14 @@ export function Account() {
                         value="••••••••"
                         readOnly
                         disabled
-                        className="w-full px-4 py-2 bg-neu-gre-100 rounded-lg text-neu-gre-800 border-2 border-neu-gre-200 cursor-not-allowed opacity-75"
+                        className="w-full px-4 py-2 bg-neu-gre-100 dark:bg-neu-gre-700 rounded-lg text-neu-gre-800 dark:text-neu-gre-100 border-2 border-neu-gre-200 dark:border-neu-gre-600 cursor-not-allowed opacity-75"
                         aria-labelledby="password-label"
                         aria-disabled="true"
                       />
                     </div>
                     <button
                       onClick={() => setShowResetModal(true)}
-                      className="px-4 py-2 text-neu-gre-600 font-inter font-medium hover:text-pri-pur-500 hover:ring-pri-pur-300 ring-2 ring-neu-gre-400 rounded-md transition-all whitespace-nowrap duration-200 focus:outline-none focus:ring-2 focus:ring-pri-focus-500"
+                      className="px-4 py-2 text-neu-gre-600 dark:text-neu-gre-200 dark:bg-neu-gre-600 dark:hover:bg-pri-pur-500 font-inter font-medium hover:text-pri-pur-500 hover:ring-pri-pur-300 dark:hover:ring-pri-pur-500 ring-2 ring-neu-gre-400 dark:ring-neu-gre-500 rounded-md transition-all whitespace-nowrap duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                       aria-label="Reset password"
                     >
                       Reset password
@@ -357,13 +357,13 @@ export function Account() {
 
                 <div className="space-y-2">
                   <h2
-                    className="text-sm font-medium text-neu-gre-600"
+                    className="text-sm font-medium text-neu-gre-600 dark:text-neu-gre-300"
                     id="account-created-label"
                   >
                     Account Created
                   </h2>
                   <p
-                    className="text-lg text-neu-gre-800 bg-neu-gre-100 px-4 py-2 rounded-lg border-2 border-neu-gre-200 w-full"
+                    className="text-lg text-neu-gre-800 dark:text-neu-gre-100 bg-neu-gre-100 dark:bg-neu-gre-700 px-4 py-2 rounded-lg border-2 border-neu-gre-200 dark:border-neu-gre-600 w-full"
                     aria-labelledby="account-created-label"
                   >
                     {userDetails?.createdAt
@@ -379,10 +379,10 @@ export function Account() {
                   </p>
                 </div>
 
-                <div className="pt-8 border-t border-neu-gre-200">
+                <div className="pt-8 border-t border-neu-gre-200 dark:border-neu-gre-700">
                   <button
                     onClick={() => setShowDeleteModal(true)}
-                    className="py-4 px-4 text-sm font-inter font-medium text-sup-err-500 hover:text-neu-whi-100 hover:bg-sup-err-500 rounded-md transition-all flex items-center space-x-2 duration-200 focus:outline-none focus:ring-2 focus:ring-pri-focus-500"
+                    className="py-4 px-4 text-sm font-inter font-medium text-sup-err-500 dark:text-sup-err-400 dark:hover:text-sup-err-700 hover:text-neu-whi-100 hover:bg-sup-err-500 dark:hover:bg-sup-err-200 rounded-md transition-all flex items-center space-x-2 duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                     aria-label="Delete account"
                   >
                     <Icon
@@ -421,7 +421,7 @@ export function Account() {
                     />
                   )}
                   <div
-                    className="absolute -bottom-2 -right-2 bg-pri-pur-500 text-neu-whi-100 p-2 rounded-md shadow-lg"
+                    className="absolute -bottom-2 -right-2 bg-pri-pur-500 dark:bg-pri-pur-400 text-neu-whi-100 p-2 rounded-md shadow-lg"
                     role="presentation"
                   >
                     <Icon
@@ -434,7 +434,7 @@ export function Account() {
 
                 <div className="w-full">
                   <h3
-                    className="text-lg font-medium text-neu-gre-800 mb-4"
+                    className="text-lg font-medium text-neu-gre-800 dark:text-neu-gre-100 mb-4"
                     id="avatar-selection-label"
                   >
                     Choose avatar
@@ -451,8 +451,8 @@ export function Account() {
                         whileTap={{ scale: 0.95 }}
                         className={`p-1 rounded-md transition-all focus:outline-none focus:ring-4 focus:ring-pri-focus-500 ${
                           selectedAvatar === 0
-                            ? "bg-pri-pur-500 ring-4 ring-pri-pur-400 shadow-lg"
-                            : "bg-neu-gre-200 hover:bg-neu-gre-300"
+                            ? "bg-pri-pur-500 dark:bg-pri-pur-400 ring-4 ring-pri-pur-400 dark:ring-pri-pur-300 shadow-lg"
+                            : "bg-neu-gre-200 dark:bg-neu-gre-700 hover:bg-neu-gre-300 dark:hover:bg-neu-gre-600"
                         }`}
                         role="radio"
                         aria-checked={selectedAvatar === 0}
@@ -474,8 +474,8 @@ export function Account() {
                         whileTap={{ scale: 0.95 }}
                         className={`p-1 rounded-md transition-all focus:outline-none focus:ring-4 focus:ring-pri-focus-500 ${
                           selectedAvatar === avatar.id
-                            ? "bg-pri-pur-500 ring-4 ring-pri-pur-400 shadow-lg"
-                            : "bg-neu-gre-200 hover:bg-neu-gre-300"
+                            ? "bg-pri-pur-500 dark:bg-pri-pur-400 ring-4 ring-pri-pur-400 dark:ring-pri-pur-300 shadow-lg"
+                            : "bg-neu-gre-200 dark:bg-neu-gre-700 hover:bg-neu-gre-300 dark:hover:bg-neu-gre-600"
                         }`}
                         role="radio"
                         aria-checked={selectedAvatar === avatar.id}
@@ -518,12 +518,12 @@ export function Account() {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.9, opacity: 0 }}
-                  className="bg-neu-whi-100 rounded-lg p-6 max-w-md w-full mx-4"
+                  className="bg-neu-whi-100 dark:bg-neu-gre-800 rounded-lg p-6 max-w-md w-full mx-4"
                   role="document"
                 >
                   <h3
                     id="delete-account-title"
-                    className="text-xl font-semibold mb-4 flex items-center gap-2 text-neu-gre-800"
+                    className="text-xl font-semibold mb-4 flex items-center gap-2 text-neu-gre-800 dark:text-neu-gre-100"
                   >
                     <Icon
                       icon="mingcute:alert-fill"
@@ -534,7 +534,7 @@ export function Account() {
                   </h3>
                   <p
                     id="delete-account-description"
-                    className="text-neu-gra-600 mb-6"
+                    className="text-neu-gre-600 dark:text-neu-gre-300 mb-6"
                   >
                     Are you sure you want to delete your account? This action
                     cannot be undone and all your data will be permanently
@@ -544,7 +544,7 @@ export function Account() {
                     <button
                       ref={firstFocusableRef}
                       onClick={() => setShowDeleteModal(false)}
-                      className="px-8 py-4 text-base font-inter font-medium bg-neu-gre-300 rounded-md text-neu-gra-800 hover:text-neu-gra-800 hover:bg-pri-pur-200 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-pri-focus-500"
+                      className="px-8 py-4 text-base font-inter font-medium bg-neu-gre-300 dark:bg-neu-gre-700 rounded-md text-neu-gre-800 dark:text-neu-gre-100 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 hover:bg-pri-pur-200 dark:hover:bg-pri-pur-700/50 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                       disabled={isDeleting}
                       aria-label="Cancel account deletion"
                     >
@@ -553,7 +553,7 @@ export function Account() {
                     <button
                       ref={lastFocusableRef}
                       onClick={handleDeleteAccount}
-                      className="px-4 py-4 text-sm font-inter font-medium bg-sup-err-500 text-neu-whi-100 rounded-md hover:bg-sup-err-700 transition-colors disabled:opacity-50 flex items-center gap-2 focus:outline-none focus:ring-4 focus:ring-pri-focus-500"
+                      className="px-4 py-4 text-sm font-inter font-medium bg-sup-err-500 dark:bg-sup-err-600 text-neu-whi-100 rounded-md hover:bg-sup-err-700 dark:hover:bg-sup-err-700 transition-colors disabled:opacity-50 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                       disabled={isDeleting}
                       aria-label="Confirm account deletion"
                     >
@@ -592,25 +592,25 @@ export function Account() {
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                  className="bg-neu-whi-100 rounded-lg p-6 max-w-md w-full mx-4 text-center"
+                  className="bg-neu-whi-100 dark:bg-neu-gre-800 rounded-lg p-6 max-w-md w-full mx-4 text-center"
                   role="document"
                 >
                   <div className="mb-4" role="presentation">
                     <Icon
                       icon="mingcute:mail-send-fill"
-                      className="w-12 h-12 text-pri-pur-500 mx-auto"
+                      className="w-12 h-12 text-pri-pur-500 dark:text-pri-pur-400 mx-auto"
                       aria-hidden="true"
                     />
                   </div>
                   <h3
                     id="reset-confirmation-title"
-                    className="text-xl font-semibold mb-2"
+                    className="text-xl font-semibold mb-2 text-neu-gre-800 dark:text-neu-gre-100"
                   >
                     Check Your Email
                   </h3>
                   <p
                     id="reset-confirmation-description"
-                    className="text-neu-gre-600 mb-4"
+                    className="text-neu-gre-600 dark:text-neu-gre-300 mb-4"
                   >
                     We've sent a password reset link to your email address.
                     Please check your inbox and follow the instructions to reset
@@ -618,7 +618,7 @@ export function Account() {
                   </p>
                   <button
                     onClick={() => setShowResetConfirmation(false)}
-                    className="px-4 py-2 bg-pri-pur-500 text-white rounded hover:bg-pri-pur-600 transition-colors focus:outline-none focus:ring-4 focus:ring-pri-focus-500"
+                    className="px-4 py-2 bg-pri-pur-500 dark:bg-pri-pur-400 text-white rounded hover:bg-pri-pur-600 dark:hover:bg-pri-pur-500 transition-colors focus:outline-none focus:ring-4 focus:ring-pri-focus-500"
                     aria-label="Close password reset confirmation"
                   >
                     Got it
@@ -651,12 +651,12 @@ export function Account() {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.9, opacity: 0 }}
-                  className="bg-neu-whi-100 rounded-lg p-6 max-w-md w-full mx-4"
+                  className="bg-neu-whi-100 dark:bg-neu-gre-800 rounded-lg p-6 max-w-md w-full mx-4"
                   role="document"
                 >
                   <h3
                     id="reset-password-title"
-                    className="text-xl font-semibold mb-4 flex items-center gap-2 text-neu-gre-800"
+                    className="text-xl font-semibold mb-4 flex items-center gap-2 text-neu-gre-800 dark:text-neu-gre-100"
                   >
                     <Icon
                       icon="mingcute:key-2-fill"
@@ -667,7 +667,7 @@ export function Account() {
                   </h3>
                   <p
                     id="reset-password-description"
-                    className="text-neu-gre-600 mb-6"
+                    className="text-neu-gre-600 dark:text-neu-gre-300 mb-6"
                   >
                     We'll send a password reset link to your email address (
                     {currentUser?.email}). You'll need to click the link in the
@@ -677,7 +677,7 @@ export function Account() {
                     <button
                       ref={resetFirstFocusableRef}
                       onClick={() => setShowResetModal(false)}
-                      className="px-8 py-4 text-base font-inter font-medium bg-neu-gre-300 rounded-md text-neu-gre-800 hover:text-neu-gre-800 hover:bg-neu-gre-500 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-pri-focus-500"
+                      className="px-8 py-4 text-base font-inter font-medium bg-neu-gre-300 dark:bg-neu-gre-700 rounded-md text-neu-gre-800 dark:text-neu-gre-100 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 hover:bg-neu-gre-500 dark:hover:bg-neu-gre-600 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                       aria-label="Cancel password reset"
                     >
                       Cancel
@@ -685,7 +685,7 @@ export function Account() {
                     <button
                       ref={resetLastFocusableRef}
                       onClick={handleResetPassword}
-                      className="px-4 py-4 text-base font-inter font-medium bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors flex items-center gap-2 focus:outline-none focus:ring-4 focus:ring-pri-focus-500"
+                      className="px-4 py-4 text-base font-inter font-medium bg-pri-pur-500 dark:bg-pri-pur-400 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 dark:hover:bg-pri-pur-500 transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                       aria-label="Send password reset link"
                     >
                       <Icon

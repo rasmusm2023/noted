@@ -452,7 +452,7 @@ export function TaskModal({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="overflow-y-auto max-h-[calc(100vh-2rem)]">
+        <div>
           <div className="p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
