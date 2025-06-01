@@ -236,6 +236,21 @@ export const TaskItem = ({
     );
   };
 
+  const taskItemClasses = `
+    task-item p-3 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px]
+    ${
+      isNextTask
+        ? "highlighted-task border-2 border-pri-pur-500/30"
+        : task.completed
+        ? "dark:[background:linear-gradient(90deg,hsla(145,84%,45%,1)_0%,hsla(150,61%,35%,1)_100%)] [background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
+        : task.backgroundColor
+        ? task.backgroundColor
+        : "dark:bg-neu-gre-800 border-2 border-neu-gre-500/30"
+    }
+    ${editingTask?.id === task.id ? "ring-2 ring-pri-pur-500" : ""}
+    focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500
+  `;
+
   return (
     <div
       key={task.id}
@@ -250,16 +265,7 @@ export const TaskItem = ({
       onFocus={(e) => {
         console.log("Focus on outer task item:", e.currentTarget);
       }}
-      className={`task-item py-3 px-2 rounded-md flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px] ${
-        task.completed
-          ? "[background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
-          : task.backgroundColor ||
-            "bg-task-stone-100 dark:bg-neu-gre-800 border-2 border-neu-gre-400/30"
-      } ${
-        isNextTask
-          ? "highlighted-task bg-gradient-highlighted-task ring-2 ring-pri-pur-500 ring-opacity-60"
-          : ""
-      } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
+      className={taskItemClasses}
       onClick={(e) => onTaskClick(task, e)}
       role="button"
       aria-label={`${task.title}${task.completed ? " (completed)" : ""}${
@@ -291,8 +297,8 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
-                ? "text-sup-suc-600 hover:text-sup-suc-600"
-                : "text-neu-gre-800 hover:text-sup-suc-500"
+                ? "text-sup-suc-600 dark:text-sup-suc-500 hover:text-sup-suc-600"
+                : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
             aria-label={`Mark task "${task.title}" as ${
               task.completed ? "incomplete" : "complete"
@@ -303,9 +309,7 @@ export const TaskItem = ({
             ) : (
               <Icon
                 icon="mingcute:round-line"
-                className={`w-6 h-6 ${
-                  isNextTask ? "animate-bounce-subtle" : ""
-                }`}
+                className="w-8 h-8 text-neu-gre-700 dark:text-neu-gre-100 hover:text-sup-suc-500 dark:hover:text-sup-suc-400"
               />
             )}
           </button>
@@ -359,14 +363,16 @@ export const TaskItem = ({
                   >
                     <div
                       className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                        subtask.completed ? "bg-sup-suc-800" : "bg-neu-gre-500"
+                        subtask.completed
+                          ? "bg-sup-suc-600 dark:bg-sup-suc-400"
+                          : "bg-neu-gre-500 dark:bg-neu-gre-400"
                       }`}
                     />
                     <span
                       className={`font-inter text-xs truncate ${
                         subtask.completed
-                          ? "line-through text-sup-suc-800"
-                          : "text-neu-400"
+                          ? "line-through text-sup-suc-600 dark:text-sup-suc-400"
+                          : "text-neu-400 dark:text-neu-whi-100/70"
                       }`}
                     >
                       {subtask.title}
@@ -397,10 +403,10 @@ export const TaskItem = ({
               }}
               className={`p-1 flex items-center justify-center ${
                 task.completed
-                  ? "text-sup-suc-800 hover:text-sup-suc-800"
+                  ? "text-sup-suc-800 hover:text-sup-suc-800 dark:text-sup-suc-700 dark:hover:text-sup-suc-700"
                   : isNextTask
-                  ? "text-pri-pur-400 hover:text-pri-pur-800"
-                  : "text-neu-gre-500 hover:text-neu-gre-800"
+                  ? "text-pri-pur-400 hover:text-pri-pur-800 dark:text-pri-pur-400 dark:hover:text-pri-pur-300"
+                  : "text-neu-gre-500 hover:text-neu-gre-800 dark:text-neu-whi-100/70 dark:hover:text-neu-whi-100"
               } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
               aria-label="Task options menu"
               aria-expanded={isDropdownOpen}
@@ -427,10 +433,10 @@ export const TaskItem = ({
             }}
             className={`p-1 flex items-center justify-center ${
               task.completed
-                ? "text-sup-suc-800 hover:text-sup-err-500"
+                ? "text-sup-suc-800 hover:text-sup-err-500 dark:text-sup-suc-700 dark:hover:text-sup-err-400"
                 : isNextTask
-                ? "text-pri-pur-400 hover:text-sup-err-500"
-                : "text-neu-gre-500 hover:text-sup-err-500"
+                ? "text-pri-pur-400 hover:text-sup-err-500 dark:text-pri-pur-400 dark:hover:text-sup-err-400"
+                : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
             aria-label={`Delete task "${task.title}"`}
           >

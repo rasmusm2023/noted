@@ -35,12 +35,14 @@ export const TaskCreationInput = ({
   return (
     <div className="flex flex-col space-y-2">
       <div
-        className={`p-4 bg-pri-pur-500/10 rounded-md hover:bg-neu-whi-100 transition-colors border-2 border-dashed border-pri-pur-500/75 ${
-          isFocused ? "bg-pri-pur-500/20 border-pri-pur-500" : ""
+        className={`p-4 bg-pri-pur-500/10 dark:bg-pri-pur-500/20 rounded-md hover:bg-neu-whi-100 dark:hover:bg-neu-gre-800 transition-colors border-2 border-dashed border-pri-pur-500/75 dark:border-pri-pur-500/50 ${
+          isFocused
+            ? "bg-pri-pur-500/20 dark:bg-pri-pur-500/30 border-pri-pur-500 dark:border-pri-pur-400"
+            : ""
         }`}
       >
         <div className="flex items-center space-x-4">
-          <div className="p-1 bg-pri-pur-500 rounded-sm flex items-center justify-center">
+          <div className="p-1 bg-pri-pur-500 dark:bg-pri-pur-400 rounded-sm flex items-center justify-center">
             <Icon
               icon="mingcute:add-fill"
               width={16}
@@ -58,9 +60,9 @@ export const TaskCreationInput = ({
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder="New task"
-              className="w-full bg-transparent font-semibold text-gre-800 placeholder-neu-gre-600 focus-visible:outline-none"
+              className="w-full bg-transparent font-semibold text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus-visible:outline-none"
             />
-            <p className="text-neu-gre-500 text-xs font-inter mt-2">
+            <p className="text-neu-gre-500 dark:text-neu-gre-400 text-xs font-inter mt-2">
               Press Enter to add
             </p>
           </div>

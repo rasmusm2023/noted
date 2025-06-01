@@ -31,8 +31,8 @@ export const TimerButton = ({
       onClick={onClick}
       className={`flex items-center gap-2 mt-4 px-4 py-2 rounded-md transition-all duration-300 backdrop-blur-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
         isActive
-          ? "bg-white/40 border border-white/50 text-neu-gre-800 hover:bg-white/75"
-          : "bg-white/40 border border-white/50 text-neu-gre-800 hover:bg-white/75"
+          ? "bg-neu-whi-100/60 dark:bg-neu-whi-100/40 border border-neu-whi-100/60 text-neu-gre-800 dark:text-neu-whi-100 hover:bg-neu-whi-100/90 dark:hover:bg-neu-gre-600/90"
+          : "bg-neu-whi-100/40 dark:bg-neu-whi-100/25 border border-neu-whi-100/40 text-neu-gre-800 dark:text-neu-whi-100 hover:bg-neu-whi-100/90 dark:hover:bg-neu-gre-600/90"
       }`}
       aria-label={isActive ? "Timer active" : "Start a timer"}
       aria-expanded={isActive}
@@ -40,7 +40,7 @@ export const TimerButton = ({
     >
       <Icon
         icon="mingcute:alarm-2-fill"
-        className={`w-6 h-6 text-neu-gre-800`}
+        className={`w-6 h-6 text-neu-gre-800 dark:text-neu-whi-100`}
         aria-hidden="true"
       />
       {isActive && timeLeft !== undefined ? (

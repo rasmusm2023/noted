@@ -16,48 +16,57 @@ interface TaskModalProps {
 const TASK_COLORS = [
   {
     name: "Stone",
-    value: "bg-task-stone-100",
-    hover: "hover:bg-task-stone-hover",
+    value:
+      "bg-task-stone-100 dark:bg-neu-gre-800 border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-stone-hover dark:hover:bg-neu-gre-700",
   },
   {
     name: "Sky",
-    value: "bg-task-sky-100",
-    hover: "hover:bg-task-sky-hover",
+    value:
+      "bg-task-sky-100 dark:bg-[#0C4A6E] border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-sky-hover dark:hover:bg-[#0369A1]",
   },
   {
     name: "Emerald",
-    value: "bg-task-emerald-100",
-    hover: "hover:bg-task-emerald-hover",
+    value:
+      "bg-task-emerald-100 dark:bg-[#064E3B] border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-emerald-hover dark:hover:bg-[#047857]",
   },
   {
     name: "Amber",
-    value: "bg-task-amber-100",
-    hover: "hover:bg-task-amber-hover",
+    value:
+      "bg-task-amber-100 dark:bg-[#78350F] border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-amber-hover dark:hover:bg-[#B45309]",
   },
   {
     name: "Rose",
-    value: "bg-task-rose-100",
-    hover: "hover:bg-task-rose-hover",
+    value:
+      "bg-task-rose-100 dark:bg-[#881337] border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-rose-hover dark:hover:bg-[#BE123C]",
   },
   {
     name: "Lilac",
-    value: "bg-task-lilac-100",
-    hover: "hover:bg-task-lilac-hover",
+    value:
+      "bg-task-lilac-100 dark:bg-[#5B21B6] border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-lilac-hover dark:hover:bg-[#7C3AED]",
   },
   {
     name: "Peach",
-    value: "bg-task-peach-100",
-    hover: "hover:bg-task-peach-hover",
+    value:
+      "bg-task-peach-100 dark:bg-[#7C2D12] border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-peach-hover dark:hover:bg-[#C2410C]",
   },
   {
     name: "Mint",
-    value: "bg-task-mint-100",
-    hover: "hover:bg-task-mint-hover",
+    value:
+      "bg-task-mint-100 dark:bg-[#065F46] border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-mint-hover dark:hover:bg-[#0F766E]",
   },
   {
     name: "Steel",
-    value: "bg-task-steel-100",
-    hover: "hover:bg-task-steel-hover",
+    value:
+      "bg-task-steel-100 dark:bg-[#374151] border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-steel-hover dark:hover:bg-[#4B5563]",
   },
 ];
 
@@ -491,11 +500,11 @@ export function TaskModal({
                   </button>
                   {showColorPicker && (
                     <div
-                      className="absolute right-0 mt-3 p-4 bg-neu-whi-100 rounded-lg shadow-lg z-10 w-48 border border-neu-gre-200"
+                      className="absolute right-0 mt-3 p-4 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg z-10 w-48 border border-neu-gre-200 dark:border-neu-gre-600"
                       onKeyDown={handleColorPickerKeyDown}
                     >
                       <div className="flex justify-between items-center mb-3">
-                        <span className="text-sm font-inter text-neu-gre-800">
+                        <span className="text-sm font-inter text-neu-gre-800 dark:text-neu-gre-100">
                           Select a background color
                         </span>
                         <button
@@ -504,7 +513,7 @@ export function TaskModal({
                             e.stopPropagation();
                             setShowColorPicker(false);
                           }}
-                          className="p-1 text-neu-gre-600 hover:text-neu-gre-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                          className="p-1 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                           aria-label="Close color picker"
                         >
                           <Icon
@@ -530,9 +539,9 @@ export function TaskModal({
                             }}
                             className={`w-8 h-8 rounded-md ${
                               color.value
-                            } ring-2 ring-neu-gre-300 ${
+                            } ring-2 ring-neu-gre-300 dark:ring-neu-gre-600 ${
                               currentBackgroundColor === color.value
-                                ? "ring-4 ring-pri-pur-400"
+                                ? "ring-4 ring-pri-pur-400 dark:ring-pri-pur-300"
                                 : ""
                             } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
                             aria-label={`Select ${color.name} color`}

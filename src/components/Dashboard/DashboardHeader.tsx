@@ -77,9 +77,9 @@ export const DashboardHeader = ({
   const [month, day] = currentDate.split(" ");
 
   return (
-    <div className="rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300 relative">
-      <div className="absolute inset-0 rounded-5xl bg-gradient-rose-peach-75"></div>
-      <div className="flex justify-between items-start relative h-full">
+    <div className="rounded-5xl pl-16 pr-16 pt-8 pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.2),0_8px_32px_-8px_rgba(0,0,0,0.16)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.24),0_16px_48px_-16px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden">
+      <div className="absolute inset-0 rounded-5xl bg-gradient-rose-peach-75 dark:bg-gradient-highlighted-task opacity-100"></div>
+      <div className="flex justify-between items-start relative h-full z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={`${dayOfWeek}-${currentDate}`}
@@ -111,7 +111,7 @@ export const DashboardHeader = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className={`flex flex-col bg-neu-whi-100 items-center leading-none ${
+              className={`flex flex-col bg-neu-whi-100/90 dark:bg-neu-gre-900/90 backdrop-blur-sm items-center leading-none ${
                 temperature === null ? "rounded-5xl" : "rounded-t-5xl"
               }`}
             >
@@ -119,7 +119,7 @@ export const DashboardHeader = ({
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.4 }}
-                className="text-md font-regular font-inter text-neu-gre-800 leading-none px-8 pt-2"
+                className="text-md font-regular font-inter text-neu-gre-700 dark:text-neu-gre-100 leading-none px-8 pt-2"
               >
                 {abbreviatedDay}
               </motion.h1>
@@ -128,7 +128,7 @@ export const DashboardHeader = ({
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3, delay: 0.5 }}
-                  className="text-6xl font-inter font-semibold text-neu-gre-700 leading-none"
+                  className="text-6xl font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100 leading-none"
                 >
                   {day}
                 </motion.span>
@@ -136,38 +136,38 @@ export const DashboardHeader = ({
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3, delay: 0.6 }}
-                  className="text-md font-inter font-regular text-neu-gre-800 leading-none"
+                  className="text-md font-inter font-regular text-neu-gre-700 dark:text-neu-gre-200 leading-none"
                 >
                   {month}
                 </motion.span>
               </div>
             </motion.div>
-            {temperature !== null && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-                className="flex items-center justify-center bg-neu-whi-100/25 backdrop-blur-sm rounded-b-5xl px-8 py-2"
-              >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.8 }}
-                  className="w-8 h-8"
-                >
-                  {getWeatherIcon(weatherCondition)}
-                </motion.div>
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.9 }}
-                  className="text-lg font-medium font-inter text-neu-whi-100 leading-none ml-2"
-                >
-                  {temperature}°C
-                </motion.span>
-              </motion.div>
-            )}
           </div>
+          {temperature !== null && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.7 }}
+              className="flex items-center justify-center bg-neu-whi-100/25 dark:bg-neu-gre-900/40 backdrop-blur-sm rounded-b-5xl px-8 py-2 w-[140px]"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.8 }}
+                className="w-8 h-8"
+              >
+                {getWeatherIcon(weatherCondition)}
+              </motion.div>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.9 }}
+                className="text-lg font-medium font-inter text-neu-gre-100 dark:text-neu-gre-100 leading-none ml-2"
+              >
+                {temperature}°C
+              </motion.span>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

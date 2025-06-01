@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const { lightColors, darkColors } = require("./src/styles/colors");
+
 module.exports = {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   darkMode: "class",
@@ -93,242 +95,8 @@ module.exports = {
         "9xl": "240px",
       },
       colors: {
-        // Primary Colors
-        "pri-pur": {
-          100: "#B0B2E6",
-          200: "#9B9EDF",
-          300: "#7F81D9",
-          400: "#6A6CC9",
-          500: "#5E5FBC",
-          600: "#4F4FB3",
-          700: "#43459F",
-          800: "#383A8C",
-          900: "#2E3079",
-          // Dark mode variants
-          "dark-100": "#2E3079",
-          "dark-200": "#383A8C",
-          "dark-300": "#43459F",
-          "dark-400": "#4F4FB3",
-          "dark-500": "#5E5FBC",
-          "dark-600": "#6A6CC9",
-          "dark-700": "#7F81D9",
-          "dark-800": "#9B9EDF",
-          "dark-900": "#B0B2E6",
-        },
-
-        // Focus/Tab Colors
-        "pri-focus": {
-          100: "#E0F2FF",
-          200: "#BAE6FF",
-          300: "#7DD3FC",
-          400: "#38BDF8",
-          500: "#0EA5E9", // Main focus color
-          600: "#0284C7",
-          700: "#0369A1",
-          800: "#075985",
-          900: "#0C4A6E",
-          // Dark mode variants
-          "dark-100": "#0C4A6E",
-          "dark-200": "#075985",
-          "dark-300": "#0369A1",
-          "dark-400": "#0284C7",
-          "dark-500": "#0EA5E9",
-          "dark-600": "#38BDF8",
-          "dark-700": "#7DD3FC",
-          "dark-800": "#BAE6FF",
-          "dark-900": "#E0F2FF",
-        },
-
-        // Task Background Colors
-        "task-sky": {
-          100: "#E0F2FE",
-          hover: "#BAE6FD",
-          dark: "#0C4A6E",
-          "dark-hover": "#0369A1",
-        },
-        "task-emerald": {
-          100: "#D1FAE5",
-          hover: "#A7F3D0",
-          dark: "#064E3B",
-          "dark-hover": "#047857",
-        },
-        "task-amber": {
-          100: "#FEF3C7",
-          hover: "#FDE68A",
-          dark: "#78350F",
-          "dark-hover": "#B45309",
-        },
-        "task-rose": {
-          100: "#FFE4E6",
-          hover: "#FECDD3",
-          dark: "#881337",
-          "dark-hover": "#BE123C",
-        },
-        "task-lilac": {
-          100: "#F3E8FF",
-          hover: "#E9D5FF",
-          dark: "#5B21B6",
-          "dark-hover": "#7C3AED",
-        },
-        "task-stone": {
-          100: "#F5F5F4",
-          hover: "#E5E5E4",
-          dark: "#292524",
-          "dark-hover": "#44403C",
-        },
-        "task-peach": {
-          100: "#FFE9D5",
-          hover: "#FFD7B8",
-          dark: "#7C2D12",
-          "dark-hover": "#C2410C",
-        },
-        "task-mint": {
-          100: "#E3FCEF",
-          hover: "#C6F6E4",
-          dark: "#065F46",
-          "dark-hover": "#0F766E",
-        },
-        "task-steel": {
-          100: "#E5E7EB",
-          hover: "#D1D5DB",
-          dark: "#374151",
-          "dark-hover": "#4B5563",
-        },
-
-        // Secondary Colors
-        "sec-rose": {
-          100: "#FFE8EF",
-          200: "#FFC8DA",
-          300: "#FFA5C3",
-          400: "#F883AD",
-          500: "#EF709B",
-          600: "#D65E89",
-          700: "#B94B74",
-          800: "#99385F",
-          900: "#732547",
-        },
-        "sec-pea": {
-          100: "#FFF1EC",
-          200: "#FFD9CB",
-          300: "#FFC0AA",
-          400: "#FEA88C",
-          500: "#FA9372",
-          600: "#E17D60",
-          700: "#C46650",
-          800: "#A45040",
-          900: "#823B30",
-        },
-
-        // Neutral Colors (most used in sidebar)
-        "neu-whi": {
-          100: "#FFFFFF",
-          200: "#FFF5F8",
-          300: "#FFEBF1",
-          400: "#FFE0EA",
-          500: "#FFD6E3",
-          600: "#FFC9DA",
-          700: "#FFBCCF",
-          800: "#FFADC3",
-          900: "#FF9EB5",
-          // Dark mode variants
-          "dark-100": "#1F2937",
-          "dark-200": "#374151",
-          "dark-300": "#4B5563",
-          "dark-400": "#6B7280",
-          "dark-500": "#9CA3AF",
-          "dark-600": "#D1D5DB",
-          "dark-700": "#E5E7EB",
-          "dark-800": "#F3F4F6",
-          "dark-900": "#F9FAFB",
-        },
-        "neu-gre": {
-          100: "#F9FAFB",
-          200: "#F3F4F6",
-          300: "#E5E7EB",
-          400: "#D1D5DB",
-          500: "#9CA3AF",
-          600: "#6B7280",
-          700: "#4B5563",
-          800: "#374151",
-          900: "#1F2937",
-          // Dark mode variants
-          "dark-100": "#1F2937",
-          "dark-200": "#374151",
-          "dark-300": "#4B5563",
-          "dark-400": "#6B7280",
-          "dark-500": "#9CA3AF",
-          "dark-600": "#D1D5DB",
-          "dark-700": "#E5E7EB",
-          "dark-800": "#F3F4F6",
-          "dark-900": "#F9FAFB",
-        },
-        "neu-bla": {
-          100: "#EDEDED",
-          200: "#D6D6D6",
-          300: "#B0B0B0",
-          400: "#8A8A8A",
-          500: "#5F5F5F",
-          600: "#3F3F3F",
-          700: "#2C2C2C",
-          800: "#1A1A1A",
-          900: "#0A0A0A",
-          // Dark mode variants
-          "dark-100": "#1A1A1A",
-          "dark-200": "#2C2C2C",
-          "dark-300": "#3F3F3F",
-          "dark-400": "#5F5F5F",
-          "dark-500": "#8A8A8A",
-          "dark-600": "#B0B0B0",
-          "dark-700": "#D6D6D6",
-          "dark-800": "#EDEDED",
-          "dark-900": "#FFFFFF",
-        },
-
-        // Supportive Colors
-        "sup-suc": {
-          100: "#D6F2E0",
-          200: "#B3E5C9",
-          300: "#86D6A9",
-          400: "#57C87F",
-          500: "#34A853",
-          600: "#2C8D45",
-          700: "#24733A",
-          800: "#1D5A2F",
-          900: "#164426",
-        },
-        "sup-err": {
-          100: "#F9D9D9",
-          200: "#F2B3B4",
-          300: "#E88C8E",
-          400: "#DC6568",
-          500: "#CD4A4C",
-          600: "#AD3E41",
-          700: "#8E3335",
-          800: "#70292A",
-          900: "#561F20",
-        },
-        "sup-sys": {
-          100: "#D6E7F7",
-          200: "#B3D2F0",
-          300: "#8DBCE9",
-          400: "#6CA6E0",
-          500: "#4C8FD3",
-          600: "#3D77B4",
-          700: "#316394",
-          800: "#264D75",
-          900: "#1B3958",
-        },
-        "sup-war": {
-          100: "#FEF3D7",
-          200: "#FCE1A9",
-          300: "#FACC77",
-          400: "#F6B94F",
-          500: "#F4A938",
-          600: "#D8902F",
-          700: "#B87626",
-          800: "#965D1D",
-          900: "#754716",
-        },
+        ...lightColors,
+        dark: darkColors,
       },
       width: {
         xs: "30px",
@@ -374,5 +142,28 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addBase, theme }) {
+      addBase({
+        // Light mode styles
+        ":root": {
+          ...Object.entries(lightColors).reduce((acc, [key, value]) => {
+            Object.entries(value).forEach(([shade, color]) => {
+              acc[`--color-${key}-${shade}`] = color;
+            });
+            return acc;
+          }, {}),
+        },
+        // Dark mode styles
+        ".dark": {
+          ...Object.entries(darkColors).reduce((acc, [key, value]) => {
+            Object.entries(value).forEach(([shade, color]) => {
+              acc[`--color-${key}-${shade}`] = color;
+            });
+            return acc;
+          }, {}),
+        },
+      });
+    },
+  ],
 };

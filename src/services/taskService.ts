@@ -176,7 +176,7 @@ export const taskService = {
         completed: false,
         createdAt: now.toISOString(),
         updatedAt: now.toISOString(),
-        backgroundColor: taskData.backgroundColor || "bg-task-stone-100", // Add default background color
+        backgroundColor: taskData.backgroundColor || "", // Remove default background color
       };
 
       const docRef = await addDoc(collection(db, tasksCollection), newTask);
@@ -842,6 +842,34 @@ export const taskService = {
       return tasks;
     } catch (error) {
       console.error("Error in getSavedTasks:", error);
+      throw error;
+    }
+  },
+
+  // Update all existing tasks to have correct dark mode styling
+  async updateExistingTasksDarkMode(userId: string): Promise<void> {
+    tracker.trackOperation({
+      type: "write",
+      collection: tasksCollection,
+      operation: "updateDarkMode",
+      details: { userId },
+    });
+
+    try {
+      const tasks = await this.getUserTasks(userId);
+      const batch = writeBatch(db);
+
+      tasks.forEach((task) => {
+        const taskRef = doc(db, tasksCollection, task.id);
+        batch.update(taskRef, {
+          backgroundColor: "", // Remove any background color
+          updatedAt: new Date().toISOString(),
+        });
+      });
+
+      await batch.commit();
+    } catch (error) {
+      console.error("Error updating tasks for dark mode:", error);
       throw error;
     }
   },

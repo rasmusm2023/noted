@@ -176,20 +176,22 @@ export const TaskLibraryButton = ({
         onClick={() => setIsOpen(!isOpen)}
         className={`task-library-button flex items-center ${
           variant === "next7days"
-            ? "justify-center w-8 h-8 rounded-md bg-pri-pur-400/10 hover:bg-pri-pur-400/20"
+            ? "justify-center w-8 h-8 rounded-md bg-pri-pur-400/10 hover:bg-pri-pur-400/20 dark:bg-pri-pur-500/20 dark:hover:bg-pri-pur-500/30"
             : "gap-2 px-4 py-2 rounded-md"
         } transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
           isOpen
-            ? "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600"
+            ? "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600 dark:bg-pri-pur-500 dark:hover:bg-pri-pur-600"
             : variant === "next7days"
-            ? "text-pri-pur-400 hover:text-pri-pur-500"
-            : "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600"
+            ? "text-pri-pur-400 hover:text-pri-pur-500 dark:text-pri-pur-300 dark:hover:text-pri-pur-200"
+            : "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600 dark:bg-pri-pur-500 dark:hover:bg-pri-pur-600"
         }`}
       >
         <Icon
           icon="mingcute:classify-2-fill"
           className={`${variant === "next7days" ? "w-5 h-5" : "w-6 h-6"} ${
-            variant === "next7days" ? "text-pri-pur-400" : "text-neu-whi-100"
+            variant === "next7days"
+              ? "text-pri-pur-400 dark:text-pri-pur-300"
+              : "text-neu-whi-100"
           }`}
         />
         {variant !== "next7days" && (
@@ -208,10 +210,10 @@ export const TaskLibraryButton = ({
               ease: "easeInOut",
             }}
             className={`absolute ${
-              variant === "next7days" ? "left-0" : "right-0"
+              variant === "next7days" ? "left-0" : "left-0"
             } mt-2 ${
               variant === "next7days" ? "w-[320px]" : "w-[40rem]"
-            } bg-neu-whi-100 rounded-md shadow-lg border border-neu-gre-200 z-50`}
+            } bg-neu-whi-100 dark:bg-neu-gre-600 rounded-md shadow-lg border border-neu-gre-200 dark:border-neu-gre-700 z-50`}
           >
             <motion.div
               initial={{ opacity: 0 }}
@@ -224,12 +226,12 @@ export const TaskLibraryButton = ({
                 <div className="flex items-center space-x-3">
                   <Icon
                     icon="mingcute:classify-2-fill"
-                    className={`text-neu-gre-800 ${
+                    className={`text-neu-gre-800 dark:text-neu-whi-100 ${
                       variant === "next7days" ? "w-4 h-4" : "w-5 h-5"
                     }`}
                   />
                   <h3
-                    className={`font-medium font-inter text-neu-gre-800 ${
+                    className={`font-medium font-inter text-neu-gre-800 dark:text-neu-whi-100 ${
                       variant === "next7days" ? "text-sm" : "text-md"
                     }`}
                   >
@@ -239,7 +241,7 @@ export const TaskLibraryButton = ({
                 <button
                   ref={closeButtonRef}
                   onClick={() => setIsOpen(false)}
-                  className="p-1 text-neu-gre-600 hover:text-neu-gre-800 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                  className="p-1 text-neu-gre-600 hover:text-neu-gre-800 dark:text-neu-gre-400 dark:hover:text-neu-whi-100 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                   aria-label="Close task library"
                 >
                   <Icon
@@ -251,19 +253,19 @@ export const TaskLibraryButton = ({
                 </button>
               </div>
               {isLoading ? (
-                <div className="text-neu-gre-800 text-xs p-2">
+                <div className="text-neu-gre-800 dark:text-neu-gre-300 text-xs p-2">
                   Loading tasks...
                 </div>
               ) : (
                 <>
                   {savedTasks.length === 0 ? (
-                    <div className="text-neu-gre-800 font-inter font-regular text-base mb-4">
+                    <div className="text-neu-gre-800 dark:text-neu-gre-300 font-inter font-regular text-base mb-4">
                       No saved tasks
                     </div>
                   ) : (
                     <>
                       <div
-                        className={`text-neu-gre-700 font-inter font-regular mb-4 ${
+                        className={`text-neu-gre-700 dark:text-neu-gre-400 font-inter font-regular mb-4 ${
                           variant === "next7days" ? "text-sm" : "text-base"
                         }`}
                       >
@@ -297,19 +299,18 @@ export const TaskLibraryButton = ({
                                       },
                                     }
                               }
-                              exit={{ opacity: 0, scale: 0.95 }}
                               className="mb-4 rounded-xl"
                             >
                               <button
                                 onClick={() => handleTaskClick(task)}
-                                className="w-full text-left font-inter font-regular px-4 py-6 text-neu-800 bg-pri-pur-100/50 hover:bg-pri-pur-100 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                                className="w-full text-left font-inter font-regular px-4 py-6 text-neu-gre-800 dark:text-neu-whi-100 bg-neu-gre-100/50 hover:bg-neu-gre-200 dark:bg-neu-gre-700/50 dark:hover:bg-neu-gre-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                                 aria-label={`Add task "${task.title}" to your list`}
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-3">
                                     <Icon
-                                      icon="mingcute:round-line"
-                                      className={`text-neu-gre-800 ${
+                                      icon="mingcute:add-circle-fill"
+                                      className={`text-neu-gre-800 dark:text-neu-gre-300 ${
                                         variant === "next7days"
                                           ? "w-5 h-5"
                                           : "w-6 h-6"
@@ -317,7 +318,7 @@ export const TaskLibraryButton = ({
                                     />
                                     <div>
                                       <div
-                                        className={`font-medium text-neu-gre-800 ${
+                                        className={`font-medium text-neu-gre-800 dark:text-neu-whi-100 ${
                                           variant === "next7days"
                                             ? "text-sm"
                                             : "text-base"
@@ -328,7 +329,7 @@ export const TaskLibraryButton = ({
                                       <div className="flex items-center mt-1">
                                         {task.description && (
                                           <div
-                                            className={`text-neu-gre-700 truncate ${
+                                            className={`text-neu-gre-700 dark:text-neu-gre-400 truncate ${
                                               variant === "next7days"
                                                 ? "text-xs"
                                                 : "text-sm"
@@ -340,7 +341,7 @@ export const TaskLibraryButton = ({
                                         {task.subtasks &&
                                           task.subtasks.length > 0 && (
                                             <div
-                                              className={`font-inter font-regular text-neu-gre-600 ${
+                                              className={`font-inter font-regular text-neu-gre-600 dark:text-neu-gre-400 ${
                                                 variant === "next7days"
                                                   ? "text-xs"
                                                   : "text-sm"
@@ -374,7 +375,7 @@ export const TaskLibraryButton = ({
                                   >
                                     <Icon
                                       icon="mingcute:delete-2-fill"
-                                      className={`text-neu-gre-600 hover:text-sup-err-400 ${
+                                      className={`text-neu-gre-600 hover:text-sup-err-400 dark:text-neu-gre-400 dark:hover:text-sup-err-400 ${
                                         variant === "next7days"
                                           ? "w-5 h-5"
                                           : "w-6 h-6"

@@ -95,7 +95,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const [newListName, setNewListName] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
-  const { isDarkMode, toggleDarkMode } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [userDetails, setUserDetails] = useState<UserDetails>({
     firstName: "",
     selectedAvatar: 1,
@@ -373,13 +373,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     <aside
       className={`${
         isOpen ? "w-72" : "w-24"
-      } bg-neu-whi-100 dark:bg-neu-bla-dark-100 border-r border-neu-gre-300 dark:border-neu-bla-dark-300 transition-all duration-300 ease-in-out relative`}
+      } bg-neu-whi-100 dark:bg-neu-gre-900 border-r border-neu-gre-300 dark:border-neu-gre-700 transition-all duration-300 ease-in-out relative`}
       role="navigation"
       aria-label="Main navigation"
     >
       <div className="h-full flex flex-col">
         {/* Logo and Toggle */}
-        <div className="p-4 flex items-center justify-between border-b border-neu-gre-300 dark:border-neu-bla-dark-300">
+        <div className="p-4 flex items-center justify-between border-b border-neu-gre-300 dark:border-neu-gre-700">
           {isOpen ? (
             <img
               src="/assets/logos/dori-logotype-638x200.png"
@@ -395,7 +395,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           )}
           <button
             onClick={onToggle}
-            className="p-2 rounded-md hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-700 dark:hover:text-neu-whi-dark-600 text-neu-gre-500 dark:text-neu-whi-dark-500 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500"
+            className="p-2 rounded-md hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-700 dark:hover:text-neu-gre-100 text-neu-gre-500 dark:text-neu-gre-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
             aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
             aria-expanded={isOpen}
           >
@@ -418,14 +418,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* User Profile Section */}
-        <div className="px-4 py-3 border-b border-neu-gre-300 dark:border-neu-bla-dark-300">
+        <div className="px-4 py-3 border-b border-neu-gre-300 dark:border-neu-gre-700">
           <button
             onClick={() => navigate("/account")}
             className={`w-full flex items-center ${
               isOpen ? "space-x-3" : "justify-center"
-            } p-2 text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 rounded-md ${
+            } p-2 text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md ${
               location.pathname === "/account"
-                ? "bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                 : ""
             }`}
             aria-label="Go to account settings"
@@ -448,10 +448,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             )}
             {isOpen && (
               <div className="flex-1 min-w-0 ml-3">
-                <p className="text-base font-medium truncate dark:text-neu-whi-dark-700">
+                <p className="text-base font-medium truncate dark:text-neu-gre-100">
                   {userDetails.firstName}
                 </p>
-                <p className="text-xs text-neu-gre-500 dark:text-neu-gre-dark-500 truncate">
+                <p className="text-xs text-neu-gre-500 dark:text-neu-gre-300 truncate">
                   {currentUser?.email}
                 </p>
               </div>
@@ -465,7 +465,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             {/* Tasks Section */}
             <div className="space-y-1">
               <h2
-                className={`text-sm font-medium text-neu-gre-600 dark:text-neu-whi-dark-500 mb-2 ${
+                className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 mb-2 ${
                   isOpen ? "" : "text-center"
                 }`}
                 id="tasks-section"
@@ -477,9 +477,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/")}
                   className={`w-full flex mb-2 items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/"
-                      ? "bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                      ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                       : ""
                   }`}
                   aria-current={location.pathname === "/" ? "page" : undefined}
@@ -488,10 +488,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     icon="mingcute:calendar-day-fill"
                     width={20}
                     height={20}
-                    className={`text-neu-gre-700 dark:text-neu-whi-dark-500 ${
-                      location.pathname === "/"
-                        ? "dark:text-neu-whi-dark-700"
-                        : ""
+                    className={`text-neu-gre-700 dark:text-neu-gre-100 ${
+                      location.pathname === "/" ? "dark:text-neu-gre-50" : ""
                     }`}
                     aria-hidden="true"
                   />
@@ -502,9 +500,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/next7days")}
                   className={`w-full flex mb-2 items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/next7days"
-                      ? "bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                      ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                       : ""
                   }`}
                   aria-current={
@@ -516,9 +514,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       icon="mingcute:trello-board-fill"
                       width={20}
                       height={20}
-                      className={`text-neu-gre-700 dark:text-neu-whi-dark-500 ${
+                      className={`text-neu-gre-700 dark:text-neu-gre-100 ${
                         location.pathname === "/next7days"
-                          ? "dark:text-neu-whi-dark-700"
+                          ? "dark:text-neu-gre-50"
                           : ""
                       }`}
                     />
@@ -533,7 +531,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             {/* Progress Section */}
             <div className="space-y-1">
               <h2
-                className={`text-sm font-medium text-neu-gre-600 dark:text-neu-whi-dark-500 mb-2 ${
+                className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 mb-2 ${
                   isOpen ? "" : "text-center"
                 }`}
                 id="progress-section"
@@ -545,9 +543,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/goals")}
                   className={`w-full flex mb-2 items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/goals"
-                      ? "bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                      ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                       : ""
                   }`}
                   aria-current={
@@ -558,9 +556,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     icon="mingcute:target-fill"
                     width={20}
                     height={20}
-                    className={`text-neu-gre-700 dark:text-neu-whi-dark-500 ${
+                    className={`text-neu-gre-700 dark:text-neu-gre-100 ${
                       location.pathname === "/goals"
-                        ? "dark:text-neu-whi-dark-700"
+                        ? "dark:text-neu-gre-50"
                         : ""
                     }`}
                     aria-hidden="true"
@@ -573,9 +571,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   onClick={() => navigate("/habits")}
                   className={`w-full flex mb-2 items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 transition-colors duration-200 ease-in-out ${
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                     location.pathname === "/habits"
-                      ? "bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                      ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                       : ""
                   }`}
                   aria-current={
@@ -586,9 +584,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     icon="mingcute:heart-fill"
                     width={20}
                     height={20}
-                    className={`text-neu-gre-700 dark:text-neu-whi-dark-500 ${
+                    className={`text-neu-gre-700 dark:text-neu-gre-100 ${
                       location.pathname === "/habits"
-                        ? "dark:text-neu-whi-dark-700"
+                        ? "dark:text-neu-gre-50"
                         : ""
                     }`}
                     aria-hidden="true"
@@ -608,7 +606,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 } mb-2`}
               >
                 <h2
-                  className={`text-sm font-medium text-neu-gre-600 dark:text-neu-whi-dark-500 ${
+                  className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 ${
                     isOpen ? "" : "text-center"
                   }`}
                   id="lists-section"
@@ -618,7 +616,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 {isOpen && (
                   <button
                     onClick={() => setIsAddingList(true)}
-                    className="p-2 rounded-md hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-700 dark:hover:text-neu-whi-dark-600 text-neu-gre-500 dark:text-neu-whi-dark-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500"
+                    className="p-2 rounded-md hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-700 dark:hover:text-neu-gre-100 text-neu-gre-500 dark:text-neu-gre-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                     aria-label="Add new list"
                   >
                     <Icon
@@ -630,27 +628,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   </button>
                 )}
               </div>
-              {!isOpen && (
-                <button
-                  onClick={() => setIsAddingList(true)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      onToggle();
-                      setIsAddingList(true);
-                    }
-                  }}
-                  className="w-full p-2 rounded-md hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-700 dark:hover:text-neu-whi-dark-600 text-neu-gre-500 dark:text-neu-whi-dark-500 flex justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500"
-                  aria-label="Add new list"
-                >
-                  <Icon
-                    icon="mingcute:add-fill"
-                    width={20}
-                    height={20}
-                    aria-hidden="true"
-                  />
-                </button>
-              )}
 
               {/* Add List Form */}
               {isAddingList && (
@@ -675,7 +652,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         }
                       }}
                       placeholder="List name"
-                      className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 border border-neu-gre-300 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter"
+                      className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 dark:bg-neu-gre-700 border border-neu-gre-300 dark:border-neu-gre-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter text-neu-gre-700 dark:text-neu-gre-100 placeholder:text-neu-gre-400 dark:placeholder:text-neu-gre-400"
                       autoFocus
                       aria-label="New list name"
                     />
@@ -683,7 +660,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       <button
                         onClick={handleAddList}
                         disabled={!newListName.trim()}
-                        className="p-0 ml-2 text-pri-pur-500 hover:text-pri-pur-600 disabled:text-neu-gre-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
+                        className="p-0 ml-2 text-pri-pur-500 dark:text-pri-pur-400 hover:text-pri-pur-600 dark:hover:text-pri-pur-300 disabled:text-neu-gre-400 dark:disabled:text-neu-gre-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
                         aria-label="Create new list"
                       >
                         <Icon
@@ -698,7 +675,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           setIsAddingList(false);
                           setNewListName("");
                         }}
-                        className="p-0 ml-2 text-neu-gre-500 hover:text-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
+                        className="p-0 ml-2 text-neu-gre-500 dark:text-neu-gre-300 hover:text-neu-gre-700 dark:hover:text-neu-gre-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
                         aria-label="Cancel creating new list"
                       >
                         <Icon
@@ -725,9 +702,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     onClick={() => navigate(`/list/${list.id}`)}
                     className={`w-full flex mb-2 items-center ${
                       isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 transition-colors duration-200 ease-in-out ${
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                       location.pathname === `/list/${list.id}`
-                        ? "bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                        ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                         : ""
                     }`}
                     aria-current={
@@ -740,9 +717,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       icon="mingcute:minimize-line"
                       width={16}
                       height={16}
-                      className={`text-neu-gre-700 dark:text-neu-whi-dark-500 ${
+                      className={`text-neu-gre-700 dark:text-neu-gre-100 ${
                         location.pathname === `/list/${list.id}`
-                          ? "dark:text-neu-whi-dark-700"
+                          ? "dark:text-neu-gre-50"
                           : ""
                       }`}
                       aria-hidden="true"
@@ -771,7 +748,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               }}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
-              } text-base font-medium p-3 rounded-md text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500`}
+              } text-base font-medium p-3 rounded-md text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500`}
               aria-expanded={isSettingsMenuOpen}
               aria-haspopup="true"
               aria-label="Settings menu"
@@ -792,7 +769,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   isOpen ? "bottom-full left-0 mb-2" : "bottom-0 left-full ml-2"
                 } ${
                   isOpen ? "w-full" : "w-72"
-                } bg-neu-whi-100 dark:bg-neu-bla-dark-200 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-bla-dark-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 z-[9999]`}
+                } bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[9999]`}
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="settings-menu-button"
@@ -801,23 +778,24 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   <button
                     ref={darkModeButtonRef}
                     onClick={() => {
-                      toggleDarkMode();
+                      toggleTheme();
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 rounded-md"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
                     role="menuitem"
                     aria-label={
-                      isDarkMode
+                      theme === "dark"
                         ? "Switch to light mode"
                         : "Switch to dark mode"
                     }
                   >
-                    {isDarkMode ? (
+                    {theme === "dark" ? (
                       <>
                         <Icon
                           icon="mingcute:sun-fill"
                           width={20}
                           height={20}
+                          className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
                           aria-hidden="true"
                         />
                         <span>Light Mode</span>
@@ -828,6 +806,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           icon="mingcute:moon-fill"
                           width={20}
                           height={20}
+                          className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
                           aria-hidden="true"
                         />
                         <span>Dark Mode</span>
@@ -843,7 +822,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         setIsHighlightSubmenuOpen(!isHighlightSubmenuOpen);
                         setIsLanguageSubmenuOpen(false);
                       }}
-                      className="w-full flex items-center justify-between px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 rounded-md"
+                      className="w-full flex items-center justify-between px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
                       role="menuitem"
                       aria-expanded={isHighlightSubmenuOpen}
                       aria-haspopup="true"
@@ -871,7 +850,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 dark:bg-neu-bla-dark-200 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-bla-dark-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 z-[9999] ${
+                      } w-24 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[9999] ${
                         isHighlightSubmenuOpen ? "block" : "hidden"
                       }`}
                       role="menu"
@@ -883,9 +862,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           handleHighlightNextTask(true);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
+                        className={`w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
                           highlightNextTask
-                            ? "bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                            ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                             : ""
                         }`}
                         role="menuitem"
@@ -908,9 +887,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           handleHighlightNextTask(false);
                           setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
+                        className={`w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
                           !highlightNextTask
-                            ? "bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                            ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                             : ""
                         }`}
                         role="menuitem"
@@ -937,7 +916,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         setIsLanguageSubmenuOpen(!isLanguageSubmenuOpen);
                         setIsHighlightSubmenuOpen(false);
                       }}
-                      className="w-full flex items-center justify-between px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 rounded-md"
+                      className="w-full flex items-center justify-between px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
                       role="menuitem"
                       aria-expanded={isLanguageSubmenuOpen}
                       aria-haspopup="true"
@@ -965,7 +944,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         isOpen
                           ? "left-full top-0 ml-1"
                           : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 dark:bg-neu-bla-dark-200 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-bla-dark-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 z-[9999] ${
+                      } w-24 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[9999] ${
                         isLanguageSubmenuOpen ? "block" : "hidden"
                       }`}
                       role="menu"
@@ -977,7 +956,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           // Placeholder for language change
                           setIsSettingsMenuOpen(false);
                         }}
-                        className="w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 rounded-md bg-neu-gre-200 dark:bg-pri-pur-dark-700/50 text-neu-gre-900 dark:text-neu-whi-dark-700"
+                        className="w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
                         role="menuitem"
                         aria-label="Select English language"
                         aria-pressed={true}
@@ -996,7 +975,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           // Placeholder for language change
                           setIsSettingsMenuOpen(false);
                         }}
-                        className="w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 rounded-md"
+                        className="w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
                         role="menuitem"
                         aria-label="Select Swedish language"
                         aria-pressed={false}
@@ -1008,7 +987,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
                   {/* Divider */}
                   <div
-                    className="border-t border-neu-gre-200 dark:border-neu-bla-dark-300 my-2"
+                    className="border-t border-neu-gre-200 dark:border-neu-gre-600 my-2"
                     role="separator"
                   ></div>
 
@@ -1019,7 +998,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       logout();
                       setIsSettingsMenuOpen(false);
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-whi-dark-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-dark-500/25 hover:text-neu-gre-900 dark:hover:text-neu-whi-dark-600 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-dark-500 rounded-md"
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
                     role="menuitem"
                     aria-label="Logout"
                   >
