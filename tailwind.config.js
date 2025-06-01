@@ -104,6 +104,16 @@ module.exports = {
           700: "#43459F",
           800: "#383A8C",
           900: "#2E3079",
+          // Dark mode variants
+          "dark-100": "#2E3079",
+          "dark-200": "#383A8C",
+          "dark-300": "#43459F",
+          "dark-400": "#4F4FB3",
+          "dark-500": "#5E5FBC",
+          "dark-600": "#6A6CC9",
+          "dark-700": "#7F81D9",
+          "dark-800": "#9B9EDF",
+          "dark-900": "#B0B2E6",
         },
 
         // Focus/Tab Colors
@@ -117,6 +127,16 @@ module.exports = {
           700: "#0369A1",
           800: "#075985",
           900: "#0C4A6E",
+          // Dark mode variants
+          "dark-100": "#0C4A6E",
+          "dark-200": "#075985",
+          "dark-300": "#0369A1",
+          "dark-400": "#0284C7",
+          "dark-500": "#0EA5E9",
+          "dark-600": "#38BDF8",
+          "dark-700": "#7DD3FC",
+          "dark-800": "#BAE6FF",
+          "dark-900": "#E0F2FF",
         },
 
         // Task Background Colors
@@ -199,7 +219,7 @@ module.exports = {
           900: "#823B30",
         },
 
-        // Neutral Colors
+        // Neutral Colors (most used in sidebar)
         "neu-whi": {
           100: "#FFFFFF",
           200: "#FFF5F8",
@@ -210,6 +230,16 @@ module.exports = {
           700: "#FFBCCF",
           800: "#FFADC3",
           900: "#FF9EB5",
+          // Dark mode variants
+          "dark-100": "#1F2937",
+          "dark-200": "#374151",
+          "dark-300": "#4B5563",
+          "dark-400": "#6B7280",
+          "dark-500": "#9CA3AF",
+          "dark-600": "#D1D5DB",
+          "dark-700": "#E5E7EB",
+          "dark-800": "#F3F4F6",
+          "dark-900": "#F9FAFB",
         },
         "neu-gre": {
           100: "#F9FAFB",
@@ -221,6 +251,16 @@ module.exports = {
           700: "#4B5563",
           800: "#374151",
           900: "#1F2937",
+          // Dark mode variants
+          "dark-100": "#1F2937",
+          "dark-200": "#374151",
+          "dark-300": "#4B5563",
+          "dark-400": "#6B7280",
+          "dark-500": "#9CA3AF",
+          "dark-600": "#D1D5DB",
+          "dark-700": "#E5E7EB",
+          "dark-800": "#F3F4F6",
+          "dark-900": "#F9FAFB",
         },
         "neu-bla": {
           100: "#EDEDED",
@@ -232,6 +272,16 @@ module.exports = {
           700: "#2C2C2C",
           800: "#1A1A1A",
           900: "#0A0A0A",
+          // Dark mode variants
+          "dark-100": "#1A1A1A",
+          "dark-200": "#2C2C2C",
+          "dark-300": "#3F3F3F",
+          "dark-400": "#5F5F5F",
+          "dark-500": "#8A8A8A",
+          "dark-600": "#B0B0B0",
+          "dark-700": "#D6D6D6",
+          "dark-800": "#EDEDED",
+          "dark-900": "#FFFFFF",
         },
 
         // Supportive Colors
