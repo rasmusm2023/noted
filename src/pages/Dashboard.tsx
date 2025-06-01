@@ -2000,68 +2000,70 @@ export function Dashboard() {
         }}
       />
       <PageTransition>
-        <div className="p-8 bg-neu-whi-100 dark:bg-neu-gre-800">
-          <div className="max-w-4xl mx-auto space-y-16 pb-96">
-            <DashboardHeader
-              dayOfWeek={dayOfWeek}
-              currentDate={currentDate}
-              temperature={temperature}
-              weatherCondition={weatherCondition}
-              onAddTask={handleAddTask}
-              onAddSection={handleAddSection}
-              onTimerClick={() => setIsTimerVisible(true)}
-              isTimerActive={timeLeft > 0}
-              timeLeft={timeLeft}
-              isTimerRunning={isTimerRunning}
-              onTimerPauseResume={handleTimerPauseResume}
-              onTimerCancel={handleTimerCancel}
-            />
-
-            <AnimatePresence mode="wait">
-              {isTimerVisible && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  <PomodoroTimer
-                    onClose={() => setIsTimerVisible(false)}
-                    onTimerStart={handleTimerStart}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="max-w-4xl mx-auto rounded-5xl pl-16 pr-16 pt-16 pb-16 bg-neu-whi-100 dark:bg-neu-gre-700 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
-              <TaskProgress
-                completionPercentage={completionPercentage}
-                completedPosition={completedPosition}
-                onCompletedPositionChange={setCompletedPosition}
-                onClearCompleted={handleClearCompleted}
-                onTaskSelect={handleTaskSelect}
-                onRemoveTask={handleRemoveTask}
+        <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800">
+          <div className="p-8">
+            <div className="max-w-4xl mx-auto space-y-16 pb-96">
+              <DashboardHeader
+                dayOfWeek={dayOfWeek}
+                currentDate={currentDate}
+                temperature={temperature}
+                weatherCondition={weatherCondition}
+                onAddTask={handleAddTask}
+                onAddSection={handleAddSection}
+                onTimerClick={() => setIsTimerVisible(true)}
+                isTimerActive={timeLeft > 0}
+                timeLeft={timeLeft}
+                isTimerRunning={isTimerRunning}
+                onTimerPauseResume={handleTimerPauseResume}
+                onTimerCancel={handleTimerCancel}
               />
 
-              <QuickActions onAddTask={handleAddTask} />
+              <AnimatePresence mode="wait">
+                {isTimerVisible && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  >
+                    <PomodoroTimer
+                      onClose={() => setIsTimerVisible(false)}
+                      onTimerStart={handleTimerStart}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              {/* Tasks Box */}
-              <div className="bg-neu-whi-100 dark:bg-neu-gre-700 rounded-xl pt-8 pb-8">
-                <TaskList
-                  items={filteredAndSortedItems}
-                  isLoading={isLoading}
-                  highlightNextTask={highlightNextTask}
-                  editingTask={editingTask}
-                  onTaskCompletion={handleTaskCompletion}
-                  onTaskSelect={setSelectedTask}
-                  onTaskEdit={setEditingTask}
-                  onTaskDelete={handleDeleteTask}
-                  onTaskSave={handleSaveTask}
-                  onSectionSelect={setSelectedSection}
-                  onSectionDelete={handleDeleteSection}
-                  onMoveItem={moveItem}
-                  isTask={isTask}
+              <div className="max-w-4xl mx-auto rounded-5xl pl-16 pr-16 pt-16 pb-16 bg-neu-whi-100 dark:bg-neu-gre-700 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
+                <TaskProgress
+                  completionPercentage={completionPercentage}
+                  completedPosition={completedPosition}
+                  onCompletedPositionChange={setCompletedPosition}
+                  onClearCompleted={handleClearCompleted}
+                  onTaskSelect={handleTaskSelect}
+                  onRemoveTask={handleRemoveTask}
                 />
+
+                <QuickActions onAddTask={handleAddTask} />
+
+                {/* Tasks Box */}
+                <div className="bg-neu-whi-100 dark:bg-neu-gre-700 rounded-xl pt-8 pb-8">
+                  <TaskList
+                    items={filteredAndSortedItems}
+                    isLoading={isLoading}
+                    highlightNextTask={highlightNextTask}
+                    editingTask={editingTask}
+                    onTaskCompletion={handleTaskCompletion}
+                    onTaskSelect={setSelectedTask}
+                    onTaskEdit={setEditingTask}
+                    onTaskDelete={handleDeleteTask}
+                    onTaskSave={handleSaveTask}
+                    onSectionSelect={setSelectedSection}
+                    onSectionDelete={handleDeleteSection}
+                    onMoveItem={moveItem}
+                    isTask={isTask}
+                  />
+                </div>
               </div>
             </div>
           </div>
