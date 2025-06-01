@@ -4,6 +4,7 @@ import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import type { Task, SectionItem } from "../../types/task";
 import { TaskCreationInput } from "./TaskCreationInput";
 import { TaskLibraryButton } from "../Buttons/TaskLibraryButton";
+import { Icon } from "@iconify/react";
 
 interface DayColumnProps {
   day: {
@@ -191,6 +192,55 @@ const DraggableItem = ({
   );
 };
 
+const EmptyDayDropZone = ({
+  dayIndex,
+  moveItem,
+}: {
+  dayIndex: number;
+  moveItem: (
+    dragIndex: number,
+    hoverIndex: number,
+    sourceDay: number,
+    targetDay: number
+  ) => void;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [{ isOver, canDrop }, drop] = useDrop({
+    accept: "ITEM",
+    drop: (item: DragItem) => {
+      moveItem(item.index, 0, item.dayIndex, dayIndex);
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
+
+  drop(ref);
+
+  return (
+    <div
+      ref={ref}
+      className={`text-center text-neu-600 py-4 min-h-[100px] border-2 border-dashed border-neu-gre-300 dark:border-neu-gre-600 rounded-lg transition-all duration-200 
+        ${
+          isOver && canDrop
+            ? "border-pri-pur-500 dark:border-pri-pur-400 bg-pri-pur-500/5 shadow-lg scale-[1.02]"
+            : "hover:border-pri-pur-500 dark:hover:border-pri-pur-400 hover:bg-pri-pur-500/5"
+        }`}
+      role="status"
+    >
+      <div className="flex flex-col items-center justify-center h-full space-y-2">
+        <Icon
+          icon="mingcute:add-fill"
+          className="w-6 h-6 text-pri-pur-300 dark:text-pri-pur-400"
+          aria-hidden="true"
+        />
+        <p className="text-sm font-inter">No tasks for this day yet.</p>
+      </div>
+    </div>
+  );
+};
+
 export const DayColumn = ({
   day,
   dayIndex,
@@ -318,9 +368,7 @@ export const DayColumn = ({
                 Loading tasks...
               </div>
             ) : day.items.length === 0 ? (
-              <div className="text-center text-neu-600 py-4" role="status">
-                <p className="text-sm font-inter">No tasks for this day</p>
-              </div>
+              <EmptyDayDropZone dayIndex={dayIndex} moveItem={moveItem} />
             ) : (
               sortItems(day.items).map((item, index) => {
                 const isTaskItem = isTask(item);

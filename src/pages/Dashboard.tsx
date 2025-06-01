@@ -405,7 +405,7 @@ export function Dashboard() {
   const filteredAndSortedItems = items
     .filter((item) => {
       const itemDate = parseDateString(
-        isTask(item) ? item.scheduledTime : item.scheduledTime || item.createdAt
+        isTask(item) ? item.date : item.scheduledTime || item.createdAt
       );
       const today = getTodayInUserTimezone();
 
@@ -651,7 +651,7 @@ export function Dashboard() {
 
       // Filter tasks for today
       const todaysTasks = tasks.filter((task) => {
-        const taskDate = parseDateString(task.scheduledTime);
+        const taskDate = parseDateString(task.date);
         taskDate.setHours(0, 0, 0, 0);
 
         const taskDateStr = taskDate.toISOString().split("T")[0];
