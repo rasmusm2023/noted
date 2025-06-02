@@ -221,11 +221,11 @@ const EmptyDayDropZone = ({
   return (
     <div
       ref={ref}
-      className={`text-center text-neu-600 py-4 min-h-[100px] border-2 border-dashed border-neu-gre-300 dark:border-neu-gre-600 rounded-lg transition-all duration-200 
+      className={`text-center text-neu-600 dark:text-neu-whi-100/70 py-4 min-h-[100px] border-2 border-dashed border-neu-gre-300 dark:border-neu-gre-600 rounded-lg transition-all duration-200 
         ${
           isOver && canDrop
-            ? "border-pri-pur-500 dark:border-pri-pur-400 bg-pri-pur-500/5 shadow-lg scale-[1.02]"
-            : "hover:border-pri-pur-500 dark:hover:border-pri-pur-400 hover:bg-pri-pur-500/5"
+            ? "border-pri-pur-500 dark:border-pri-pur-400 bg-pri-pur-500/5 dark:bg-pri-pur-500/10 shadow-lg scale-[1.02]"
+            : "hover:border-pri-pur-500 dark:hover:border-pri-pur-400 hover:bg-pri-pur-500/5 dark:hover:bg-pri-pur-500/10"
         }`}
       role="status"
     >
@@ -280,7 +280,7 @@ export const DayColumn = ({
       {isToday && (
         <div>
           <span
-            className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg"
+            className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg dark:bg-pri-pur-600"
             role="status"
           >
             Today
@@ -290,7 +290,7 @@ export const DayColumn = ({
       {isTomorrow && (
         <div>
           <span
-            className="inline-block px-4 py-1 bg-sec-rose-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg"
+            className="inline-block px-4 py-1 bg-sec-rose-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg dark:bg-sec-rose-600"
             role="status"
           >
             Tomorrow
@@ -301,19 +301,19 @@ export const DayColumn = ({
         className={`py-4 px-2 h-fit shadow-lg ${
           dayIndex <= 1
             ? dayIndex === 0
-              ? "bg-gradient-to-b from-pri-pur-500/10 to-neu-gre-300/75 rounded-tr-xl rounded-br-xl rounded-bl-xl"
-              : "bg-gradient-to-b from-sec-rose-500/10 to-neu-gre-300/75 rounded-tr-xl rounded-br-xl rounded-bl-xl"
-            : "bg-neu-gre-300/75 rounded-xl"
+              ? "bg-gradient-to-b from-pri-pur-500/10 to-neu-gre-300/75 dark:from-pri-pur-500/20 dark:to-neu-gre-700 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+              : "bg-gradient-to-b from-sec-rose-500/10 to-neu-gre-300/75 dark:from-sec-rose-500/20 dark:to-neu-gre-700 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+            : "bg-neu-gre-300/75 dark:bg-neu-gre-700 rounded-xl"
         }`}
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between mb-4 px-4">
             <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-neu-gre-800">
+              <h2 className="text-lg font-semibold text-neu-gre-800 dark:text-neu-whi-100">
                 {day.date.toLocaleDateString("en-US", { weekday: "long" })}
               </h2>
               <span
-                className="text-sm text-neu-gre-600"
+                className="text-sm text-neu-gre-600 dark:text-neu-whi-100/70"
                 aria-label={`Date: ${day.date.toLocaleDateString("en-US", {
                   month: "long",
                   day: "numeric",
@@ -364,7 +364,10 @@ export const DayColumn = ({
             })}`}
           >
             {isLoading ? (
-              <div className="text-neu-400" role="status">
+              <div
+                className="text-neu-400 dark:text-neu-whi-100/70"
+                role="status"
+              >
                 Loading tasks...
               </div>
             ) : day.items.length === 0 ? (

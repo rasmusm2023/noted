@@ -303,7 +303,7 @@ export const TaskLibraryButton = ({
                             >
                               <button
                                 onClick={() => handleTaskClick(task)}
-                                className="w-full text-left font-inter font-regular px-4 py-6 text-neu-gre-800 dark:text-neu-whi-100 bg-neu-gre-100/50 hover:bg-neu-gre-200 dark:bg-neu-gre-700/50 dark:hover:bg-neu-gre-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                                className="w-full text-left font-inter font-regular px-4 py-6 text-neu-gre-800 dark:text-neu-whi-100 bg-task-stone-100 hover:bg-task-stone-100/80 dark:bg-neu-gre-800 dark:hover:bg-neu-gre-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                                 aria-label={`Add task "${task.title}" to your list`}
                               >
                                 <div className="flex items-center justify-between">

@@ -31,10 +31,10 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
   return (
     <div className="grid grid-cols-1 gap-6">
       <div
-        className={`p-6 bg-pri-pur-500/10 dark:bg-pri-pur-500/20 rounded-lg hover:bg-neu-whi-100 dark:hover:bg-neu-gre-800 transition-colors border-2 border-dashed border-pri-pur-500/75 dark:border-pri-pur-500/50 ${
+        className={`p-6 bg-pri-pur-500/10 dark:bg-pri-pur-500/20 rounded-lg hover:bg-neu-whi-100 dark:hover:bg-neu-gre-800 transition-colors border-2 ${
           focusedInput === "task"
-            ? "bg-pri-pur-500/20 dark:bg-pri-pur-500/30 border-pri-pur-500 dark:border-pri-pur-400"
-            : ""
+            ? "border-solid border-pri-pur-500 dark:border-pri-pur-400 bg-pri-pur-500/20 dark:bg-pri-pur-500/30"
+            : "border-dashed border-pri-pur-500/75 dark:border-pri-pur-500/50"
         }`}
       >
         <div className="flex items-center space-x-4">

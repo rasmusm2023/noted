@@ -245,7 +245,7 @@ export const TaskItem = ({
         ? "dark:[background:linear-gradient(90deg,hsla(145,84%,45%,1)_0%,hsla(150,61%,35%,1)_100%)] [background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
         : task.backgroundColor
         ? task.backgroundColor
-        : "dark:bg-neu-gre-800 border-2 border-neu-gre-500/30"
+        : "bg-task-stone-100 dark:bg-neu-gre-800 border-2 border-neu-gre-500/30"
     }
     ${editingTask?.id === task.id ? "ring-2 ring-pri-pur-500" : ""}
     focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500
@@ -297,7 +297,7 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
-                ? "text-sup-suc-600 dark:text-sup-suc-500 hover:text-sup-suc-600"
+                ? "text-sup-suc-600 dark:text-sup-suc-700 hover:text-sup-suc-600"
                 : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
             aria-label={`Mark task "${task.title}" as ${
@@ -319,7 +319,11 @@ export const TaskItem = ({
             <h3
               className={`text-sm font-inter font-medium truncate ${
                 editingTask?.id === task.id ? "" : "transition-all duration-300"
-              } ${task.completed ? "text-neu-100 scale-95" : "text-neu-100"}`}
+              } ${
+                task.completed
+                  ? "text-neu-gre-800 dark:text-sup-suc-700 scale-95"
+                  : "text-neu-gre-800 dark:text-neu-whi-100"
+              }`}
             >
               {editingTask?.id === task.id ? (
                 <input
@@ -364,15 +368,23 @@ export const TaskItem = ({
                     <div
                       className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         subtask.completed
-                          ? "bg-sup-suc-600 dark:bg-sup-suc-400"
+                          ? task.completed
+                            ? "bg-sup-suc-600 dark:bg-sup-suc-700"
+                            : "bg-sup-suc-600 dark:bg-sup-suc-400"
+                          : task.completed
+                          ? "bg-neu-gre-500 dark:bg-neu-gre-700"
                           : "bg-neu-gre-500 dark:bg-neu-gre-400"
                       }`}
                     />
                     <span
                       className={`font-inter text-xs truncate ${
                         subtask.completed
-                          ? "line-through text-sup-suc-600 dark:text-sup-suc-400"
-                          : "text-neu-400 dark:text-neu-whi-100/70"
+                          ? task.completed
+                            ? "line-through text-sup-suc-600 dark:text-sup-suc-700"
+                            : "line-through text-sup-suc-600 dark:text-sup-suc-400"
+                          : task.completed
+                          ? "text-neu-400 dark:text-neu-gre-700"
+                          : "text-neu-400 dark:text-neu-gre-400"
                       }`}
                     >
                       {subtask.title}

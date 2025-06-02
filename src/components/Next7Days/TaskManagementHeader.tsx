@@ -11,9 +11,9 @@ export const TaskManagementHeader = ({
   children,
 }: TaskManagementHeaderProps) => {
   return (
-    <header className="flex-none pt-4 pb-4" role="banner">
+    <header className="flex-none pt-4 pb-4 dark:bg-neu-gre-800" role="banner">
       <div className="flex items-center justify-between pl-8 pr-8">
-        <div role="heading" aria-level={1}>
+        <div role="heading" aria-level={1} className="dark:text-neu-whi-100">
           {children}
         </div>
         <nav

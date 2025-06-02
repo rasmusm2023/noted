@@ -1064,6 +1064,34 @@ export function Next7Days() {
     .task-item.hiding {
       animation: slideOut 0.3s ease-in-out forwards;
     }
+
+    .highlighted-task {
+      animation: none;
+      background: linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
+      background: -moz-linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
+      background: -webkit-linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#A78BFA,endColorstr=#6D28D9,GradientType=1);
+      position: relative;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .highlighted-task:hover {
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .highlighted-task::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(167, 139, 250, 0.3) 0%, rgba(109, 40, 217, 0.3) 100%);
+      border-radius: 0.5rem;
+      z-index: 0;
+    }
+
+    .highlighted-task > * {
+      position: relative;
+      z-index: 10;
+    }
   `;
 
   // Add DraggableItem component
@@ -1478,23 +1506,23 @@ export function Next7Days() {
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
-      <div className="h-screen flex flex-col bg-neu-whi-100">
+      <div className="h-screen flex flex-col bg-neu-whi-100 dark:bg-neu-gre-800">
         <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50">
-          <div className="bg-neu-whi-100/95 backdrop-blur-sm border-b-1">
+          <div className="bg-neu-whi-100/95 dark:bg-neu-gre-800/95 backdrop-blur-sm border-b-1 dark:border-neu-gre-700">
             <TaskManagementHeader onClearCompleted={handleClearCompleted}>
               <div className="flex items-center space-x-3">
                 <Icon
                   icon="mingcute:trello-board-fill"
                   width={32}
                   height={32}
-                  className="text-pri-pur-500"
+                  className="text-pri-pur-500 dark:text-pri-pur-400"
                 />
-                <h1 className="text-3xl font-bold text-neu-gre-800">
+                <h1 className="text-3xl font-bold text-neu-gre-800 dark:text-neu-whi-100">
                   Next 7 Days
                 </h1>
               </div>
             </TaskManagementHeader>
-            <div className="border-b border-neu-gre-300/50"></div>
+            <div className="border-b border-neu-gre-300/50 dark:border-neu-gre-700/50"></div>
           </div>
         </div>
 

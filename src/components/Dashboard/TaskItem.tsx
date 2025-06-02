@@ -208,10 +208,10 @@ export const TaskItem = ({
             }}
             className={`p-1 flex items-center justify-center ${
               task.completed
-                ? "text-sup-suc-800 hover:text-sup-suc-800 dark:text-sup-suc-700 dark:hover:text-sup-suc-700"
+                ? "text-sup-suc-800 hover:text-pri-pur-600 dark:text-sup-suc-700 dark:hover:text-pri-pur-600"
                 : isNextTask
-                ? "text-pri-pur-400 hover:text-pri-pur-800 dark:text-pri-pur-400 dark:hover:text-pri-pur-300"
-                : "text-neu-gre-500 hover:text-neu-gre-800 dark:text-neu-whi-100/70 dark:hover:text-neu-whi-100"
+                ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
+                : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
             aria-label={`Edit task "${task.title}"`}
           >
@@ -233,10 +233,10 @@ export const TaskItem = ({
               task.isSaved
                 ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
                 : isNextTask
-                ? "text-pri-pur-400 hover:text-pri-pur-800 dark:text-pri-pur-400 dark:hover:text-pri-pur-300"
+                ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
                 : task.completed
-                ? "text-sup-suc-800 hover:text-sup-err-500 dark:text-sup-suc-700 dark:hover:text-sup-err-400"
-                : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
+                ? "text-sup-suc-800 hover:text-pri-pur-600 dark:text-sup-suc-700 dark:hover:text-pri-pur-600"
+                : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
             aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
               task.title

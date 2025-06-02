@@ -12,7 +12,7 @@ export const ClearCompletedButton = ({
   return (
     <button onClick={onClearCompleted} className={className}>
       <Icon
-        icon="mingcute:delete-2-fill"
+        icon="mingcute:eraser-fill"
         width={24}
         height={24}
         color="currentColor"
