@@ -132,7 +132,7 @@ export const TaskItem = ({
                 isEditing ? "" : "transition-all duration-300"
               } ${
                 task.completed
-                  ? "text-neu-gre-800 dark:text-neu-whi-100 scale-95"
+                  ? "text-neu-gre-800 dark:text-sup-suc-700 scale-95"
                   : "text-neu-gre-800 dark:text-neu-whi-100"
               }`}
             >
@@ -170,7 +170,9 @@ export const TaskItem = ({
                         ? task.completed
                           ? "bg-sup-suc-600 dark:bg-sup-suc-700"
                           : "bg-sup-suc-600 dark:bg-sup-suc-400"
-                        : "bg-neu-gre-500 dark:bg-neu-whi-300"
+                        : task.completed
+                        ? "bg-neu-gre-500 dark:bg-neu-gre-700"
+                        : "bg-neu-gre-500 dark:bg-neu-gre-400"
                     }`}
                   />
                   <span
@@ -179,7 +181,9 @@ export const TaskItem = ({
                         ? task.completed
                           ? "line-through text-sup-suc-600 dark:text-sup-suc-700"
                           : "line-through text-sup-suc-600 dark:text-sup-suc-400"
-                        : "text-neu-400 dark:text-neu-whi-300"
+                        : task.completed
+                        ? "text-neu-400 dark:text-neu-gre-700"
+                        : "text-neu-400 dark:text-neu-gre-400"
                     }`}
                   >
                     {subtask.title}
