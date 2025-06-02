@@ -96,12 +96,14 @@ const DatePicker = ({
             setSelectedMonth(e.target.value);
             handleChange(e.target.value, selectedDay, selectedYear);
           }}
-          className="flex-1 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
+          className="flex-1 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"
           aria-label="Select month"
         >
-          <option value="Month">Month</option>
+          <option value="Month" className="font-inter">
+            Month
+          </option>
           {months.map((month) => (
-            <option key={month} value={month}>
+            <option key={month} value={month} className="font-inter">
               {month}
             </option>
           ))}
@@ -112,12 +114,14 @@ const DatePicker = ({
             setSelectedDay(e.target.value);
             handleChange(selectedMonth, e.target.value, selectedYear);
           }}
-          className="w-24 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
+          className="w-24 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"
           aria-label="Select day"
         >
-          <option value="Day">Day</option>
+          <option value="Day" className="font-inter">
+            Day
+          </option>
           {days.map((day) => (
-            <option key={day} value={day}>
+            <option key={day} value={day} className="font-inter">
               {day}
             </option>
           ))}
@@ -128,18 +132,20 @@ const DatePicker = ({
             setSelectedYear(e.target.value);
             handleChange(selectedMonth, selectedDay, e.target.value);
           }}
-          className="w-28 px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
+          className="w-28 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"
           aria-label="Select year"
         >
-          <option value="Year">Year</option>
+          <option value="Year" className="font-inter">
+            Year
+          </option>
           {years.map((year) => (
-            <option key={year} value={year}>
+            <option key={year} value={year} className="font-inter">
               {year}
             </option>
           ))}
         </select>
       </div>
-      <p className="text-sm text-neu-gre-500" aria-live="polite">
+      <p className="text-sm text-neu-gre-500 font-inter" aria-live="polite">
         No rush, unless you want to! 😉
       </p>
     </div>
@@ -422,7 +428,7 @@ export function Goals() {
           },
         }}
       />
-      <div className="p-8 mt-16">
+      <div className="p-8 mt-16 bg-neu-whi-100 dark:bg-neu-gre-800">
         <div className="max-w-[1920px] mx-auto space-y-8 px-16">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -431,7 +437,9 @@ export function Goals() {
                 className="text-pri-pur-500 w-8 h-8"
                 aria-hidden="true"
               />
-              <h1 className="text-3xl font-bold text-neu-gre-800">Goals</h1>
+              <h1 className="text-3xl font-bold text-neu-gre-800 dark:text-neu-gre-100 font-inter">
+                Goals
+              </h1>
             </div>
             <button
               onClick={() => setShowForm(true)}
@@ -451,7 +459,7 @@ export function Goals() {
           </div>
 
           {isLoading ? (
-            <div className="text-neu-gre-600 text-center py-8">
+            <div className="text-neu-gre-600 dark:text-neu-gre-300 text-center py-8 font-inter">
               Loading goals...
             </div>
           ) : (
@@ -461,25 +469,25 @@ export function Goals() {
                   key={goal.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-neu-gre-300/50 ${
+                  className={`rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-neu-gre-300/50 dark:border-neu-gre-700/50 ${
                     goal.status === "completed"
-                      ? "bg-sup-suc-100/75"
-                      : "bg-neu-gre-200/50"
+                      ? "bg-sup-suc-100/75 dark:bg-neu-gre-800"
+                      : "bg-neu-gre-200/50 dark:bg-neu-gre-700"
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-xl font-semibold text-neu-gre-800">
+                      <h3 className="text-xl font-semibold text-neu-gre-800 dark:text-neu-gre-100 font-inter">
                         {goal.title}
                       </h3>
-                      <p className="text-neu-gre-600 mt-1">
+                      <p className="text-neu-gre-600 dark:text-neu-gre-300 mt-1 font-inter">
                         {goal.description}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => startEditing(goal)}
-                        className="text-neu-gre-600 hover:text-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
+                        className="text-neu-gre-600 hover:text-pri-pur-500 dark:text-neu-gre-300 dark:hover:text-pri-pur-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
                         aria-label={`Edit goal: ${goal.title}`}
                       >
                         <Icon
@@ -491,7 +499,7 @@ export function Goals() {
                       </button>
                       <button
                         onClick={() => handleDeleteGoal(goal.id)}
-                        className="text-neu-gre-600 hover:text-sup-err-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
+                        className="text-neu-gre-600 hover:text-sup-err-500 dark:text-neu-gre-300 dark:hover:text-sup-err-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md p-1"
                         aria-label={`Delete goal: ${goal.title}`}
                       >
                         <Icon
@@ -515,7 +523,7 @@ export function Goals() {
                       <div>
                         <label
                           htmlFor={`title-${goal.id}`}
-                          className="block text-neu-gre-800 mb-1 font-medium"
+                          className="block text-neu-gre-800 dark:text-neu-gre-100 mb-1 font-medium font-inter"
                         >
                           Title
                         </label>
@@ -527,7 +535,7 @@ export function Goals() {
                           onChange={(e) =>
                             setNewGoal({ ...newGoal, title: e.target.value })
                           }
-                          className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
+                          className="w-full px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200"
                           required
                           aria-required="true"
                           aria-label="Goal title"
@@ -536,10 +544,10 @@ export function Goals() {
                       <div>
                         <label
                           htmlFor={`description-${goal.id}`}
-                          className="block text-neu-gre-800 mb-1 font-medium"
+                          className="block text-neu-gre-800 dark:text-neu-gre-100 mb-1 font-medium font-inter"
                         >
                           Description{" "}
-                          <span className="text-sm font-normal text-neu-gre-600">
+                          <span className="text-sm font-normal text-neu-gre-600 dark:text-neu-gre-400 font-inter">
                             (optional)
                           </span>
                         </label>
@@ -552,7 +560,7 @@ export function Goals() {
                               description: e.target.value,
                             })
                           }
-                          className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 focus:ring-offset-2 transition-all duration-200"
+                          className="w-full px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200"
                           rows={3}
                           aria-label="Goal description"
                         />
@@ -560,10 +568,10 @@ export function Goals() {
                       <div>
                         <label
                           htmlFor={`deadline-${goal.id}`}
-                          className="block text-neu-gre-800 mb-1 font-medium"
+                          className="block text-neu-gre-800 dark:text-neu-gre-100 mb-1 font-medium font-inter"
                         >
                           Deadline{" "}
-                          <span className="text-sm font-normal text-neu-gre-600">
+                          <span className="text-sm font-normal text-neu-gre-600 dark:text-neu-gre-400 font-inter">
                             (optional)
                           </span>
                         </label>
@@ -606,7 +614,7 @@ export function Goals() {
                       transition={{ duration: 0.15, ease: "easeOut" }}
                     >
                       <div className="space-y-2">
-                        <div className="flex justify-between text-sm text-neu-gre-800 font-inter font-medium">
+                        <div className="flex justify-between text-sm text-neu-gre-800 dark:text-neu-gre-100 font-inter font-medium">
                           <span className="flex items-center space-x-2 gap-2">
                             <Icon
                               icon="mingcute:loading-fill"
@@ -620,7 +628,7 @@ export function Goals() {
                               : `${goal.progress}%`}
                           </span>
                         </div>
-                        <div className="h-2 bg-neu-gre-300 rounded-full overflow-hidden">
+                        <div className="h-2 bg-neu-gre-300 dark:bg-neu-gre-700 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-pri-pur-500 transition-all duration-300"
                             style={{
@@ -647,7 +655,7 @@ export function Goals() {
                                   goal.totalSteps
                                 )
                               }
-                              className="px-3 py-1 text-base font-inter font-semibold bg-neu-gre-300 text-neu-gre-800 rounded-md hover:bg-sup-err-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                              className="px-3 py-1 text-base font-inter font-semibold bg-neu-gre-300 dark:bg-neu-gre-700 text-neu-gre-800 dark:text-neu-gre-100 rounded-md hover:bg-sup-err-200 dark:hover:bg-sup-err-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                               aria-label={`Decrease progress for ${goal.title} by 1 step`}
                             >
                               -1 Step
@@ -665,7 +673,7 @@ export function Goals() {
                                   goal.totalSteps
                                 )
                               }
-                              className="px-3 py-1 text-base font-inter font-semibold bg-pri-pur-100 text-neu-gre-800 rounded-md hover:bg-pri-pur-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                              className="px-3 py-1 text-base font-inter font-semibold bg-pri-pur-100 dark:bg-pri-pur-900 text-neu-gre-800 dark:text-neu-gre-100 rounded-md hover:bg-pri-pur-200 dark:hover:bg-pri-pur-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                               aria-label={`Increase progress for ${goal.title} by 1 step`}
                             >
                               +1 Step
@@ -680,7 +688,7 @@ export function Goals() {
                                   Math.max(0, goal.progress - 10)
                                 )
                               }
-                              className="px-3 py-1 text-base font-inter font-semibold bg-neu-gre-300 text-neu-gre-800 rounded-md hover:bg-sup-err-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                              className="px-3 py-1 text-base font-inter font-semibold bg-neu-gre-300 dark:bg-neu-gre-700 text-neu-gre-800 dark:text-neu-gre-100 rounded-md hover:bg-sup-err-200 dark:hover:bg-sup-err-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                               aria-label={`Decrease progress for ${goal.title} by 10%`}
                             >
                               -10%
@@ -692,7 +700,7 @@ export function Goals() {
                                   Math.min(100, goal.progress + 10)
                                 )
                               }
-                              className="px-3 py-1 text-base font-inter font-semibold bg-pri-pur-100 text-neu-gre-800 rounded-md hover:bg-pri-pur-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                              className="px-3 py-1 text-base font-inter font-semibold bg-pri-pur-100 dark:bg-pri-pur-900 text-neu-gre-800 dark:text-neu-gre-100 rounded-md hover:bg-pri-pur-200 dark:hover:bg-pri-pur-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                               aria-label={`Increase progress for ${goal.title} by 10%`}
                             >
                               +10%
@@ -703,12 +711,12 @@ export function Goals() {
 
                       {/* Associated Tasks */}
                       <div className="mt-4">
-                        <h4 className="text-sm gap-2 mt-16 font-inter font-medium text-neu-gre-800 mb-2 flex items-center space-x-2">
+                        <h4 className="text-sm gap-2 mt-16 font-inter font-medium text-neu-gre-800 dark:text-neu-gre-100 mb-2 flex items-center space-x-2">
                           <Icon icon="mingcute:link-fill" className="w-4 h-4" />
                           Associated Tasks
                         </h4>
                         {tasks[goal.id]?.length === 0 ? (
-                          <p className="text-neu-gre-600 text-sm">
+                          <p className="text-neu-gre-600 dark:text-neu-gre-400 text-sm">
                             No tasks associated with this goal yet.
                           </p>
                         ) : (
@@ -720,7 +728,7 @@ export function Goals() {
                             {tasks[goal.id]?.map((task) => (
                               <li
                                 key={task.id}
-                                className="flex items-center justify-between bg-sec-rose-200 rounded-md p-2 cursor-pointer hover:bg-sec-rose-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                                className="flex items-center justify-between bg-sec-rose-200 dark:bg-neu-gre-800 rounded-md p-2 cursor-pointer hover:bg-sec-rose-300 dark:hover:bg-neu-gre-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                                 onClick={() => handleTaskClick(task)}
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter" || e.key === " ") {
@@ -737,8 +745,8 @@ export function Goals() {
                                 <span
                                   className={`text-sm ml-2 font-inter font-regular ${
                                     task.completed
-                                      ? "line-through text-neu-gre-500"
-                                      : "text-neu-gre-800"
+                                      ? "line-through text-neu-gre-500 dark:text-neu-gre-600"
+                                      : "text-neu-gre-800 dark:text-neu-gre-100"
                                   }`}
                                 >
                                   {task.title}
@@ -747,7 +755,7 @@ export function Goals() {
                                   className={`px-2 py-1 rounded-full text-xs font-semibold mr-2 ${
                                     task.completed
                                       ? "bg-sup-suc-500 text-neu-whi-100"
-                                      : "bg-neu-gre-200 text-neu-gre-800"
+                                      : "bg-neu-gre-200 dark:bg-neu-gre-700 text-neu-gre-800 dark:text-neu-gre-100"
                                   }`}
                                   aria-hidden="true"
                                 >
@@ -760,7 +768,7 @@ export function Goals() {
                       </div>
 
                       <div className="flex justify-between items-center text-sm mt-4 pt-4 border-t border-neu-gre-200">
-                        <span className="text-neu-gre-600">
+                        <span className="text-neu-gre-600 dark:text-neu-gre-400 font-inter">
                           Deadline:{" "}
                           {goal.deadline instanceof Date
                             ? format(goal.deadline, "MMMM d, yyyy")
@@ -770,7 +778,7 @@ export function Goals() {
                           className={`px-2 py-1 rounded-full text-xs ${
                             goal.status === "completed"
                               ? "bg-sup-suc-500 text-neu-whi-100"
-                              : "bg-sup-sys-100 text-neu-gre-800"
+                              : "bg-sup-sys-100 dark:bg-sup-sys-900 text-neu-gre-800 dark:text-neu-gre-100"
                           }`}
                         >
                           {goal.status}
@@ -788,7 +796,7 @@ export function Goals() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
-                    className="text-neu-gre-600 font-inter text-center py-8 col-span-full"
+                    className="text-neu-gre-600 dark:text-neu-gre-400 font-inter text-center py-8 col-span-full"
                   >
                     There are no goals yet. Click the button below to get
                     started.
@@ -806,12 +814,12 @@ export function Goals() {
                   className="overflow-hidden"
                 >
                   {showForm ? (
-                    <div className="bg-pri-pur-100/30 rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-pri-pur-300/25">
+                    <div className="bg-pri-pur-100/30 dark:bg-pri-pur-900/30 rounded-xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-pri-pur-300/25 dark:border-pri-pur-700/50">
                       <form onSubmit={handleCreateGoal} className="space-y-4">
                         <div>
                           <label
                             htmlFor="title"
-                            className="block text-neu-gre-800 mb-1 font-medium"
+                            className="block text-neu-gre-800 dark:text-neu-gre-100 mb-1 font-medium font-inter"
                           >
                             Title
                           </label>
@@ -824,17 +832,17 @@ export function Goals() {
                               setNewGoal({ ...newGoal, title: e.target.value })
                             }
                             placeholder={titlePlaceholder}
-                            className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                            className="w-full px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200"
                             required
                           />
                         </div>
                         <div>
                           <label
                             htmlFor="description"
-                            className="block text-neu-gre-800 mb-1 font-medium"
+                            className="block text-neu-gre-800 dark:text-neu-gre-100 mb-1 font-medium font-inter"
                           >
                             Description{" "}
-                            <span className="text-sm font-normal text-neu-gre-600">
+                            <span className="text-sm font-normal text-neu-gre-600 dark:text-neu-gre-400 font-inter">
                               (optional)
                             </span>
                           </label>
@@ -848,17 +856,17 @@ export function Goals() {
                               })
                             }
                             placeholder="What's your game plan? Break it down into bite-sized pieces. 🎯"
-                            className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                            className="w-full px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200"
                             rows={3}
                           />
                         </div>
                         <div>
                           <label
                             htmlFor="deadline"
-                            className="block text-neu-gre-800 mb-1 font-medium"
+                            className="block text-neu-gre-800 dark:text-neu-gre-100 mb-1 font-medium font-inter"
                           >
                             Deadline{" "}
-                            <span className="text-sm font-normal text-neu-gre-600">
+                            <span className="text-sm font-normal text-neu-gre-600 dark:text-neu-gre-400 font-inter">
                               (optional)
                             </span>
                           </label>
@@ -871,7 +879,7 @@ export function Goals() {
                         </div>
 
                         <div>
-                          <label className="block text-neu-gre-800 mb-1 font-medium">
+                          <label className="block text-neu-gre-800 dark:text-neu-gre-100 mb-1 font-medium font-inter">
                             Track progress as
                           </label>
                           <div className="flex items-center space-x-4">
@@ -887,10 +895,10 @@ export function Goals() {
                                       .value as ProgressType,
                                   })
                                 }
-                                className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200 accent-pri-pur-500"
+                                className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 accent-pri-pur-500"
                                 aria-label="Track progress as percentage"
                               />
-                              <span className="text-neu-gre-800">
+                              <span className="text-neu-gre-800 dark:text-neu-gre-100 font-inter">
                                 Percentage
                               </span>
                             </label>
@@ -906,10 +914,12 @@ export function Goals() {
                                       .value as ProgressType,
                                   })
                                 }
-                                className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200 accent-pri-pur-500"
+                                className="w-4 h-4 text-pri-pur-500 border-2 border-neu-gre-300 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-all duration-200 accent-pri-pur-500"
                                 aria-label="Track progress as steps"
                               />
-                              <span className="text-neu-gre-800">Steps</span>
+                              <span className="text-neu-gre-800 dark:text-neu-gre-100 font-inter">
+                                Steps
+                              </span>
                             </label>
                           </div>
                         </div>
@@ -919,7 +929,7 @@ export function Goals() {
                             <div>
                               <label
                                 htmlFor="totalSteps"
-                                className="block text-neu-gre-800 mb-1 font-medium"
+                                className="block text-neu-gre-800 dark:text-neu-gre-100 mb-1 font-medium font-inter"
                               >
                                 Total Steps
                               </label>
@@ -935,7 +945,7 @@ export function Goals() {
                                   })
                                 }
                                 placeholder="How many steps to greatness? 🚀"
-                                className="w-full px-4 py-2 bg-neu-whi-100 rounded-md text-neu-gre-800 ring-2 ring-neu-gre-300 focus:outline-none focus:ring-2 focus:ring-pri-focus-500 transition-all duration-200"
+                                className="w-full px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200"
                                 required
                               />
                             </div>
@@ -952,7 +962,7 @@ export function Goals() {
                           <button
                             type="button"
                             onClick={() => setShowForm(false)}
-                            className="px-4 py-4 text-base font-inter font-semibold bg-neu-gre-100 text-neu-gre-800 rounded-md hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                            className="px-4 py-4 text-base font-inter font-semibold bg-neu-whi-100 dark:bg-neu-gre-400 text-neu-gre-800 dark:text-neu-gre-800 rounded-md hover:bg-neu-gre-300 dark:hover:bg-neu-gre-500 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
                           >
                             Cancel
                           </button>
@@ -961,16 +971,18 @@ export function Goals() {
                     </div>
                   ) : (
                     <div
-                      className="bg-pri-pur-100/25 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-dashed border-pri-pur-500/50 cursor-pointer h-full"
+                      className="bg-pri-pur-100/25 dark:bg-pri-pur-900/30 rounded-5xl p-6 space-y-4 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-dashed border-pri-pur-500/50 dark:border-neu-gre-400/50 cursor-pointer h-full"
                       onClick={() => setShowForm(!showForm)}
                     >
-                      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-neu-gre-600 hover:text-pri-pur-500 transition-colors">
+                      <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-neu-gre-600 dark:text-neu-gre-400 hover:text-pri-pur-500 dark:hover:text-pri-pur-100 transition-colors">
                         <Icon
                           icon="mingcute:add-fill"
                           className="w-12 h-12 mb-4"
                         />
-                        <span className="text-lg font-medium">Add Goal</span>
-                        <span className="text-sm mt-2">
+                        <span className="text-lg font-medium font-inter">
+                          Add Goal
+                        </span>
+                        <span className="text-sm mt-2 font-inter">
                           Click to create a new goal
                         </span>
                       </div>

@@ -251,7 +251,7 @@ export function Account() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800 p-8">
+      <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800 p-8 mt-16">
         <div className="max-w-[1920px] mx-auto space-y-8 px-16 pb-[1000px]">
           <div className="flex items-center space-x-3">
             <Icon
