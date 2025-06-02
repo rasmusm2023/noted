@@ -127,7 +127,9 @@ const DraggableListItem = ({
       }}
       className={`transition-all duration-200 ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
-      } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
+      } ${
+        isOver && canDrop ? "bg-pri-pur-500/5" : ""
+      } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-lg`}
       role="button"
       tabIndex={0}
       aria-grabbed={isDragging}
@@ -138,16 +140,16 @@ const DraggableListItem = ({
         role="listitem"
         className={`flex items-center gap-3 p-2 rounded-lg border-2 transition-all duration-300 ${
           item.completed
-            ? "bg-pri-pur-400 bg-opacity-50 border-pri-pur-800/30"
-            : "bg-neu-gre-200 border-neu-gre-400/30 hover:border-neu-gre-500"
+            ? "bg-pri-pur-400/50 dark:bg-pri-pur-900/50 border-pri-pur-800/30 dark:border-pri-pur-700/30"
+            : "bg-neu-gre-200 dark:bg-neu-gre-700 border-neu-gre-400/30 dark:border-neu-gre-600/30 hover:border-neu-gre-500 dark:hover:border-neu-gre-500"
         }`}
       >
         <button
           onClick={() => onToggle(item.id, !item.completed)}
           className={`transition-all duration-300 flex items-center justify-center ${
             item.completed
-              ? "text-pri-pur-800 hover:text-pri-pur-700 scale-95"
-              : "text-neu-gre-800 hover:text-pri-pur-500 hover:scale-95"
+              ? "text-pri-pur-800 dark:text-pri-pur-300 hover:text-pri-pur-700 dark:hover:text-pri-pur-400 scale-95"
+              : "text-neu-gre-800 dark:text-neu-gre-100 hover:text-pri-pur-500 dark:hover:text-pri-pur-400 hover:scale-95"
           } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md p-1`}
           aria-label={`Mark item "${item.text}" as ${
             item.completed ? "incomplete" : "complete"
@@ -171,8 +173,8 @@ const DraggableListItem = ({
         <span
           className={`flex-1 font-inter text-base font-medium ${
             item.completed
-              ? "text-pri-pur-800 line-through"
-              : "text-neu-gre-800"
+              ? "text-pri-pur-800 dark:text-pri-pur-300 line-through"
+              : "text-neu-gre-800 dark:text-neu-gre-100"
           }`}
           aria-label={item.completed ? `${item.text} (completed)` : item.text}
         >
@@ -182,8 +184,8 @@ const DraggableListItem = ({
           onClick={() => onDelete(item.id)}
           className={`p-1 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md ${
             item.completed
-              ? "text-pri-pur-800 hover:text-pri-pur-700"
-              : "text-neu-gre-600 hover:text-sup-err-400"
+              ? "text-pri-pur-800 dark:text-pri-pur-300 hover:text-pri-pur-700 dark:hover:text-pri-pur-400"
+              : "text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-400 dark:hover:text-sup-err-300"
           }`}
           aria-label={`Delete item "${item.text}"`}
         >
@@ -406,18 +408,20 @@ export function ListPage() {
     <DndProvider backend={HTML5Backend}>
       <div className="mt-16 font-inter">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-neu-whi-100 rounded-5xl pl-16 pr-16 pt-16 pb-16 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
-            <div className="text-sm text-neu-gre-600 mb-2">List title</div>
+          <div className="bg-neu-whi-100 dark:bg-neu-gre-700 rounded-5xl pl-16 pr-16 pt-16 pb-16 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
+            <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2">
+              List title
+            </div>
             <div className="flex justify-between items-center mb-8">
               {isEditingName ? (
                 <div
-                  className="flex items-center space-x-3 flex-1 bg-neu-gre-200 rounded-md p-4"
+                  className="flex items-center space-x-3 flex-1 bg-neu-gre-200 dark:bg-neu-gre-800 rounded-md p-4"
                   role="group"
                   aria-label="Edit list title"
                 >
                   <Icon
                     icon="mingcute:pencil-3-fill"
-                    className="text-neu-gre-800 w-6 h-6"
+                    className="text-neu-gre-800 dark:text-neu-gre-100 w-6 h-6"
                     aria-hidden="true"
                   />
                   <textarea
@@ -435,20 +439,20 @@ export function ListPage() {
                     }}
                     onFocus={() => console.log("Focused: List title textarea")}
                     onBlur={handleNameEdit}
-                    className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-gre-800 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
+                    className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-400 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
                     rows={1}
                     style={{ height: "auto" }}
                     aria-label="List title"
-                    tabIndex={1000}
+                    tabIndex={0}
                   />
                 </div>
               ) : (
                 <div
                   data-title-div
                   onClick={() => setIsEditingName(true)}
-                  className="flex items-center space-x-3 flex-1 bg-neu-gre-200 rounded-md p-4 cursor-pointer hover:bg-neu-gre-300 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                  className="flex items-center space-x-3 flex-1 bg-neu-gre-200 dark:bg-neu-gre-800 rounded-md p-4 cursor-pointer hover:bg-neu-gre-300 dark:hover:bg-neu-gre-800/50 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
                   role="button"
-                  tabIndex={1000}
+                  tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
@@ -460,18 +464,18 @@ export function ListPage() {
                 >
                   <Icon
                     icon="mingcute:pencil-3-fill"
-                    className="text-neu-gre-800 w-6 h-6"
+                    className="text-neu-gre-800 dark:text-neu-gre-100 w-6 h-6"
                     aria-hidden="true"
                   />
-                  <h1 className="text-lg font-inter font-semibold text-neu-gre-800">
+                  <h1 className="text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100">
                     {currentList.name}
                   </h1>
                 </div>
               )}
               <button
                 onClick={handleDeleteList}
-                className="ml-4 px-4 py-2 bg-neu-whi-100 font-medium text-neu-gre-800 rounded-md hover:bg-sup-err-400 hover:text-neu-whi-100 transition-colors duration-200 font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 flex items-center gap-2"
-                tabIndex={1001}
+                className="ml-4 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-700 font-medium text-neu-gre-800 dark:text-neu-gre-100 dark:hover:text-neu-whi-100 dark:hover:bg-sup-err-400 rounded-md hover:bg-sup-err-400 hover:text-neu-whi-100 transition-colors duration-200 font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 flex items-center gap-2"
+                tabIndex={0}
                 onFocus={() => console.log("Focused: Delete list button")}
               >
                 <Icon icon="mingcute:delete-2-fill" width={20} height={20} />
@@ -485,13 +489,15 @@ export function ListPage() {
               role="form"
               aria-label="Add new item"
             >
-              <div className="text-sm text-neu-gre-600 mb-2">New item</div>
+              <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2">
+                New item
+              </div>
               <div className="flex gap-4">
-                <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 rounded-md px-4 py-2 ring-2 ring-pri-pur-500/25 focus-within:ring-2 focus-within:ring-pri-pur-500/75 transition-all duration-200 ease-in-out">
+                <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 dark:bg-neu-gre-800 dark:hover:bg-neu-gre-800/50 rounded-md px-4 py-2 ring-2 ring-pri-pur-500/25 dark:border-2 dark:border-dashed dark:border-pri-pur-300/50 focus-within:ring-2 focus-within:ring-pri-pur-500/75 dark:focus-within:border-2 dark:focus-within:border-pri-pur-300/75 transition-all duration-200 ease-in-out">
                   <div className="flex items-center justify-center">
                     <Icon
                       icon="mingcute:add-fill"
-                      className="w-6 h-6 text-pri-pur-300"
+                      className="w-6 h-6 text-pri-pur-300 dark:text-pri-pur-400"
                       aria-hidden="true"
                     />
                   </div>
@@ -504,17 +510,17 @@ export function ListPage() {
                       if (e.key === "Escape") setNewItemText("");
                     }}
                     onFocus={() => console.log("Focused: New item input")}
-                    placeholder="Add item..."
-                    className="flex-1 bg-transparent py-2 font-inter text-base text-neu-gre-800 placeholder-neu-gre-600 focus:outline-none"
+                    placeholder="Add item"
+                    className="flex-1 bg-transparent py-2 font-inter text-base text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus:outline-none"
                     aria-label="New item text"
-                    tabIndex={1002}
+                    tabIndex={0}
                   />
                 </div>
                 <button
                   type="submit"
-                  className="px-16 py-4 text-base bg-pri-pur-500 font-inter font-medium text-neu-whi-100 hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md flex items-center gap-2"
+                  className="px-16 py-4 text-base bg-pri-pur-500 dark:bg-pri-pur-600 font-inter font-medium text-neu-whi-100 hover:bg-pri-pur-700 dark:hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md flex items-center gap-2"
                   aria-label="Add new item to list"
-                  tabIndex={1003}
+                  tabIndex={0}
                   onFocus={() => console.log("Focused: Add item button")}
                 >
                   <Icon
@@ -528,10 +534,12 @@ export function ListPage() {
               </div>
             </form>
 
-            <div className="text-sm text-neu-gre-600 mb-2">Listed items</div>
+            <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2">
+              Listed items
+            </div>
             <div className="space-y-3">
               {listItems.length === 0 ? (
-                <div className="text-neu-gre-600 text-center py-8 bg-transparent rounded-lg">
+                <div className="text-neu-gre-600 dark:text-neu-gre-400 text-center py-8 bg-transparent rounded-lg">
                   There are no items in this list yet. Add some items above.
                 </div>
               ) : (
