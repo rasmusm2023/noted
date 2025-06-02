@@ -120,6 +120,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const languageEnglishButtonRef = useRef<HTMLButtonElement>(null);
   const languageSwedishButtonRef = useRef<HTMLButtonElement>(null);
   const [isNext7DaysHovered, setIsNext7DaysHovered] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -369,653 +372,756 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     );
   };
 
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    if (isLeftSwipe && isOpen) {
+      onToggle();
+    }
+  };
+
   return (
-    <aside
-      className={`${
-        isOpen ? "w-72" : "w-24"
-      } bg-neu-whi-100 dark:bg-neu-gre-900 border-r border-neu-gre-300 dark:border-neu-gre-700 transition-all duration-300 ease-in-out relative`}
-      role="navigation"
-      aria-label="Main navigation"
-    >
-      <div className="h-full flex flex-col">
-        {/* Logo and Toggle */}
-        <div className="p-4 flex items-center justify-between border-b border-neu-gre-300 dark:border-neu-gre-700">
-          {isOpen ? (
-            <img
-              src="/assets/logos/dori-logotype-638x200.png"
-              alt="Dori"
-              className="h-8"
-            />
-          ) : (
-            <img
-              src="/assets/logos/dori-logo-200x200.png"
-              alt="Dori"
-              className="h-8 w-8"
-            />
-          )}
-          <button
-            onClick={onToggle}
-            className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
-            aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-            aria-expanded={isOpen}
-          >
+    <>
+      {/* Mobile Menu Trigger Button */}
+      <button
+        onClick={onToggle}
+        className={`lg:hidden fixed bottom-4 left-4 z-[9999] p-3 rounded-full bg-pri-pur-500 dark:bg-pri-pur-600 text-white shadow-lg hover:bg-pri-pur-600 dark:hover:bg-pri-pur-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ${
+          isOpen ? "hidden" : "block"
+        }`}
+        aria-label="Open menu"
+        aria-expanded={isOpen}
+      >
+        <Icon
+          icon="mingcute:menu-fill"
+          width={24}
+          height={24}
+          aria-hidden="true"
+        />
+      </button>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+          onClick={onToggle}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed lg:relative h-full z-50 transition-all duration-300 ease-in-out
+          ${isOpen ? "w-72" : "w-0 lg:w-24"} 
+          bg-neu-whi-100 dark:bg-neu-gre-900 
+          border-r border-neu-gre-300 dark:border-neu-gre-700
+          transform lg:transform-none
+          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          overflow-hidden`}
+        role="navigation"
+        aria-label="Main navigation"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div className="h-full flex flex-col">
+          {/* Logo and Toggle */}
+          <div className="p-4 flex items-center justify-between border-b border-neu-gre-300 dark:border-neu-gre-700">
             {isOpen ? (
-              <Icon
-                icon="mingcute:layout-leftbar-close-fill"
-                width={24}
-                height={24}
-                aria-hidden="true"
-              />
-            ) : (
-              <Icon
-                icon="mingcute:layout-leftbar-open-fill"
-                width={24}
-                height={24}
-                aria-hidden="true"
-              />
-            )}
-          </button>
-        </div>
-
-        {/* User Profile Section */}
-        <div className="px-4 py-3 border-b border-neu-gre-300 dark:border-neu-gre-700">
-          <button
-            onClick={() => navigate("/account")}
-            className={`w-full flex items-center ${
-              isOpen ? "space-x-3" : "justify-center"
-            } p-2 text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md ${
-              location.pathname === "/account"
-                ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
-                : ""
-            }`}
-            aria-label="Go to account settings"
-            aria-current={location.pathname === "/account" ? "page" : undefined}
-          >
-            {userDetails?.useGooglePhoto && userDetails?.photoURL ? (
               <img
-                src={userDetails.photoURL}
-                alt=""
-                className="w-8 h-8 rounded-md object-cover"
-                aria-hidden="true"
+                src="/assets/logos/dori-logotype-638x200.png"
+                alt="Dori"
+                className="h-8"
               />
             ) : (
               <img
-                src={avatars[(userDetails?.selectedAvatar || 1) - 1].src}
-                alt=""
-                className="w-8 h-8 rounded-md"
-                aria-hidden="true"
+                src="/assets/logos/dori-logo-200x200.png"
+                alt="Dori"
+                className="h-8 w-8"
               />
             )}
-            {isOpen && (
-              <div className="flex-1 min-w-0 ml-3">
-                <p className="text-base font-medium truncate dark:text-neu-gre-100">
-                  {userDetails.firstName}
-                </p>
-                <p className="text-xs text-neu-gre-500 dark:text-neu-gre-300 truncate">
-                  {currentUser?.email}
-                </p>
-              </div>
-            )}
-          </button>
-        </div>
+            <button
+              onClick={onToggle}
+              className="hidden lg:flex p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
+              aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+              aria-expanded={isOpen}
+            >
+              {isOpen ? (
+                <Icon
+                  icon="mingcute:layout-leftbar-close-fill"
+                  width={24}
+                  height={24}
+                  aria-hidden="true"
+                />
+              ) : (
+                <Icon
+                  icon="mingcute:layout-leftbar-open-fill"
+                  width={24}
+                  height={24}
+                  aria-hidden="true"
+                />
+              )}
+            </button>
+          </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4" aria-label="Main menu">
-          <div className="px-4 space-y-6">
-            {/* Tasks Section */}
-            <div className="space-y-1">
-              <h2
-                className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 mb-2 ${
-                  isOpen ? "" : "text-center"
-                }`}
-                id="tasks-section"
-              >
-                Tasks
-              </h2>
-              <div role="group" aria-labelledby="tasks-section">
-                <button
-                  onClick={() => navigate("/")}
-                  className={`w-full flex mb-2 items-center ${
-                    isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                    location.pathname === "/"
-                      ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
-                      : "text-neu-gre-900 dark:text-neu-gre-500"
-                  }`}
-                  aria-current={location.pathname === "/" ? "page" : undefined}
-                >
-                  <Icon
-                    icon="mingcute:calendar-day-fill"
-                    width={20}
-                    height={20}
-                    className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                      location.pathname === "/" ? "dark:text-neu-whi-100" : ""
-                    }`}
-                    aria-hidden="true"
-                  />
-                  {isOpen && <span className="text-base">Today</span>}
-                </button>
-
-                <button
-                  onClick={() => navigate("/next7days")}
-                  className={`w-full flex mb-2 items-center ${
-                    isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                    location.pathname === "/next7days"
-                      ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
-                      : "text-neu-gre-900 dark:text-neu-gre-500"
-                  }`}
-                  aria-current={
-                    location.pathname === "/next7days" ? "page" : undefined
-                  }
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <Icon
-                      icon="mingcute:trello-board-fill"
-                      width={20}
-                      height={20}
-                      className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                        location.pathname === "/next7days"
-                          ? "dark:text-neu-whi-100"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                  {isOpen && (
-                    <span className="text-base font-medium">Next 7 Days</span>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Progress Section */}
-            <div className="space-y-1">
-              <h2
-                className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 mb-2 ${
-                  isOpen ? "" : "text-center"
-                }`}
-                id="progress-section"
-              >
-                Progress
-              </h2>
-              <div role="group" aria-labelledby="progress-section">
-                <button
-                  onClick={() => navigate("/goals")}
-                  className={`w-full flex mb-2 items-center ${
-                    isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                    location.pathname === "/goals"
-                      ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
-                      : "text-neu-gre-900 dark:text-neu-gre-500"
-                  }`}
-                  aria-current={
-                    location.pathname === "/goals" ? "page" : undefined
-                  }
-                >
-                  <Icon
-                    icon="mingcute:target-fill"
-                    width={20}
-                    height={20}
-                    className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                      location.pathname === "/goals"
-                        ? "dark:text-neu-whi-100"
-                        : ""
-                    }`}
-                    aria-hidden="true"
-                  />
-                  {isOpen && (
-                    <span className="text-base font-medium">Goals</span>
-                  )}
-                </button>
-                <button
-                  onClick={() => navigate("/habits")}
-                  className={`w-full flex mb-2 items-center ${
-                    isOpen ? "space-x-3" : "justify-center"
-                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                    location.pathname === "/habits"
-                      ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
-                      : "text-neu-gre-900 dark:text-neu-gre-500"
-                  }`}
-                  aria-current={
-                    location.pathname === "/habits" ? "page" : undefined
-                  }
-                >
-                  <Icon
-                    icon="mingcute:heart-fill"
-                    width={20}
-                    height={20}
-                    className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                      location.pathname === "/habits"
-                        ? "dark:text-neu-whi-100"
-                        : ""
-                    }`}
-                    aria-hidden="true"
-                  />
-                  {isOpen && (
-                    <span className="text-base font-medium">Habits</span>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Lists Section */}
-            <div className="space-y-1">
-              <div
-                className={`flex items-center ${
-                  isOpen ? "justify-between" : "justify-center"
-                } mb-2`}
-              >
-                <h2
-                  className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 ${
-                    isOpen ? "" : "text-center"
-                  }`}
-                  id="lists-section"
-                >
-                  Lists
-                </h2>
-                {isOpen && (
-                  <button
-                    onClick={() => setIsAddingList(true)}
-                    className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
-                    aria-label="Add new list"
-                  >
-                    <Icon
-                      icon="mingcute:add-fill"
-                      width={20}
-                      height={20}
-                      aria-hidden="true"
-                    />
-                  </button>
-                )}
-              </div>
-
-              {/* Add List Form */}
-              {isAddingList && (
-                <div
-                  className={`${
-                    isOpen ? "px-2" : "px-1"
-                  } py-2 transition-all duration-200 ease-in-out transform origin-top`}
-                  role="form"
-                  aria-label="Add new list form"
-                >
-                  <div className="flex items-center gap-1 animate-fadeIn">
-                    <input
-                      type="text"
-                      value={newListName}
-                      onChange={(e) => setNewListName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && newListName.trim()) {
-                          handleAddList();
-                        } else if (e.key === "Escape") {
-                          setIsAddingList(false);
-                          setNewListName("");
-                        }
-                      }}
-                      placeholder="List name"
-                      className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 dark:bg-neu-gre-700 border border-neu-gre-300 dark:border-neu-gre-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter text-neu-gre-700 dark:text-neu-gre-100 placeholder:text-neu-gre-400 dark:placeholder:text-neu-gre-400"
-                      autoFocus
-                      aria-label="New list name"
-                    />
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={handleAddList}
-                        disabled={!newListName.trim()}
-                        className="p-0 ml-2 text-pri-pur-500 dark:text-pri-pur-400 hover:text-pri-pur-600 dark:hover:text-pri-pur-300 disabled:text-neu-gre-400 dark:disabled:text-neu-gre-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
-                        aria-label="Create new list"
-                      >
-                        <Icon
-                          icon="mingcute:check-fill"
-                          width={20}
-                          height={20}
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsAddingList(false);
-                          setNewListName("");
-                        }}
-                        className="p-0 ml-2 text-neu-gre-500 dark:text-neu-gre-300 hover:text-neu-gre-700 dark:hover:text-neu-gre-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
-                        aria-label="Cancel creating new list"
-                      >
-                        <Icon
-                          icon="mingcute:close-line"
-                          width={20}
-                          height={20}
-                          aria-hidden="true"
-                        />
-                      </button>
-                    </div>
-                  </div>
+          {/* User Profile Section */}
+          <div className="px-4 py-3 border-b border-neu-gre-300 dark:border-neu-gre-700">
+            <button
+              onClick={() => navigate("/account")}
+              className={`w-full flex items-center ${
+                isOpen ? "space-x-3" : "justify-center"
+              } p-2 text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md ${
+                location.pathname === "/account"
+                  ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                  : ""
+              }`}
+              aria-label="Go to account settings"
+              aria-current={
+                location.pathname === "/account" ? "page" : undefined
+              }
+            >
+              {userDetails?.useGooglePhoto && userDetails?.photoURL ? (
+                <img
+                  src={userDetails.photoURL}
+                  alt=""
+                  className="w-8 h-8 rounded-md object-cover"
+                  aria-hidden="true"
+                />
+              ) : (
+                <img
+                  src={avatars[(userDetails?.selectedAvatar || 1) - 1].src}
+                  alt=""
+                  className="w-8 h-8 rounded-md"
+                  aria-hidden="true"
+                />
+              )}
+              {isOpen && (
+                <div className="flex-1 min-w-0 ml-3">
+                  <p className="text-sm lg:text-base font-medium truncate dark:text-neu-gre-100">
+                    {userDetails.firstName}
+                  </p>
+                  <p className="text-xs lg:text-sm text-neu-gre-500 dark:text-neu-gre-300 truncate">
+                    {currentUser?.email}
+                  </p>
                 </div>
               )}
+            </button>
+          </div>
 
-              {/* Lists */}
-              <div
-                className="space-y-1"
-                role="group"
-                aria-labelledby="lists-section"
-              >
-                {lists.map((list) => (
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto py-4" aria-label="Main menu">
+            <div className="px-4 space-y-6">
+              {/* Tasks Section */}
+              <div className="space-y-1">
+                <h2
+                  className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 mb-2 ${
+                    isOpen ? "" : "text-center"
+                  }`}
+                  id="tasks-section"
+                >
+                  Tasks
+                </h2>
+                <div role="group" aria-labelledby="tasks-section">
                   <button
-                    key={list.id}
-                    onClick={() => navigate(`/list/${list.id}`)}
+                    onClick={() => {
+                      navigate("/");
+                      if (window.innerWidth < 1024) onToggle();
+                    }}
                     className={`w-full flex mb-2 items-center ${
                       isOpen ? "space-x-3" : "justify-center"
                     } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                      location.pathname === `/list/${list.id}`
+                      location.pathname === "/"
                         ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
                         : "text-neu-gre-900 dark:text-neu-gre-500"
                     }`}
                     aria-current={
-                      location.pathname === `/list/${list.id}`
-                        ? "page"
-                        : undefined
+                      location.pathname === "/" ? "page" : undefined
                     }
                   >
                     <Icon
-                      icon="mingcute:minimize-line"
-                      width={16}
-                      height={16}
+                      icon="mingcute:calendar-day-fill"
+                      width={20}
+                      height={20}
                       className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                        location.pathname === `/list/${list.id}`
+                        location.pathname === "/" ? "dark:text-neu-whi-100" : ""
+                      }`}
+                      aria-hidden="true"
+                    />
+                    {isOpen && (
+                      <span className="text-sm lg:text-base">Today</span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      navigate("/next7days");
+                      if (window.innerWidth < 1024) onToggle();
+                    }}
+                    className={`w-full flex mb-2 items-center ${
+                      isOpen ? "space-x-3" : "justify-center"
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                      location.pathname === "/next7days"
+                        ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                        : "text-neu-gre-900 dark:text-neu-gre-500"
+                    }`}
+                    aria-current={
+                      location.pathname === "/next7days" ? "page" : undefined
+                    }
+                  >
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      <Icon
+                        icon="mingcute:trello-board-fill"
+                        width={20}
+                        height={20}
+                        className={`text-neu-gre-700 dark:text-neu-gre-500 ${
+                          location.pathname === "/next7days"
+                            ? "dark:text-neu-whi-100"
+                            : ""
+                        }`}
+                      />
+                    </div>
+                    {isOpen && (
+                      <span className="text-sm lg:text-base font-medium">
+                        Next 7 Days
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress Section */}
+              <div className="space-y-1">
+                <h2
+                  className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 mb-2 ${
+                    isOpen ? "" : "text-center"
+                  }`}
+                  id="progress-section"
+                >
+                  Progress
+                </h2>
+                <div role="group" aria-labelledby="progress-section">
+                  <button
+                    onClick={() => {
+                      navigate("/goals");
+                      if (window.innerWidth < 1024) onToggle();
+                    }}
+                    className={`w-full flex mb-2 items-center ${
+                      isOpen ? "space-x-3" : "justify-center"
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                      location.pathname === "/goals"
+                        ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                        : "text-neu-gre-900 dark:text-neu-gre-500"
+                    }`}
+                    aria-current={
+                      location.pathname === "/goals" ? "page" : undefined
+                    }
+                  >
+                    <Icon
+                      icon="mingcute:target-fill"
+                      width={20}
+                      height={20}
+                      className={`text-neu-gre-700 dark:text-neu-gre-500 ${
+                        location.pathname === "/goals"
                           ? "dark:text-neu-whi-100"
                           : ""
                       }`}
                       aria-hidden="true"
                     />
                     {isOpen && (
-                      <span className="text-base font-medium">{list.name}</span>
+                      <span className="text-sm lg:text-base font-medium">
+                        Goals
+                      </span>
                     )}
                   </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* Settings */}
-        <div className="px-4 pb-4">
-          <div className="relative" ref={settingsMenuRef}>
-            <button
-              ref={settingsButtonRef}
-              onClick={() => {
-                setIsSettingsMenuOpen(!isSettingsMenuOpen);
-                if (!isSettingsMenuOpen) {
-                  setIsHighlightSubmenuOpen(false);
-                  setIsLanguageSubmenuOpen(false);
-                }
-              }}
-              className={`w-full flex items-center ${
-                isOpen ? "space-x-3" : "justify-center"
-              } text-base font-medium p-3 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500`}
-              aria-expanded={isSettingsMenuOpen}
-              aria-haspopup="true"
-              aria-label="Settings menu"
-            >
-              <Icon
-                icon="mingcute:settings-3-fill"
-                width={24}
-                height={24}
-                aria-hidden="true"
-              />
-              {isOpen && <span className="ml-3">Settings</span>}
-            </button>
-
-            {/* Settings Dropdown Menu */}
-            {isSettingsMenuOpen && (
-              <div
-                className={`absolute ${
-                  isOpen ? "bottom-full left-0 mb-2" : "bottom-0 left-full ml-2"
-                } ${
-                  isOpen ? "w-full" : "w-72"
-                } bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[9999]`}
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="settings-menu-button"
-              >
-                <div className="py-1">
                   <button
-                    ref={darkModeButtonRef}
                     onClick={() => {
-                      toggleTheme();
-                      setIsSettingsMenuOpen(false);
+                      navigate("/habits");
+                      if (window.innerWidth < 1024) onToggle();
                     }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
-                    role="menuitem"
-                    aria-label={
-                      theme === "dark"
-                        ? "Switch to light mode"
-                        : "Switch to dark mode"
+                    className={`w-full flex mb-2 items-center ${
+                      isOpen ? "space-x-3" : "justify-center"
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                      location.pathname === "/habits"
+                        ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                        : "text-neu-gre-900 dark:text-neu-gre-500"
+                    }`}
+                    aria-current={
+                      location.pathname === "/habits" ? "page" : undefined
                     }
                   >
-                    {theme === "dark" ? (
-                      <>
-                        <Icon
-                          icon="mingcute:sun-fill"
-                          width={20}
-                          height={20}
-                          className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
-                          aria-hidden="true"
-                        />
-                        <span>Light Mode</span>
-                      </>
-                    ) : (
-                      <>
-                        <Icon
-                          icon="mingcute:moon-fill"
-                          width={20}
-                          height={20}
-                          className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
-                          aria-hidden="true"
-                        />
-                        <span>Dark Mode</span>
-                      </>
-                    )}
-                  </button>
-
-                  {/* Highlight Next Task Option */}
-                  <div className="relative group">
-                    <button
-                      ref={highlightNextTaskButtonRef}
-                      onClick={() => {
-                        setIsHighlightSubmenuOpen(!isHighlightSubmenuOpen);
-                        setIsLanguageSubmenuOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
-                      role="menuitem"
-                      aria-expanded={isHighlightSubmenuOpen}
-                      aria-haspopup="true"
-                      aria-label="Highlight next task options"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <Icon
-                          icon="mingcute:fullscreen-fill"
-                          width={20}
-                          height={20}
-                          aria-hidden="true"
-                        />
-                        <span>Highlight next task</span>
-                      </div>
-                      <AltArrowRight
-                        size={15}
-                        color="currentColor"
-                        aria-hidden="true"
-                      />
-                    </button>
-
-                    {/* Submenu */}
-                    <div
-                      className={`absolute ${
-                        isOpen
-                          ? "left-full top-0 ml-1"
-                          : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[9999] ${
-                        isHighlightSubmenuOpen ? "block" : "hidden"
-                      }`}
-                      role="menu"
-                      aria-label="Highlight next task options"
-                    >
-                      <button
-                        ref={highlightYesButtonRef}
-                        onClick={() => {
-                          handleHighlightNextTask(true);
-                          setIsSettingsMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
-                          highlightNextTask
-                            ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                            : ""
-                        }`}
-                        role="menuitem"
-                        aria-label="Enable highlight next task"
-                        aria-pressed={highlightNextTask}
-                      >
-                        <span>Yes</span>
-                        {highlightNextTask && (
-                          <Unread
-                            size={16}
-                            color="currentColor"
-                            className="ml-1"
-                            aria-hidden="true"
-                          />
-                        )}
-                      </button>
-                      <button
-                        ref={highlightNoButtonRef}
-                        onClick={() => {
-                          handleHighlightNextTask(false);
-                          setIsSettingsMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
-                          !highlightNextTask
-                            ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                            : ""
-                        }`}
-                        role="menuitem"
-                        aria-label="Disable highlight next task"
-                        aria-pressed={!highlightNextTask}
-                      >
-                        <span>No</span>
-                        {!highlightNextTask && (
-                          <Unread
-                            size={16}
-                            color="currentColor"
-                            className="ml-1"
-                            aria-hidden="true"
-                          />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Language Option */}
-                  <div className="relative group">
-                    <button
-                      onClick={() => {
-                        setIsLanguageSubmenuOpen(!isLanguageSubmenuOpen);
-                        setIsHighlightSubmenuOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
-                      role="menuitem"
-                      aria-expanded={isLanguageSubmenuOpen}
-                      aria-haspopup="true"
-                      aria-label="Language options"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <Icon
-                          icon="mingcute:translate-2-fill"
-                          width={20}
-                          height={20}
-                          aria-hidden="true"
-                        />
-                        <span>Language</span>
-                      </div>
-                      <AltArrowRight
-                        size={15}
-                        color="currentColor"
-                        aria-hidden="true"
-                      />
-                    </button>
-
-                    {/* Language Submenu */}
-                    <div
-                      className={`absolute ${
-                        isOpen
-                          ? "left-full top-0 ml-1"
-                          : "left-full -top-12 ml-1"
-                      } w-24 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[9999] ${
-                        isLanguageSubmenuOpen ? "block" : "hidden"
-                      }`}
-                      role="menu"
-                      aria-label="Language options"
-                    >
-                      <button
-                        ref={languageEnglishButtonRef}
-                        onClick={() => {
-                          // Placeholder for language change
-                          setIsSettingsMenuOpen(false);
-                        }}
-                        className="w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                        role="menuitem"
-                        aria-label="Select English language"
-                        aria-pressed={true}
-                      >
-                        <span>English</span>
-                        <Unread
-                          size={16}
-                          color="currentColor"
-                          className="ml-1"
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <button
-                        ref={languageSwedishButtonRef}
-                        onClick={() => {
-                          // Placeholder for language change
-                          setIsSettingsMenuOpen(false);
-                        }}
-                        className="w-full flex items-center px-2 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
-                        role="menuitem"
-                        aria-label="Select Swedish language"
-                        aria-pressed={false}
-                      >
-                        <span>Swedish</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  <div
-                    className="border-t border-neu-gre-200 dark:border-neu-gre-600 my-2"
-                    role="separator"
-                  ></div>
-
-                  {/* Logout Button */}
-                  <button
-                    ref={logoutButtonRef}
-                    onClick={() => {
-                      logout();
-                      setIsSettingsMenuOpen(false);
-                    }}
-                    className="w-full flex items-center space-x-2 px-4 py-2 text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
-                    role="menuitem"
-                    aria-label="Logout"
-                  >
                     <Icon
-                      icon="mingcute:exit-fill"
+                      icon="mingcute:heart-fill"
                       width={20}
                       height={20}
+                      className={`text-neu-gre-700 dark:text-neu-gre-500 ${
+                        location.pathname === "/habits"
+                          ? "dark:text-neu-whi-100"
+                          : ""
+                      }`}
                       aria-hidden="true"
                     />
-                    <span>Logout</span>
+                    {isOpen && (
+                      <span className="text-sm lg:text-base font-medium">
+                        Habits
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
-            )}
+
+              {/* Lists Section */}
+              <div className="space-y-1">
+                <div
+                  className={`flex items-center ${
+                    isOpen ? "justify-between" : "justify-center"
+                  } mb-2`}
+                >
+                  <h2
+                    className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 ${
+                      isOpen ? "" : "text-center"
+                    }`}
+                    id="lists-section"
+                  >
+                    Lists
+                  </h2>
+                  {isOpen && (
+                    <button
+                      onClick={() => setIsAddingList(true)}
+                      className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
+                      aria-label="Add new list"
+                    >
+                      <Icon
+                        icon="mingcute:add-fill"
+                        width={20}
+                        height={20}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  )}
+                </div>
+
+                {/* Add List Form */}
+                {isAddingList && (
+                  <div
+                    className={`${
+                      isOpen ? "px-2" : "px-1"
+                    } py-2 transition-all duration-200 ease-in-out transform origin-top`}
+                    role="form"
+                    aria-label="Add new list form"
+                  >
+                    <div className="flex items-center gap-1 animate-fadeIn">
+                      <input
+                        type="text"
+                        value={newListName}
+                        onChange={(e) => setNewListName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && newListName.trim()) {
+                            handleAddList();
+                          } else if (e.key === "Escape") {
+                            setIsAddingList(false);
+                            setNewListName("");
+                          }
+                        }}
+                        placeholder="List name"
+                        className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 dark:bg-neu-gre-700 border border-neu-gre-300 dark:border-neu-gre-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter text-neu-gre-700 dark:text-neu-gre-100 placeholder:text-neu-gre-400 dark:placeholder:text-neu-gre-400"
+                        autoFocus
+                        aria-label="New list name"
+                      />
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={handleAddList}
+                          disabled={!newListName.trim()}
+                          className="p-0 ml-2 text-pri-pur-500 dark:text-pri-pur-400 hover:text-pri-pur-600 dark:hover:text-pri-pur-300 disabled:text-neu-gre-400 dark:disabled:text-neu-gre-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
+                          aria-label="Create new list"
+                        >
+                          <Icon
+                            icon="mingcute:check-fill"
+                            width={20}
+                            height={20}
+                            aria-hidden="true"
+                          />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsAddingList(false);
+                            setNewListName("");
+                          }}
+                          className="p-0 ml-2 text-neu-gre-500 dark:text-neu-gre-300 hover:text-neu-gre-700 dark:hover:text-neu-gre-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
+                          aria-label="Cancel creating new list"
+                        >
+                          <Icon
+                            icon="mingcute:close-line"
+                            width={20}
+                            height={20}
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Lists */}
+                <div
+                  className="space-y-1"
+                  role="group"
+                  aria-labelledby="lists-section"
+                >
+                  {lists.map((list) => (
+                    <button
+                      key={list.id}
+                      onClick={() => {
+                        navigate(`/list/${list.id}`);
+                        if (window.innerWidth < 1024) onToggle();
+                      }}
+                      className={`w-full flex mb-2 items-center ${
+                        isOpen ? "space-x-3" : "justify-center"
+                      } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                        location.pathname === `/list/${list.id}`
+                          ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                          : "text-neu-gre-900 dark:text-neu-gre-500"
+                      }`}
+                      aria-current={
+                        location.pathname === `/list/${list.id}`
+                          ? "page"
+                          : undefined
+                      }
+                    >
+                      <Icon
+                        icon="mingcute:minimize-line"
+                        width={16}
+                        height={16}
+                        className={`text-neu-gre-700 dark:text-neu-gre-500 ${
+                          location.pathname === `/list/${list.id}`
+                            ? "dark:text-neu-whi-100"
+                            : ""
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {isOpen && (
+                        <span className="text-sm lg:text-base font-medium">
+                          {list.name}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </nav>
+
+          {/* Settings */}
+          <div className="px-4 pb-4">
+            <div className="flex items-center justify-between">
+              <div className="relative flex-1" ref={settingsMenuRef}>
+                <button
+                  ref={settingsButtonRef}
+                  onClick={() => {
+                    setIsSettingsMenuOpen(!isSettingsMenuOpen);
+                    if (!isSettingsMenuOpen) {
+                      setIsHighlightSubmenuOpen(false);
+                      setIsLanguageSubmenuOpen(false);
+                    }
+                  }}
+                  className={`w-full flex items-center ${
+                    isOpen ? "space-x-3" : "justify-center"
+                  } text-base font-medium p-3 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500`}
+                  aria-expanded={isSettingsMenuOpen}
+                  aria-haspopup="true"
+                  aria-label="Settings menu"
+                >
+                  <Icon
+                    icon="mingcute:settings-3-fill"
+                    width={24}
+                    height={24}
+                    aria-hidden="true"
+                  />
+                  {isOpen && (
+                    <span className="ml-3 text-sm lg:text-base">Settings</span>
+                  )}
+                </button>
+
+                {/* Settings Dropdown Menu */}
+                {isSettingsMenuOpen && (
+                  <div
+                    className={`absolute ${
+                      isOpen
+                        ? "bottom-full left-0 mb-2"
+                        : "bottom-0 left-full ml-2"
+                    } ${
+                      isOpen ? "w-full" : "w-72"
+                    } bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[99999]`}
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="settings-menu-button"
+                  >
+                    <div className="py-1">
+                      <button
+                        ref={darkModeButtonRef}
+                        onClick={() => {
+                          toggleTheme();
+                          setIsSettingsMenuOpen(false);
+                        }}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
+                        role="menuitem"
+                        aria-label={
+                          theme === "dark"
+                            ? "Switch to light mode"
+                            : "Switch to dark mode"
+                        }
+                      >
+                        {theme === "dark" ? (
+                          <>
+                            <Icon
+                              icon="mingcute:sun-fill"
+                              width={16}
+                              height={16}
+                              className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
+                              aria-hidden="true"
+                            />
+                            <span>Light Mode</span>
+                          </>
+                        ) : (
+                          <>
+                            <Icon
+                              icon="mingcute:moon-fill"
+                              width={16}
+                              height={16}
+                              className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
+                              aria-hidden="true"
+                            />
+                            <span>Dark Mode</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Highlight Next Task Option */}
+                      <div className="relative group">
+                        <button
+                          ref={highlightNextTaskButtonRef}
+                          onClick={() => {
+                            setIsHighlightSubmenuOpen(!isHighlightSubmenuOpen);
+                            setIsLanguageSubmenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md`}
+                          role="menuitem"
+                          aria-expanded={isHighlightSubmenuOpen}
+                          aria-haspopup="true"
+                          aria-label="Highlight next task options"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <Icon
+                              icon="mingcute:fullscreen-fill"
+                              width={16}
+                              height={16}
+                              aria-hidden="true"
+                            />
+                            <span>Highlight next task</span>
+                          </div>
+                          <AltArrowRight
+                            size={15}
+                            color="currentColor"
+                            aria-hidden="true"
+                          />
+                        </button>
+
+                        {/* Submenu */}
+                        <div
+                          className={`absolute ${
+                            isOpen
+                              ? "left-full top-0 ml-1"
+                              : "left-full -top-12 ml-1"
+                          } w-24 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[99999] ${
+                            isHighlightSubmenuOpen ? "block" : "hidden"
+                          }`}
+                          role="menu"
+                          aria-label="Highlight next task options"
+                        >
+                          <button
+                            ref={highlightYesButtonRef}
+                            onClick={() => {
+                              handleHighlightNextTask(true);
+                              setIsSettingsMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center px-2 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
+                              highlightNextTask
+                                ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
+                                : ""
+                            }`}
+                            role="menuitem"
+                            aria-label="Enable highlight next task"
+                            aria-pressed={highlightNextTask}
+                          >
+                            <span>Yes</span>
+                            {highlightNextTask && (
+                              <Unread
+                                size={16}
+                                color="currentColor"
+                                className="ml-1"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </button>
+                          <button
+                            ref={highlightNoButtonRef}
+                            onClick={() => {
+                              handleHighlightNextTask(false);
+                              setIsSettingsMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center px-2 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
+                              !highlightNextTask
+                                ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
+                                : ""
+                            }`}
+                            role="menuitem"
+                            aria-label="Disable highlight next task"
+                            aria-pressed={!highlightNextTask}
+                          >
+                            <span>No</span>
+                            {!highlightNextTask && (
+                              <Unread
+                                size={16}
+                                color="currentColor"
+                                className="ml-1"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Language Option */}
+                      <div className="relative group">
+                        <button
+                          onClick={() => {
+                            setIsLanguageSubmenuOpen(!isLanguageSubmenuOpen);
+                            setIsHighlightSubmenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md`}
+                          role="menuitem"
+                          aria-expanded={isLanguageSubmenuOpen}
+                          aria-haspopup="true"
+                          aria-label="Language options"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <Icon
+                              icon="mingcute:translate-2-fill"
+                              width={16}
+                              height={16}
+                              aria-hidden="true"
+                            />
+                            <span>Language</span>
+                          </div>
+                          <AltArrowRight
+                            size={15}
+                            color="currentColor"
+                            aria-hidden="true"
+                          />
+                        </button>
+
+                        {/* Language Submenu */}
+                        <div
+                          className={`absolute ${
+                            isOpen
+                              ? "left-full top-0 ml-1"
+                              : "left-full -top-12 ml-1"
+                          } w-24 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[99999] ${
+                            isLanguageSubmenuOpen ? "block" : "hidden"
+                          }`}
+                          role="menu"
+                          aria-label="Language options"
+                        >
+                          <button
+                            ref={languageEnglishButtonRef}
+                            onClick={() => {
+                              // Placeholder for language change
+                              setIsSettingsMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center px-2 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50`}
+                            role="menuitem"
+                            aria-label="Select English language"
+                            aria-pressed={true}
+                          >
+                            <span>English</span>
+                            <Unread
+                              size={16}
+                              color="currentColor"
+                              className="ml-1"
+                              aria-hidden="true"
+                            />
+                          </button>
+                          <button
+                            ref={languageSwedishButtonRef}
+                            onClick={() => {
+                              // Placeholder for language change
+                              setIsSettingsMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center px-2 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
+                            role="menuitem"
+                            aria-label="Select Swedish language"
+                            aria-pressed={false}
+                          >
+                            <span>Swedish</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Divider */}
+                      <div
+                        className="border-t border-neu-gre-200 dark:border-neu-gre-600 my-2"
+                        role="separator"
+                      ></div>
+
+                      {/* Logout Button */}
+                      <button
+                        ref={logoutButtonRef}
+                        onClick={() => {
+                          logout();
+                          setIsSettingsMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md`}
+                        role="menuitem"
+                        aria-label="Logout"
+                      >
+                        <Icon
+                          icon="mingcute:exit-fill"
+                          width={16}
+                          height={16}
+                          aria-hidden="true"
+                        />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={onToggle}
+                className="lg:hidden p-3 rounded-full bg-pri-pur-500 dark:bg-pri-pur-600 text-white shadow-lg hover:bg-pri-pur-600 dark:hover:bg-pri-pur-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ml-2"
+                aria-label="Close menu"
+              >
+                <Icon
+                  icon="mingcute:close-fill"
+                  width={24}
+                  height={24}
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
