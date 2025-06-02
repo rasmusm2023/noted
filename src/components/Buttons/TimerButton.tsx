@@ -7,6 +7,7 @@ interface TimerButtonProps {
   isRunning?: boolean;
   onPauseResume?: () => void;
   onCancel?: () => void;
+  className?: string;
 }
 
 export const TimerButton = ({
@@ -16,6 +17,7 @@ export const TimerButton = ({
   isRunning = false,
   onPauseResume,
   onCancel,
+  className = "",
 }: TimerButtonProps) => {
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -33,7 +35,7 @@ export const TimerButton = ({
         isActive
           ? "bg-neu-whi-100/60 dark:bg-neu-whi-100/40 border border-neu-whi-100/60 text-neu-gre-800 dark:text-neu-whi-100 hover:bg-neu-whi-100/90 dark:hover:bg-neu-gre-600/90"
           : "bg-neu-whi-100/40 dark:bg-neu-whi-100/25 border border-neu-whi-100/40 text-neu-gre-800 dark:text-neu-whi-100 hover:bg-neu-whi-100/90 dark:hover:bg-neu-gre-600/90"
-      }`}
+      } ${className}`}
       aria-label={isActive ? "Timer active" : "Start a timer"}
       aria-expanded={isActive}
       aria-controls="pomodoro-timer"
@@ -50,7 +52,7 @@ export const TimerButton = ({
           aria-label="Timer controls"
         >
           <span
-            className="text-base font-inter font-medium min-w-[4.5rem] tabular-nums text-center"
+            className={`text-base font-inter font-medium min-w-[4.5rem] tabular-nums text-center ${className}`}
             aria-label={`${Math.floor(timeLeft / 60)} minutes and ${
               timeLeft % 60
             } seconds remaining`}
@@ -87,7 +89,9 @@ export const TimerButton = ({
           </button>
         </div>
       ) : (
-        <span className="text-base font-inter font-medium">Start a timer</span>
+        <span className={`font-inter font-medium ${className}`}>
+          Start a timer
+        </span>
       )}
     </button>
   );

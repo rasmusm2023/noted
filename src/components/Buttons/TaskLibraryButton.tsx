@@ -177,7 +177,7 @@ export const TaskLibraryButton = ({
         className={`task-library-button flex items-center ${
           variant === "next7days"
             ? "justify-center w-8 h-8 rounded-md bg-pri-pur-400/10 hover:bg-pri-pur-400/20 dark:bg-pri-pur-500/20 dark:hover:bg-pri-pur-500/30"
-            : "gap-2 px-4 py-2 rounded-md"
+            : "gap-2 px-3 sm:px-4 py-2 sm:py-2.5 lg:py-2.5 rounded-md"
         } transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
           isOpen
             ? "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600 dark:bg-pri-pur-500 dark:hover:bg-pri-pur-600"
@@ -188,14 +188,21 @@ export const TaskLibraryButton = ({
       >
         <Icon
           icon="mingcute:classify-2-fill"
-          className={`${variant === "next7days" ? "w-5 h-5" : "w-6 h-6"} ${
+          className={`${
+            variant === "next7days"
+              ? "w-5 h-5"
+              : "w-6 h-6 sm:w-6 sm:h-6 lg:w-5 lg:h-5"
+          } ${
             variant === "next7days"
               ? "text-pri-pur-400 dark:text-pri-pur-300"
               : "text-neu-whi-100"
           }`}
         />
         {variant !== "next7days" && (
-          <span className="font-inter font-medium text-base">Task Library</span>
+          <span className="font-inter font-medium text-sm sm:text-base">
+            <span className="lg:hidden">Library</span>
+            <span className="hidden lg:inline">Task Library</span>
+          </span>
         )}
       </button>
 
@@ -209,10 +216,14 @@ export const TaskLibraryButton = ({
               duration: 0.2,
               ease: "easeInOut",
             }}
-            className={`absolute ${
-              variant === "next7days" ? "left-0" : "left-0"
+            className={`fixed lg:absolute ${
+              variant === "next7days"
+                ? "left-0"
+                : "left-0 right-0 mx-auto lg:left-0 lg:right-auto lg:mx-0"
             } mt-2 ${
-              variant === "next7days" ? "w-[320px]" : "w-[40rem]"
+              variant === "next7days"
+                ? "w-[320px]"
+                : "w-[calc(100vw-2rem)] sm:w-[calc(100vw-4rem)] lg:w-[40rem]"
             } bg-neu-whi-100 dark:bg-neu-gre-600 rounded-md shadow-lg border border-neu-gre-200 dark:border-neu-gre-700 z-50`}
           >
             <motion.div
@@ -220,19 +231,23 @@ export const TaskLibraryButton = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2, delay: 0.1 }}
-              className={`${variant === "next7days" ? "p-4" : "p-8"}`}
+              className={`${
+                variant === "next7days" ? "p-4" : "p-4 sm:p-6 lg:p-8"
+              }`}
             >
-              <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center space-x-3">
+              <div className="flex justify-between items-center mb-4 sm:mb-6 lg:mb-8">
+                <div className="flex items-center space-x-2 sm:space-x-3">
                   <Icon
                     icon="mingcute:classify-2-fill"
                     className={`text-neu-gre-800 dark:text-neu-whi-100 ${
-                      variant === "next7days" ? "w-4 h-4" : "w-5 h-5"
+                      variant === "next7days"
+                        ? "w-4 h-4"
+                        : "w-4 h-4 sm:w-5 sm:h-5"
                     }`}
                   />
                   <h3
                     className={`font-medium font-inter text-neu-gre-800 dark:text-neu-whi-100 ${
-                      variant === "next7days" ? "text-sm" : "text-md"
+                      variant === "next7days" ? "text-sm" : "text-sm sm:text-md"
                     }`}
                   >
                     Your saved tasks
@@ -247,7 +262,9 @@ export const TaskLibraryButton = ({
                   <Icon
                     icon="mingcute:close-circle-fill"
                     className={`${
-                      variant === "next7days" ? "w-5 h-5" : "w-6 h-6"
+                      variant === "next7days"
+                        ? "w-5 h-5"
+                        : "w-5 h-5 sm:w-6 sm:h-6"
                     }`}
                   />
                 </button>
@@ -259,19 +276,21 @@ export const TaskLibraryButton = ({
               ) : (
                 <>
                   {savedTasks.length === 0 ? (
-                    <div className="text-neu-gre-800 dark:text-neu-gre-300 font-inter font-regular text-base mb-4">
+                    <div className="text-neu-gre-800 dark:text-neu-gre-300 font-inter font-regular text-sm sm:text-base mb-4">
                       No saved tasks
                     </div>
                   ) : (
                     <>
                       <div
                         className={`text-neu-gre-700 dark:text-neu-gre-400 font-inter font-regular mb-4 ${
-                          variant === "next7days" ? "text-sm" : "text-base"
+                          variant === "next7days"
+                            ? "text-sm"
+                            : "text-xs sm:text-sm lg:text-base"
                         }`}
                       >
                         Click a task to add it to your todo-list
                       </div>
-                      <div className="max-h-128 overflow-y-auto">
+                      <div className="max-h-[60vh] sm:max-h-128 overflow-y-auto">
                         <AnimatePresence>
                           {savedTasks.map((task) => (
                             <motion.div
@@ -299,21 +318,21 @@ export const TaskLibraryButton = ({
                                       },
                                     }
                               }
-                              className="mb-4 rounded-xl"
+                              className="mb-3 sm:mb-4 rounded-xl"
                             >
                               <button
                                 onClick={() => handleTaskClick(task)}
-                                className="w-full text-left font-inter font-regular px-4 py-6 text-neu-gre-800 dark:text-neu-whi-100 bg-task-stone-100 hover:bg-task-stone-100/80 dark:bg-neu-gre-800 dark:hover:bg-neu-gre-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                                className="w-full text-left font-inter font-regular px-3 sm:px-4 py-4 sm:py-6 text-neu-gre-800 dark:text-neu-whi-100 bg-task-stone-100 hover:bg-task-stone-100/80 dark:bg-neu-gre-800 dark:hover:bg-neu-gre-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
                                 aria-label={`Add task "${task.title}" to your list`}
                               >
                                 <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-2 sm:gap-3">
                                     <Icon
                                       icon="mingcute:add-circle-fill"
                                       className={`text-neu-gre-800 dark:text-neu-gre-300 ${
                                         variant === "next7days"
                                           ? "w-5 h-5"
-                                          : "w-6 h-6"
+                                          : "w-5 h-5 sm:w-6 sm:h-6"
                                       }`}
                                     />
                                     <div>
@@ -321,7 +340,7 @@ export const TaskLibraryButton = ({
                                         className={`font-medium text-neu-gre-800 dark:text-neu-whi-100 ${
                                           variant === "next7days"
                                             ? "text-sm"
-                                            : "text-base"
+                                            : "text-sm sm:text-base"
                                         }`}
                                       >
                                         {task.title}
@@ -332,7 +351,7 @@ export const TaskLibraryButton = ({
                                             className={`text-neu-gre-700 dark:text-neu-gre-400 truncate ${
                                               variant === "next7days"
                                                 ? "text-xs"
-                                                : "text-sm"
+                                                : "text-xs sm:text-sm"
                                             }`}
                                           >
                                             {task.description}
@@ -344,7 +363,7 @@ export const TaskLibraryButton = ({
                                               className={`font-inter font-regular text-neu-gre-600 dark:text-neu-gre-400 ${
                                                 variant === "next7days"
                                                   ? "text-xs"
-                                                  : "text-sm"
+                                                  : "text-xs sm:text-sm"
                                               }`}
                                             >
                                               {task.subtasks.length} subtask
@@ -370,7 +389,7 @@ export const TaskLibraryButton = ({
                                     }}
                                     role="button"
                                     tabIndex={0}
-                                    className="p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-colors duration-200 rounded-md"
+                                    className="p-1.5 sm:p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-colors duration-200 rounded-md"
                                     aria-label={`Remove task "${task.title}" from library`}
                                   >
                                     <Icon
@@ -378,7 +397,7 @@ export const TaskLibraryButton = ({
                                       className={`text-neu-gre-600 hover:text-sup-err-400 dark:text-neu-gre-400 dark:hover:text-sup-err-400 ${
                                         variant === "next7days"
                                           ? "w-5 h-5"
-                                          : "w-6 h-6"
+                                          : "w-5 h-5 sm:w-6 sm:h-6"
                                       }`}
                                     />
                                   </div>

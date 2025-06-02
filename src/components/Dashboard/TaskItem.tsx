@@ -31,7 +31,7 @@ export const TaskItem = ({
   onSave,
 }: TaskItemProps) => {
   const taskItemClasses = `
-    task-item p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px]
+    task-item py-4 px-2 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px]
     ${
       isNextTask
         ? "highlighted-task border-2 border-pri-pur-500/30"
@@ -39,7 +39,7 @@ export const TaskItem = ({
         ? "dark:[background:linear-gradient(90deg,hsla(145,84%,45%,1)_0%,hsla(150,61%,35%,1)_100%)] [background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
         : task.backgroundColor
         ? task.backgroundColor
-        : "bg-task-stone-100 dark:bg-neu-gre-800 border-2 border-neu-gre-500/30"
+        : "bg-task-stone-100 dark:bg-neu-gre-700 border-2 border-neu-gre-500/30"
     }
     ${isEditing ? "ring-2 ring-pri-pur-500" : ""}
     focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500
@@ -70,7 +70,7 @@ export const TaskItem = ({
       onClick={() => onSelect(task)}
       role="button"
     >
-      <div className="flex items-center space-x-4 flex-1">
+      <div className="flex items-center space-x-2 sm:space-x-4 flex-1">
         <div className="flex items-center justify-center h-full">
           <button
             tabIndex={0}
@@ -106,9 +106,9 @@ export const TaskItem = ({
                 onCompletion(task.id, !task.completed, syntheticEvent);
               }
             }}
-            className={`transition-all duration-300 flex items-center justify-center ${
+            className={`transition-all duration-300 flex items-center justify-center min-w-[44px] min-h-[44px] p-2 sm:p-2.5 ${
               task.completed
-                ? "text-sup-suc-600 dark:text-sup-suc-700 hover:text-sup-suc-600"
+                ? "text-sup-suc-600 dark:text-sup-suc-800 hover:text-sup-suc-600"
                 : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
             aria-label={`Mark task "${task.title}" as ${
@@ -116,11 +116,14 @@ export const TaskItem = ({
             }`}
           >
             {task.completed ? (
-              <Icon icon="mingcute:check-2-fill" className="w-8 h-8" />
+              <Icon
+                icon="mingcute:check-2-fill"
+                className="w-6 h-6 sm:w-7 sm:h-7"
+              />
             ) : (
               <Icon
                 icon="mingcute:round-line"
-                className="w-8 h-8 text-neu-gre-700 dark:text-neu-gre-100 hover:text-sup-suc-500 dark:hover:text-sup-suc-400"
+                className="w-6 h-6 sm:w-7 sm:h-7 text-neu-gre-700 dark:text-neu-gre-100 hover:text-sup-suc-500 dark:hover:text-sup-suc-400"
               />
             )}
           </button>
@@ -128,11 +131,11 @@ export const TaskItem = ({
         <div className="flex-1">
           <div className="flex items-center">
             <h3
-              className={`text-base font-inter font-medium ${
+              className={`text-sm sm:text-base font-inter font-medium ${
                 isEditing ? "" : "transition-all duration-300"
               } ${
                 task.completed
-                  ? "text-neu-gre-800 dark:text-sup-suc-700 scale-95"
+                  ? "text-neu-gre-800 dark:text-sup-suc-800 scale-95"
                   : "text-neu-gre-800 dark:text-neu-whi-100"
               }`}
             >
@@ -152,7 +155,7 @@ export const TaskItem = ({
                     onEdit({ ...task, title: editingTitle });
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-transparent text-base font-inter font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-focus-500"
+                  className="w-full bg-transparent text-sm sm:text-base font-inter font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-focus-500"
                   autoFocus
                 />
               ) : (
@@ -161,14 +164,14 @@ export const TaskItem = ({
             </h3>
           </div>
           {task.subtasks && task.subtasks.length > 0 && (
-            <div className="mt-2 space-y-1">
+            <div className="mt-1 sm:mt-2 space-y-1">
               {task.subtasks.map((subtask) => (
                 <div key={subtask.id} className="flex items-center space-x-2">
                   <div
-                    className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
                       subtask.completed
                         ? task.completed
-                          ? "bg-sup-suc-600 dark:bg-sup-suc-700"
+                          ? "bg-sup-suc-600 dark:bg-sup-suc-800"
                           : "bg-sup-suc-600 dark:bg-sup-suc-400"
                         : task.completed
                         ? "bg-neu-gre-500 dark:bg-neu-gre-700"
@@ -179,7 +182,7 @@ export const TaskItem = ({
                     className={`font-inter text-xs truncate ${
                       subtask.completed
                         ? task.completed
-                          ? "line-through text-sup-suc-600 dark:text-sup-suc-700"
+                          ? "line-through text-sup-suc-600 dark:text-sup-suc-800"
                           : "line-through text-sup-suc-600 dark:text-sup-suc-400"
                         : task.completed
                         ? "text-neu-400 dark:text-neu-gre-700"
@@ -193,80 +196,97 @@ export const TaskItem = ({
             </div>
           )}
         </div>
-        <div className="flex items-center ml-4">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect(task);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
+        <div className="flex items-center ml-2 sm:ml-4">
+          <div className="flex flex-col lg:flex-row items-center gap-1 sm:gap-2">
+            <button
+              onClick={(e) => {
                 e.stopPropagation();
                 onSelect(task);
-              }
-            }}
-            className={`p-1 flex items-center justify-center ${
-              task.completed
-                ? "text-sup-suc-800 hover:text-pri-pur-600 dark:text-sup-suc-700 dark:hover:text-pri-pur-600"
-                : isNextTask
-                ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
-                : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
-            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-            aria-label={`Edit task "${task.title}"`}
-          >
-            <Icon icon="mingcute:pencil-fill" width={24} height={24} />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onSave(task.id, task.isSaved || false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSelect(task);
+                }
+              }}
+              className={`hidden lg:flex p-2 sm:p-2.5 items-center justify-center min-w-[44px] min-h-[44px] ${
+                task.completed
+                  ? "text-sup-suc-800 hover:text-pri-pur-600 dark:text-sup-suc-800 dark:hover:text-pri-pur-600"
+                  : isNextTask
+                  ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
+                  : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
+              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+              aria-label={`Edit task "${task.title}"`}
+            >
+              <Icon
+                icon="mingcute:pencil-fill"
+                width={24}
+                height={24}
+                className="w-6 h-6 sm:w-7 sm:h-7"
+              />
+            </button>
+            <button
+              onClick={(e) => {
                 e.stopPropagation();
                 onSave(task.id, task.isSaved || false);
-              }
-            }}
-            className={`p-1 flex items-center justify-center ${
-              task.isSaved
-                ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
-                : isNextTask
-                ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
-                : task.completed
-                ? "text-sup-suc-800 hover:text-pri-pur-600 dark:text-sup-suc-700 dark:hover:text-pri-pur-600"
-                : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
-            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-            aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
-              task.title
-            }"`}
-          >
-            <Icon icon="mingcute:classify-add-2-fill" width={24} height={24} />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(task.id);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSave(task.id, task.isSaved || false);
+                }
+              }}
+              className={`p-2 sm:p-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] ${
+                task.isSaved
+                  ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
+                  : isNextTask
+                  ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
+                  : task.completed
+                  ? "text-sup-suc-800 hover:text-pri-pur-600 dark:text-sup-suc-800 dark:hover:text-pri-pur-600"
+                  : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
+              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+              aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
+                task.title
+              }"`}
+            >
+              <Icon
+                icon="mingcute:classify-add-2-fill"
+                width={24}
+                height={24}
+                className="w-6 h-6 sm:w-7 sm:h-7"
+              />
+            </button>
+            <button
+              onClick={(e) => {
                 e.stopPropagation();
                 onDelete(task.id);
-              }
-            }}
-            className={`p-1 flex items-center justify-center ${
-              task.completed
-                ? "text-sup-suc-800 hover:text-sup-err-500 dark:text-sup-suc-700 dark:hover:text-sup-err-400"
-                : isNextTask
-                ? "text-pri-pur-400 hover:text-sup-err-500 dark:text-pri-pur-400 dark:hover:text-sup-err-400"
-                : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
-            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-            aria-label={`Delete task "${task.title}"`}
-          >
-            <Icon icon="mingcute:delete-2-fill" width={24} height={24} />
-          </button>
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(task.id);
+                }
+              }}
+              className={`p-2 sm:p-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] ${
+                task.completed
+                  ? "text-sup-suc-800 hover:text-sup-err-500 dark:text-sup-suc-800 dark:hover:text-sup-err-400"
+                  : isNextTask
+                  ? "text-pri-pur-400 hover:text-sup-err-500 dark:text-pri-pur-400 dark:hover:text-sup-err-400"
+                  : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
+              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+              aria-label={`Delete task "${task.title}"`}
+            >
+              <Icon
+                icon="mingcute:delete-2-fill"
+                width={24}
+                height={24}
+                className="w-6 h-6 sm:w-7 sm:h-7"
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>

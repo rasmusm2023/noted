@@ -297,7 +297,7 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center ${
               task.completed
-                ? "text-sup-suc-600 dark:text-sup-suc-700 hover:text-sup-suc-600"
+                ? "text-sup-suc-600 dark:text-sup-suc-800 hover:text-sup-suc-600"
                 : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
             aria-label={`Mark task "${task.title}" as ${
@@ -321,7 +321,7 @@ export const TaskItem = ({
                 editingTask?.id === task.id ? "" : "transition-all duration-300"
               } ${
                 task.completed
-                  ? "text-neu-gre-800 dark:text-sup-suc-700 scale-95"
+                  ? "text-neu-gre-800 dark:text-sup-suc-800 scale-95"
                   : "text-neu-gre-800 dark:text-neu-whi-100"
               }`}
             >
@@ -369,7 +369,7 @@ export const TaskItem = ({
                       className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         subtask.completed
                           ? task.completed
-                            ? "bg-sup-suc-600 dark:bg-sup-suc-700"
+                            ? "bg-sup-suc-600 dark:bg-sup-suc-800"
                             : "bg-sup-suc-600 dark:bg-sup-suc-400"
                           : task.completed
                           ? "bg-neu-gre-500 dark:bg-neu-gre-700"
@@ -380,7 +380,7 @@ export const TaskItem = ({
                       className={`font-inter text-xs truncate ${
                         subtask.completed
                           ? task.completed
-                            ? "line-through text-sup-suc-600 dark:text-sup-suc-700"
+                            ? "line-through text-sup-suc-600 dark:text-sup-suc-800"
                             : "line-through text-sup-suc-600 dark:text-sup-suc-400"
                           : task.completed
                           ? "text-neu-400 dark:text-neu-gre-700"
@@ -415,7 +415,7 @@ export const TaskItem = ({
               }}
               className={`p-1 flex items-center justify-center ${
                 task.completed
-                  ? "text-sup-suc-800 hover:text-sup-suc-800 dark:text-sup-suc-700 dark:hover:text-sup-suc-700"
+                  ? "text-sup-suc-800 hover:text-sup-suc-800 dark:text-sup-suc-800 dark:hover:text-sup-suc-700"
                   : isNextTask
                   ? "text-pri-pur-400 hover:text-pri-pur-800 dark:text-pri-pur-400 dark:hover:text-pri-pur-300"
                   : "text-neu-gre-500 hover:text-neu-gre-800 dark:text-neu-whi-100/70 dark:hover:text-neu-whi-100"
@@ -445,7 +445,7 @@ export const TaskItem = ({
             }}
             className={`p-1 flex items-center justify-center ${
               task.completed
-                ? "text-sup-suc-800 hover:text-sup-err-500 dark:text-sup-suc-700 dark:hover:text-sup-err-400"
+                ? "text-sup-suc-800 hover:text-sup-err-500 dark:text-sup-suc-800 dark:hover:text-sup-err-400"
                 : isNextTask
                 ? "text-pri-pur-400 hover:text-sup-err-500 dark:text-pri-pur-400 dark:hover:text-sup-err-400"
                 : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"

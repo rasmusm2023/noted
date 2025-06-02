@@ -17,8 +17,8 @@ const TASK_COLORS = [
   {
     name: "Stone",
     value:
-      "bg-task-stone-100 dark:bg-neu-gre-800 border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
-    hover: "hover:bg-task-stone-hover dark:hover:bg-neu-gre-700",
+      "bg-task-stone-100 dark:bg-neu-gre-700 border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
+    hover: "hover:bg-task-stone-hover dark:hover:bg-neu-gre-600",
   },
   {
     name: "Sky",

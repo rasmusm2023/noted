@@ -2001,8 +2001,8 @@ export function Dashboard() {
       />
       <PageTransition>
         <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800">
-          <div className="p-8">
-            <div className="max-w-4xl mx-auto space-y-16 pb-96">
+          <div className="p-4 sm:p-16 lg:p-16">
+            <div className="max-w-4xl mx-auto space-y-2 sm:space-y-4 lg:space-y-2 pb-32 sm:pb-48 lg:pb-96">
               <DashboardHeader
                 dayOfWeek={dayOfWeek}
                 currentDate={currentDate}
@@ -2034,7 +2034,7 @@ export function Dashboard() {
                 )}
               </AnimatePresence>
 
-              <div className="max-w-4xl mx-auto rounded-5xl pl-16 pr-16 pt-16 pb-16 bg-neu-whi-100 dark:bg-neu-gre-700 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1),0_8px_32px_-8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12),0_16px_48px_-16px_rgba(0,0,0,0.1)] transition-all duration-300">
+              <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-16 pr-0 sm:pr-8 lg:pr-16 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300">
                 <TaskProgress
                   completionPercentage={completionPercentage}
                   completedPosition={completedPosition}
@@ -2047,7 +2047,7 @@ export function Dashboard() {
                 <QuickActions onAddTask={handleAddTask} />
 
                 {/* Tasks Box */}
-                <div className="bg-neu-whi-100 dark:bg-neu-gre-700 rounded-xl pt-8 pb-8">
+                <div className="rounded-xl pt-4 sm:pt-6 lg:pt-8 pb-4 sm:pb-6 lg:pb-8">
                   <TaskList
                     items={filteredAndSortedItems}
                     isLoading={isLoading}

@@ -36,13 +36,29 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
             ? "border-solid border-pri-pur-500 dark:border-pri-pur-400 bg-pri-pur-500/20 dark:bg-pri-pur-500/30"
             : "border-dashed border-pri-pur-500/75 dark:border-pri-pur-500/50"
         }`}
+        onClick={() => {
+          if (taskInputRef.current) {
+            taskInputRef.current.focus();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (!focusedInput && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            if (taskInputRef.current) {
+              taskInputRef.current.focus();
+            }
+          }
+        }}
       >
         <div className="flex items-center space-x-4">
-          <div className="p-2 bg-pri-pur-500 dark:bg-pri-pur-400 rounded-lg flex items-center justify-center">
+          <div className="p-2 bg-pri-pur-500 dark:bg-pri-pur-400 rounded-md flex items-center justify-center">
             <Icon
               icon="mingcute:add-fill"
-              width={32}
-              height={32}
+              width={24}
+              height={24}
+              className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8"
               color="#FFF5F8"
             />
           </div>
@@ -56,10 +72,10 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
               onFocus={() => setFocusedInput("task")}
               onBlur={() => setFocusedInput(null)}
               placeholder="New task"
-              className="w-full bg-transparent font-semibold text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus-visible:outline-none"
+              className="w-full bg-transparent font-semibold text-base sm:text-lg text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus-visible:outline-none"
               autoFocus
             />
-            <p className="text-neu-gre-500 dark:text-neu-gre-400 text-sm font-inter mt-2">
+            <p className="text-neu-gre-500 dark:text-neu-gre-400 text-xs sm:text-sm font-inter mt-2">
               Press Enter to add
             </p>
           </div>
