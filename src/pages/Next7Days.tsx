@@ -99,6 +99,7 @@ export function Next7Days() {
     [key: number]: { title: string; description: string };
   }>({});
   const [selectedDay, setSelectedDay] = useState<number>(0);
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [completedPosition, setCompletedPosition] = useState<
     "top" | "bottom" | "mixed"
   >(() => {
@@ -152,6 +153,57 @@ export function Next7Days() {
     targetDay: number;
     items: ListItem[];
   } | null>(null);
+
+  const daysContainerRef = useRef<HTMLDivElement>(null);
+
+  // Add scroll handler for updating current day index
+  useEffect(() => {
+    const container = daysContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft;
+      const containerWidth = container.clientWidth;
+      const dayWidth = containerWidth - 32; // Account for padding
+      const newIndex = Math.round(scrollLeft / dayWidth);
+      setCurrentDayIndex(newIndex);
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Add indicator dots component
+  const DayIndicators = () => (
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-30 lg:hidden">
+      <div className="bg-neu-whi-100/80 dark:bg-neu-gre-800/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-neu-gre-200/50 dark:border-neu-gre-700/50">
+        <div className="flex items-center space-x-3">
+          {days.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                const container = daysContainerRef.current;
+                if (container) {
+                  const containerWidth = container.clientWidth;
+                  const dayWidth = containerWidth - 32;
+                  container.scrollTo({
+                    left: index * dayWidth,
+                    behavior: "smooth",
+                  });
+                }
+              }}
+              className={`h-3 rounded-full transition-all duration-300 ${
+                currentDayIndex === index
+                  ? "w-8 bg-gradient-to-r from-sec-pea-400 to-sec-pea-600 dark:from-sec-pea-500 dark:to-sec-pea-700 shadow-lg"
+                  : "w-3 bg-neu-gre-300 dark:bg-neu-gre-500 hover:bg-neu-gre-400 dark:hover:bg-neu-gre-400"
+              }`}
+              aria-label={`Go to day ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   // Add online/offline detection
   useEffect(() => {
@@ -996,6 +1048,9 @@ export function Next7Days() {
     .days-container {
       scrollbar-width: thin;
       scrollbar-color: #4B5563 #1F2937;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
     }
 
     .days-container::-webkit-scrollbar {
@@ -1036,7 +1091,7 @@ export function Next7Days() {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgb(74, 222, 128, 0.5); /* Using the exact same color as bg-sup-suc-400 */
+      background-color: rgb(74, 222, 128, 0.5);
       border-radius: 0.5rem;
       animation: completeTask 0.5s ease-out forwards;
       z-index: 0;
@@ -1092,6 +1147,19 @@ export function Next7Days() {
     .highlighted-task > * {
       position: relative;
       z-index: 10;
+    }
+
+    /* Mobile and tablet specific styles */
+    @media (max-width: 1023px) {
+      .days-container {
+        scroll-padding: 0 1rem;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .days-container::-webkit-scrollbar {
+        display: none;
+      }
     }
   `;
 
@@ -1546,26 +1614,36 @@ export function Next7Days() {
             </div>
           </div>
 
-          <div className="days-container h-full overflow-x-auto">
-            <div className="flex space-x-6 p-4 px-6 lg:px-8 h-fit min-h-[calc(100vh-12rem)] lg:min-h-[calc(100vh-8rem)] pb-[200px] lg:pb-[1000px] w-fit">
+          <div
+            ref={daysContainerRef}
+            className="days-container h-full overflow-x-auto"
+          >
+            <div className="flex space-x-6 p-4 px-6 lg:px-8 h-fit min-h-[calc(100vh-12rem)] lg:min-h-[calc(100vh-8rem)] pb-[200px] lg:pb-[1000px] w-fit lg:w-auto lg:flex-nowrap lg:overflow-x-visible">
               {days.map((day, dayIndex) => (
-                <DayColumn
+                <div
                   key={day.date.toISOString()}
-                  day={day}
-                  dayIndex={dayIndex}
-                  isLoading={isLoading}
-                  hidingItems={hidingItems}
-                  onAddTask={handleAddTask}
-                  onSectionAdded={reloadData}
-                  moveItem={moveItem}
-                  renderTask={renderTask}
-                  renderSection={renderSection}
-                  isTask={isTask}
-                  sortItems={sortItems}
-                />
+                  className="flex-none w-[calc(100vw-2rem)] sm:w-[calc(100vw-4rem)] lg:w-auto snap-center snap-always"
+                >
+                  <DayColumn
+                    day={day}
+                    dayIndex={dayIndex}
+                    isLoading={isLoading}
+                    hidingItems={hidingItems}
+                    onAddTask={handleAddTask}
+                    onSectionAdded={reloadData}
+                    moveItem={moveItem}
+                    renderTask={renderTask}
+                    renderSection={renderSection}
+                    isTask={isTask}
+                    sortItems={sortItems}
+                  />
+                </div>
               ))}
             </div>
           </div>
+
+          {/* Add Day Indicators */}
+          <DayIndicators />
         </div>
 
         {selectedTask && (

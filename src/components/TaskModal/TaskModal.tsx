@@ -441,7 +441,7 @@ export function TaskModal({
     >
       <div
         ref={modalRef}
-        className={`bg-neu-whi-100 dark:bg-neu-gre-800 rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[65%] max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative transition-all ${
+        className={`bg-neu-whi-100 dark:bg-neu-gre-800 rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl w-[95%] sm:w-[90%] md:w-[80%] lg:w-[75%] xl:w-[65%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-4 max-h-[85vh] sm:max-h-[85vh] md:max-h-[85vh] lg:max-h-[90vh] overflow-y-auto relative transition-all ${
           isClosing ? "duration-200" : "duration-150"
         } ${
           isClosing
@@ -456,11 +456,11 @@ export function TaskModal({
           <div className="p-4 sm:p-6 md:p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
-              <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-1">
-                <div className="flex items-center space-x-2 sm:space-x-3 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md p-2 sm:p-3 md:p-4">
+              <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-1 min-w-0">
+                <div className="flex items-center space-x-2 sm:space-x-3 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md p-2 sm:p-3 md:p-4 min-w-0">
                   <Icon
                     icon="mingcute:pencil-3-fill"
-                    className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
+                    className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0"
                   />
                   <textarea
                     ref={titleTextareaRef}
@@ -475,13 +475,13 @@ export function TaskModal({
                       }
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="flex-1 bg-transparent text-base sm:text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
+                    className="flex-1 bg-transparent text-base sm:text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0 min-w-0"
                     rows={1}
                     style={{ height: "auto" }}
                   />
                 </div>
               </div>
-              <div className="flex items-center space-x-2 sm:space-x-3 ml-2 sm:ml-4">
+              <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-3 flex-shrink-0">
                 <div className="flex items-center space-x-1 sm:space-x-2 rounded-lg p-1">
                   <div className="relative" ref={colorPickerRef}>
                     <button
