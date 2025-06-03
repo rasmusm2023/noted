@@ -441,7 +441,7 @@ export function TaskModal({
     >
       <div
         ref={modalRef}
-        className={`bg-neu-whi-100 dark:bg-neu-gre-800 rounded-5xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative transition-all ${
+        className={`bg-neu-whi-100 dark:bg-neu-gre-800 rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl w-[95%] sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[65%] max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative transition-all ${
           isClosing ? "duration-200" : "duration-150"
         } ${
           isClosing
@@ -453,14 +453,14 @@ export function TaskModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div>
-          <div className="p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-4 flex-1">
-                <div className="flex items-center space-x-3 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md p-4">
+            <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
+              <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-1">
+                <div className="flex items-center space-x-2 sm:space-x-3 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md p-2 sm:p-3 md:p-4">
                   <Icon
                     icon="mingcute:pencil-3-fill"
-                    className="text-neu-gre-800 dark:text-neu-gre-100 w-6 h-6"
+                    className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
                   />
                   <textarea
                     ref={titleTextareaRef}
@@ -475,14 +475,14 @@ export function TaskModal({
                       }
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="flex-1 bg-transparent text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
+                    className="flex-1 bg-transparent text-base sm:text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
                     rows={1}
                     style={{ height: "auto" }}
                   />
                 </div>
               </div>
-              <div className="flex items-center space-x-3 ml-4">
-                <div className="flex items-center space-x-2 rounded-lg p-1">
+              <div className="flex items-center space-x-2 sm:space-x-3 ml-2 sm:ml-4">
+                <div className="flex items-center space-x-1 sm:space-x-2 rounded-lg p-1">
                   <div className="relative" ref={colorPickerRef}>
                     <button
                       ref={colorPickerButtonRef}
@@ -490,13 +490,13 @@ export function TaskModal({
                         e.stopPropagation();
                         setShowColorPicker(!showColorPicker);
                       }}
-                      className="p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                      className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                       aria-label="Change task background color"
                       aria-expanded={showColorPicker}
                       aria-haspopup="true"
                     >
                       <div
-                        className={`w-8 h-8 rounded-md border-[2px] border-neu-gre-400 dark:border-neu-gre-600 ${
+                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded-md border-[2px] border-neu-gre-400 dark:border-neu-gre-600 ${
                           currentBackgroundColor ||
                           "bg-neu-gre-200 dark:bg-neu-gre-800"
                         }`}
@@ -504,11 +504,11 @@ export function TaskModal({
                     </button>
                     {showColorPicker && (
                       <div
-                        className="absolute right-0 mt-3 p-4 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg z-10 w-48 border border-neu-gre-200 dark:border-neu-gre-600"
+                        className="absolute right-0 mt-2 sm:mt-3 p-3 sm:p-4 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg z-10 w-40 sm:w-48 border border-neu-gre-200 dark:border-neu-gre-600"
                         onKeyDown={handleColorPickerKeyDown}
                       >
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="text-sm font-inter text-neu-gre-800 dark:text-neu-gre-100">
+                        <div className="flex justify-between items-center mb-2 sm:mb-3">
+                          <span className="text-xs sm:text-sm font-inter text-neu-gre-800 dark:text-neu-gre-100">
                             Select a background color
                           </span>
                           <button
@@ -522,11 +522,11 @@ export function TaskModal({
                           >
                             <Icon
                               icon="mingcute:close-circle-fill"
-                              className="w-6 h-6"
+                              className="w-5 h-5 sm:w-6 sm:h-6"
                             />
                           </button>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 p-2">
+                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 p-1.5 sm:p-2">
                           {TASK_COLORS.map((color, index) => (
                             <button
                               ref={
@@ -541,7 +541,7 @@ export function TaskModal({
                                 e.stopPropagation();
                                 handleColorSelect(color.value);
                               }}
-                              className={`w-8 h-8 rounded-md ${
+                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-md ${
                                 color.value
                               } ring-2 ring-neu-gre-300 dark:ring-neu-gre-600 ${
                                 currentBackgroundColor === color.value
@@ -565,10 +565,13 @@ export function TaskModal({
                       await onDelete(task.id);
                       onClose({ ...task, shouldClose: true });
                     }}
-                    className="p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-400 dark:hover:text-sup-err-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                    className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-400 dark:hover:text-sup-err-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                     aria-label="Delete task"
                   >
-                    <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
+                    <Icon
+                      icon="mingcute:delete-2-fill"
+                      className="w-5 h-5 sm:w-6 sm:h-6"
+                    />
                   </button>
                   <button
                     ref={closeModalButtonRef}
@@ -576,12 +579,12 @@ export function TaskModal({
                       e.stopPropagation();
                       handleClose();
                     }}
-                    className="p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                    className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                     aria-label="Close modal"
                   >
                     <Icon
                       icon="mingcute:close-circle-fill"
-                      className="w-6 h-6"
+                      className="w-5 h-5 sm:w-6 sm:h-6"
                     />
                   </button>
                 </div>
@@ -589,30 +592,33 @@ export function TaskModal({
             </div>
 
             {/* Subtasks Section */}
-            <div className="mb-12" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
+            <div
+              className="mb-8 sm:mb-10 md:mb-12"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className="flex items-center space-x-2 sm:space-x-3">
                   <Icon
                     icon="mingcute:more-2-fill"
-                    className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5"
+                    className="text-neu-gre-800 dark:text-neu-gre-100 w-4 h-4 sm:w-5 sm:h-5"
                   />
-                  <h3 className="text-md font-medium font-inter text-neu-gre-800 dark:text-neu-gre-100">
+                  <h3 className="text-sm sm:text-md font-medium font-inter text-neu-gre-800 dark:text-neu-gre-100">
                     Subtasks
                   </h3>
                 </div>
               </div>
-              <p className="text-sm font-inter text-neu-gre-600 dark:text-neu-gre-300 mb-4">
+              <p className="text-xs sm:text-sm font-inter text-neu-gre-600 dark:text-neu-gre-300 mb-3 sm:mb-4">
                 Break down large tasks into smaller, manageable steps with
                 subtasks
               </p>
 
               {/* Add Subtask Input */}
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md px-4 py-2 border-2 border-dashed border-pri-pur-500/25 dark:border-pri-pur-300/50 focus-within:border-2 focus-within:border-pri-pur-500/75 dark:focus-within:border-pri-pur-300/75 transition-all duration-200 ease-in-out">
+              <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+                <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md px-3 sm:px-4 py-2 border-2 border-dashed border-pri-pur-500/25 dark:border-pri-pur-300/50 focus-within:border-2 focus-within:border-pri-pur-500/75 dark:focus-within:border-pri-pur-300/75 transition-all duration-200 ease-in-out">
                   <div className="flex items-center justify-center">
                     <Icon
                       icon="mingcute:add-fill"
-                      className="w-6 h-6 text-pri-pur-300 dark:text-pri-pur-400"
+                      className="w-5 h-5 sm:w-6 sm:h-6 text-pri-pur-300 dark:text-pri-pur-400"
                     />
                   </div>
                   <input
@@ -628,7 +634,7 @@ export function TaskModal({
                     }}
                     onClick={(e) => e.stopPropagation()}
                     placeholder="Add a subtask..."
-                    className="flex-1 bg-transparent py-2 font-inter text-base text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus:outline-none"
+                    className="flex-1 bg-transparent py-1.5 sm:py-2 font-inter text-sm sm:text-base text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus:outline-none"
                     tabIndex={0}
                     aria-label="Add new subtask"
                   />
@@ -636,24 +642,24 @@ export function TaskModal({
               </div>
 
               {/* Subtasks List */}
-              <div className="space-y-2">
-                {subtasks.map((subtask, index) => (
+              <div className="space-y-1.5 sm:space-y-2">
+                {subtasks.map((subtask) => (
                   <div
                     key={subtask.id}
                     onClick={(e) => e.stopPropagation()}
-                    className={`p-3 rounded-lg flex items-center justify-between transition-all duration-300 ${
+                    className={`p-2 sm:p-3 rounded-lg flex items-center justify-between transition-all duration-300 ${
                       subtask.completed
                         ? "bg-sup-suc-400 dark:bg-sup-suc-700 bg-opacity-75"
                         : "bg-neu-gre-300 dark:bg-neu-gre-700"
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleSubtaskCompletion(subtask.id);
                         }}
-                        className={`transition-all duration-300 flex items-center justify-center rounded-md p-2 ${
+                        className={`transition-all duration-300 flex items-center justify-center rounded-md p-1.5 sm:p-2 ${
                           subtask.completed
                             ? "text-neu-gre-800 dark:text-neu-gre-100 hover:text-neu-gre-600 dark:hover:text-neu-gre-300 scale-95"
                             : "text-neu-gre-800 dark:text-neu-gre-100 hover:text-neu-gre-600 dark:hover:text-neu-gre-300 hover:scale-95"
@@ -666,17 +672,17 @@ export function TaskModal({
                         {subtask.completed ? (
                           <Icon
                             icon="mingcute:check-2-fill"
-                            className="w-6 h-6"
+                            className="w-5 h-5 sm:w-6 sm:h-6"
                           />
                         ) : (
                           <Icon
                             icon="mingcute:round-line"
-                            className="w-6 h-6"
+                            className="w-5 h-5 sm:w-6 sm:h-6"
                           />
                         )}
                       </button>
                       <span
-                        className={`font-inter text-base ${
+                        className={`font-inter text-sm sm:text-base ${
                           subtask.completed
                             ? "line-through text-neu-gre-600 dark:text-neu-gre-300"
                             : "text-neu-gre-800 dark:text-neu-gre-100"
@@ -690,10 +696,13 @@ export function TaskModal({
                         e.stopPropagation();
                         handleDeleteSubtask(subtask.id);
                       }}
-                      className="p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-400 dark:hover:text-sup-err-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                      className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-400 dark:hover:text-sup-err-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                       aria-label={`Delete subtask "${subtask.title}"`}
                     >
-                      <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
+                      <Icon
+                        icon="mingcute:delete-2-fill"
+                        className="w-5 h-5 sm:w-6 sm:h-6"
+                      />
                     </button>
                   </div>
                 ))}
@@ -701,23 +710,23 @@ export function TaskModal({
             </div>
 
             {/*Goal Tags */}
-            <div className="mb-8">
-              <div className="flex items-center space-x-3 mb-3">
+            <div className="mb-6 sm:mb-8">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
                 <Icon
                   icon="mingcute:target-fill"
-                  className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5"
+                  className="text-neu-gre-800 dark:text-neu-gre-100 w-4 h-4 sm:w-5 sm:h-5"
                   aria-hidden="true"
                 />
-                <h3 className="text-md font-medium font-inter text-neu-gre-800 dark:text-neu-gre-100">
+                <h3 className="text-sm sm:text-md font-medium font-inter text-neu-gre-800 dark:text-neu-gre-100">
                   Associated goals
                 </h3>
               </div>
-              <p className="text-sm font-inter text-neu-gre-600 dark:text-neu-gre-300 mb-4">
+              <p className="text-xs sm:text-sm font-inter text-neu-gre-600 dark:text-neu-gre-300 mb-3 sm:mb-4">
                 Associate this task with one or more goals to help you stay on
                 track
               </p>
               <div
-                className="flex flex-wrap gap-2"
+                className="flex flex-wrap gap-1.5 sm:gap-2"
                 role="group"
                 aria-labelledby="goals-group-label"
               >
@@ -728,7 +737,7 @@ export function TaskModal({
                   <button
                     key={goal.id}
                     onClick={() => handleGoalChange(goal.id)}
-                    className={`px-3 py-2 rounded-full text-sm font-inter transition-all duration-200 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
+                    className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-inter transition-all duration-200 flex items-center gap-1.5 sm:gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
                       selectedGoalIds.includes(goal.id)
                         ? "bg-pri-pur-400 dark:bg-pri-pur-500 text-neu-whi-100 dark:text-neu-gre-100"
                         : "bg-neu-gre-100 dark:bg-neu-gre-700 text-neu-gre-600 dark:text-neu-gre-300 hover:bg-pri-pur-100/50 dark:hover:bg-pri-pur-400/50"
@@ -744,7 +753,7 @@ export function TaskModal({
                     {selectedGoalIds.includes(goal.id) && (
                       <Icon
                         icon="mingcute:close-fill"
-                        className="w-4 h-4"
+                        className="w-3 h-3 sm:w-4 sm:h-4"
                         aria-hidden="true"
                         aria-label="Remove goal"
                       />
@@ -753,7 +762,7 @@ export function TaskModal({
                 ))}
                 {goals.length === 0 && (
                   <span
-                    className="text-sm font-inter text-neu-gre-600 dark:text-neu-gre-300"
+                    className="text-xs sm:text-sm font-inter text-neu-gre-600 dark:text-neu-gre-300"
                     role="status"
                   >
                     No goals available
