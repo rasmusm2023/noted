@@ -16,6 +16,7 @@ import { DayColumn } from "../components/Next7Days/DayColumn";
 import { TaskItem } from "../components/Next7Days/TaskItem";
 import { SectionItem as SectionItemComponent } from "../components/Next7Days/SectionItem";
 import { toast } from "react-hot-toast";
+import { ClearCompletedButton } from "../components/Buttons/ClearCompletedButton";
 
 type ListItem = Task | SectionItemType;
 
@@ -1507,17 +1508,17 @@ export function Next7Days() {
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
       <div className="h-screen flex flex-col bg-neu-whi-100 dark:bg-neu-gre-800">
-        <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50">
+        {/* Desktop Header */}
+        <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50 hidden lg:block">
           <div className="bg-neu-whi-100/95 dark:bg-neu-gre-800/95 backdrop-blur-sm border-b-1 dark:border-neu-gre-700">
             <TaskManagementHeader onClearCompleted={handleClearCompleted}>
               <div className="flex items-center space-x-3">
                 <Icon
                   icon="mingcute:trello-board-fill"
-                  width={32}
-                  height={32}
-                  className="text-pri-pur-500 dark:text-pri-pur-400"
+                  className="text-pri-pur-500 w-6 h-6 sm:w-8 sm:h-8"
+                  aria-hidden="true"
                 />
-                <h1 className="text-3xl font-bold text-neu-gre-800 dark:text-neu-whi-100">
+                <h1 className="text-2xl sm:text-3xl font-bold text-neu-gre-800 dark:text-neu-whi-100 font-inter">
                   Next 7 Days
                 </h1>
               </div>
@@ -1527,9 +1528,26 @@ export function Next7Days() {
         </div>
 
         {/* Days Container - Now with dynamic height */}
-        <div className="flex-1 overflow-y-auto relative pt-20">
+        <div className="flex-1 overflow-y-auto relative pt-0 lg:pt-20">
+          {/* Mobile/Tablet Header */}
+          <div className="lg:hidden bg-neu-whi-100/95 dark:bg-neu-gre-800/95 backdrop-blur-sm border-b border-neu-gre-300/50 dark:border-neu-gre-700/50">
+            <div className="flex items-center justify-between px-4 py-8">
+              <div className="flex items-center space-x-3">
+                <Icon
+                  icon="mingcute:trello-board-fill"
+                  className="text-pri-pur-500 w-6 h-6"
+                  aria-hidden="true"
+                />
+                <h1 className="text-3xl font-bold text-neu-gre-800 dark:text-neu-whi-100 font-inter">
+                  Next 7 Days
+                </h1>
+              </div>
+              <ClearCompletedButton onClearCompleted={handleClearCompleted} />
+            </div>
+          </div>
+
           <div className="days-container h-full overflow-x-auto">
-            <div className="flex space-x-6 p-4 px-8 h-fit min-h-[calc(100vh-8rem)] pb-[1000px] w-fit">
+            <div className="flex space-x-6 p-4 px-6 lg:px-8 h-fit min-h-[calc(100vh-12rem)] lg:min-h-[calc(100vh-8rem)] pb-[200px] lg:pb-[1000px] w-fit">
               {days.map((day, dayIndex) => (
                 <DayColumn
                   key={day.date.toISOString()}

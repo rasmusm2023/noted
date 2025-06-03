@@ -257,7 +257,9 @@ export const DayColumn = ({
   return (
     <div
       key={day.date.toISOString()}
-      className={`flex-shrink-0 w-[320px] ${dayIndex > 1 ? "mt-7" : ""}`}
+      className={`flex-shrink-0 w-[380px] lg:w-[320px] ${
+        dayIndex > 1 ? "mt-7" : ""
+      }`}
       role="region"
       aria-label={`Tasks for ${day.date.toLocaleDateString("en-US", {
         weekday: "long",

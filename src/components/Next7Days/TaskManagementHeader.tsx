@@ -12,7 +12,7 @@ export const TaskManagementHeader = ({
 }: TaskManagementHeaderProps) => {
   return (
     <header className="flex-none pt-4 pb-4 dark:bg-neu-gre-800" role="banner">
-      <div className="flex items-center justify-between pl-8 pr-8">
+      <div className="flex items-center justify-between pl-4 sm:pl-8 pr-4 sm:pr-8">
         <div role="heading" aria-level={1} className="dark:text-neu-whi-100">
           {children}
         </div>
