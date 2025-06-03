@@ -1,5 +1,5 @@
 [build]
-  command = "tsc -b --noEmit false && vite build"
+  command = "tsc && vite build"
   publish = "dist"
 
 [build.environment]
