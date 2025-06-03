@@ -466,7 +466,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           onToggle();
         }}
         tabIndex={3}
-        className={`lg:hidden fixed bottom-4 left-4 z-[9999] p-3 rounded-full bg-sec-pea-500 dark:bg-sec-pea-600 text-neu-bla-800 dark:text-neu-whi-100 shadow-[0_4px_14px_rgba(239,112,155,0.4)] dark:shadow-[0_4px_14px_rgba(239,112,155,0.3)] hover:bg-sec-pea-600 dark:hover:bg-sec-pea-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200 ${
+        className={`lg:hidden fixed bottom-4 left-4 z-[9999] p-5 rounded-full bg-sec-pea-500 dark:bg-sec-pea-600 text-neu-bla-800 dark:text-neu-whi-100 shadow-[0_4px_14px_rgba(239,112,155,0.4)] dark:shadow-[0_4px_14px_rgba(239,112,155,0.3)] hover:bg-sec-pea-600 dark:hover:bg-sec-pea-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200 ${
           isOpen ? "hidden" : "block"
         }`}
         aria-label="Open navigation menu"

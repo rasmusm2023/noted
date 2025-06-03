@@ -227,7 +227,7 @@ export const TaskItem = ({
           )}
         </div>
         <div className="flex items-center ml-2 sm:ml-4">
-          <div className="flex flex-col lg:flex-row items-center gap-1 sm:gap-2">
+          <div className="flex flex-col lg:flex-row items-center gap-0 sm:gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
