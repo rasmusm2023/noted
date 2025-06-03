@@ -85,15 +85,13 @@ export const TaskItem = ({
                 e.stopPropagation();
                 const button = e.currentTarget;
                 const rect = button.getBoundingClientRect();
-                const x = (rect.left + rect.right) / 2 / window.innerWidth;
-                const y = (rect.top + rect.bottom) / 2 / window.innerHeight;
                 const syntheticEvent = {
                   stopPropagation: () => {},
                   preventDefault: () => {},
                   clientX: rect.left + rect.width / 2,
                   clientY: rect.top + rect.height / 2,
                   currentTarget: {
-                    closest: (selector: string) => {
+                    closest: () => {
                       const taskItem = button.closest(".task-item");
                       if (taskItem) {
                         taskItem.classList.add("task-completing");
@@ -101,7 +99,32 @@ export const TaskItem = ({
                       return taskItem;
                     },
                   },
-                } as React.MouseEvent;
+                  altKey: false,
+                  button: 0,
+                  buttons: 0,
+                  ctrlKey: false,
+                  metaKey: false,
+                  shiftKey: false,
+                  getModifierState: () => false,
+                  detail: 0,
+                  screenX: 0,
+                  screenY: 0,
+                  pageX: 0,
+                  pageY: 0,
+                  relatedTarget: null,
+                  movementX: 0,
+                  movementY: 0,
+                  nativeEvent: e.nativeEvent,
+                  bubbles: true,
+                  cancelable: true,
+                  defaultPrevented: false,
+                  eventPhase: 0,
+                  isTrusted: true,
+                  timeStamp: Date.now(),
+                  type: "click",
+                  target: button,
+                  view: window,
+                } as unknown as React.MouseEvent;
                 console.log("Completing task:", task.id);
                 onCompletion(task.id, !task.completed, syntheticEvent);
               }

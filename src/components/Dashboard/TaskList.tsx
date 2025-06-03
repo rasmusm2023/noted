@@ -1,23 +1,20 @@
 import { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
-import type { Task, SectionItem } from "../../types/task";
+import type { Task } from "../../types/task";
 import { TaskItem } from "./TaskItem";
-import { SectionItem as SectionItemComponent } from "./SectionItem";
 import { taskService } from "../../services/taskService";
 import { useAuth } from "../../contexts/AuthContext";
-
-type ListItem = Task | SectionItem;
 
 type DragItem = {
   id: string;
   type: string;
   index: number;
-  item: ListItem;
+  item: Task;
 };
 
 interface TaskListProps {
-  items: ListItem[];
+  items: Task[];
   isLoading: boolean;
   highlightNextTask: boolean;
   editingTask: Task | null;
@@ -30,31 +27,24 @@ interface TaskListProps {
   onTaskEdit: (task: Task | null) => void;
   onTaskDelete: (taskId: string) => void;
   onTaskSave: (taskId: string, isSaved: boolean) => void;
-  onSectionSelect: (section: SectionItem) => void;
-  onSectionDelete: (sectionId: string) => void;
   onMoveItem: (dragIndex: number, hoverIndex: number) => void;
-  isTask: (item: ListItem) => item is Task;
 }
 
 const DraggableItem = ({
   item,
   index,
   moveItem,
-  isTaskItem,
   renderTask,
-  renderSection,
 }: {
-  item: ListItem;
+  item: Task;
   index: number;
   moveItem: (dragIndex: number, hoverIndex: number) => void;
-  isTaskItem: boolean;
   renderTask: (task: Task) => JSX.Element;
-  renderSection: (section: SectionItem) => JSX.Element;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [{ isDragging }, drag] = useDrag({
     type: "ITEM",
-    item: { id: item.id, type: item.type, index, item },
+    item: { id: item.id, type: "task", index, item },
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -71,52 +61,71 @@ const DraggableItem = ({
     }
   >({
     accept: "ITEM",
-    collect: (monitor: DropTargetMonitor) => {
-      const isOver = monitor.isOver();
-      const canDrop = monitor.canDrop();
-      const clientOffset = monitor.getClientOffset();
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
-
-      let dropPosition: "before" | "after" | null = null;
-      if (isOver && hoverBoundingRect && clientOffset) {
-        const hoverMiddleY =
-          (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-        dropPosition = hoverClientY < hoverMiddleY * 0.8 ? "before" : "after";
+    hover(item: DragItem, monitor: DropTargetMonitor) {
+      if (!ref.current) {
+        return;
       }
 
-      return { isOver, canDrop, dropPosition };
-    },
-    canDrop: (draggedItem: DragItem) => {
-      return !(draggedItem.id === item.id);
-    },
-    hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
-      if (!ref.current) return;
-
-      const dragIndex = draggedItem.index;
+      const dragIndex = item.index;
       const hoverIndex = index;
 
-      if (dragIndex === hoverIndex) return;
+      // Don't replace items with themselves
+      if (dragIndex === hoverIndex) {
+        return;
+      }
 
-      const hoverBoundingRect = ref.current.getBoundingClientRect();
+      // Determine rectangle on screen
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+
+      // Get vertical middle
       const hoverMiddleY =
         (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+
+      // Determine mouse position
       const clientOffset = monitor.getClientOffset();
-      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
+      if (!clientOffset) return;
 
-      const dropThreshold = hoverMiddleY * 0.8;
+      // Get pixels to the top
+      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-      if (dragIndex < hoverIndex && hoverClientY < dropThreshold) return;
-      if (dragIndex > hoverIndex && hoverClientY > dropThreshold) return;
+      // Only perform the move when the mouse has crossed half of the items height
+      // When dragging downwards, only move when the cursor is below 50%
+      // When dragging upwards, only move when the cursor is above 50%
 
+      // Dragging downwards
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+        return;
+      }
+
+      // Dragging upwards
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+        return;
+      }
+
+      // Time to actually perform the action
       moveItem(dragIndex, hoverIndex);
-      draggedItem.index = hoverIndex;
+
+      // Note: we're mutating the monitor item here!
+      // Generally it's better to avoid mutations,
+      // but it's good here for the sake of performance
+      // to avoid expensive index searches.
+      item.index = hoverIndex;
     },
+    collect: (monitor: DropTargetMonitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+      dropPosition: monitor.isOver()
+        ? monitor.getClientOffset()!.y <
+          (ref.current?.getBoundingClientRect().top || 0) +
+            (ref.current?.getBoundingClientRect().height || 0) / 2
+          ? "before"
+          : "after"
+        : null,
+    }),
   });
 
-  drag(drop(ref));
-
   const opacity = isDragging ? 0.4 : 1;
+  drag(drop(ref));
 
   const getDropZoneStyles = () => {
     if (!isOver || !canDrop) return {};
@@ -129,13 +138,13 @@ const DraggableItem = ({
     if (dropPosition === "before") {
       return {
         ...baseStyle,
-        borderTop: "2px solid #3b82f6",
+        borderTop: "2px solid theme(colors.pri-pur.500)",
         marginTop: "2px",
       };
     } else if (dropPosition === "after") {
       return {
         ...baseStyle,
-        borderBottom: "2px solid #3b82f6",
+        borderBottom: "2px solid theme(colors.pri-pur.500)",
         marginBottom: "2px",
       };
     }
@@ -152,16 +161,13 @@ const DraggableItem = ({
       }}
       className={`transition-all duration-200 ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
-      } ${isOver && canDrop ? "bg-sec-rose-500/5" : ""}`}
+      } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
       role="button"
+      tabIndex={0}
       aria-grabbed={isDragging}
       aria-dropeffect="move"
     >
-      {item.type === "section"
-        ? renderSection(item as SectionItem)
-        : isTaskItem
-        ? renderTask(item as Task)
-        : null}
+      {renderTask(item)}
     </div>
   );
 };
@@ -176,10 +182,7 @@ export const TaskList = ({
   onTaskEdit,
   onTaskDelete,
   onTaskSave,
-  onSectionSelect,
-  onSectionDelete,
   onMoveItem,
-  isTask,
 }: TaskListProps) => {
   const { currentUser } = useAuth();
   const listContainerRef = useRef<HTMLDivElement>(null);
@@ -226,7 +229,7 @@ export const TaskList = ({
     const isNextTask =
       highlightNextTask &&
       !task.completed &&
-      items.filter((i) => isTask(i) && !i.completed).indexOf(task) === 0;
+      items.filter((i) => !i.completed).indexOf(task) === 0;
 
     return (
       <TaskItem
@@ -244,15 +247,6 @@ export const TaskList = ({
       />
     );
   };
-
-  const renderSection = (section: SectionItem) => (
-    <SectionItemComponent
-      key={section.id}
-      section={section}
-      onSelect={onSectionSelect}
-      onDelete={onSectionDelete}
-    />
-  );
 
   if (isLoading) {
     return <div className="text-neu-400 text-md">Loading tasks...</div>;
@@ -290,22 +284,16 @@ export const TaskList = ({
         isOver ? "bg-neu-gre-300/20" : ""
       }`}
     >
-      {items.map((item, index) => {
-        const isTaskItem = isTask(item);
-
-        return (
-          <div key={item.id} className="relative task-item">
-            <DraggableItem
-              item={item}
-              index={index}
-              moveItem={onMoveItem}
-              isTaskItem={isTaskItem}
-              renderTask={renderTask}
-              renderSection={renderSection}
-            />
-          </div>
-        );
-      })}
+      {items.map((item, index) => (
+        <div key={item.id} className="relative task-item">
+          <DraggableItem
+            item={item}
+            index={index}
+            moveItem={onMoveItem}
+            renderTask={renderTask}
+          />
+        </div>
+      ))}
     </div>
   );
 };

@@ -2,31 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
 import type { Task, SectionItem } from "../types/task";
-import {
-  TrashBinTrash,
-  Pen,
-  CheckSquare,
-  Record,
-  Bookmark,
-} from "solar-icon-set";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
-import { SectionModal } from "../components/SectionModal/SectionModal";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
+import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { PageTransition } from "../components/PageTransition";
-import { LoadingScreen } from "../components/LoadingScreen";
 import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
 import { TaskProgress } from "../components/Dashboard/TaskProgress";
 import { TaskList } from "../components/Dashboard/TaskList";
 import { QuickActions } from "../components/Dashboard/QuickActions";
-import {
-  PomodoroTimer,
-  timeIntervals,
-} from "../components/Pomodoro/PomodoroTimer";
+import { timeIntervals } from "../components/Pomodoro/PomodoroTimer";
 import type { TimeInterval } from "../components/Pomodoro/PomodoroTimer";
-import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
 
 // Import weather icons
@@ -39,253 +25,17 @@ import thunderIcon from "../assets/weather-icons/thunder-svgrepo-com.svg";
 import windIcon from "../assets/weather-icons/wind-svgrepo-com.svg";
 import moonIcon from "../assets/weather-icons/crescent-moon-moon-svgrepo-com.svg";
 
-type ListItem = Task | SectionItem;
-
-type DragState = {
-  item: ListItem;
-  sourceIndex: number;
-  currentIndex: number;
-  position: "before" | "after";
-  isDraggingOverCompleted?: boolean;
-  originalOrder: number;
-};
-
-// Add new types for drag and drop
-type DragItem = {
-  id: string;
-  type: string;
-  index: number;
-  item: ListItem;
-};
-
-// Add new component for draggable item
-const DraggableItem = ({
-  item,
-  index,
-  moveItem,
-  isTaskItem,
-  renderTask,
-  renderSection,
-  isTask,
-}: {
-  item: ListItem;
-  index: number;
-  moveItem: (dragIndex: number, hoverIndex: number) => void;
-  isTaskItem: boolean;
-  renderTask: (task: Task) => JSX.Element;
-  renderSection: (section: SectionItem) => JSX.Element;
-  isTask: (item: ListItem) => item is Task;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [{ isDragging }, drag] = useDrag({
-    type: "ITEM",
-    item: { id: item.id, type: item.type, index, item },
-    collect: (monitor: DragSourceMonitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-    canDrag: () => true,
-  });
-
-  const [{ isOver, canDrop, dropPosition }, drop] = useDrop<
-    DragItem,
-    void,
-    {
-      isOver: boolean;
-      canDrop: boolean;
-      dropPosition: "before" | "after" | null;
-    }
-  >({
-    accept: "ITEM",
-    collect: (monitor: DropTargetMonitor) => {
-      const isOver = monitor.isOver();
-      const canDrop = monitor.canDrop();
-      const clientOffset = monitor.getClientOffset();
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
-
-      let dropPosition: "before" | "after" | null = null;
-      if (isOver && hoverBoundingRect && clientOffset) {
-        const hoverMiddleY =
-          (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-        // Make the top 40% of the item a "before" drop zone
-        dropPosition = hoverClientY < hoverMiddleY * 0.8 ? "before" : "after";
-      }
-
-      if (isOver) {
-        console.log("Drop Target State:", {
-          itemId: item.id,
-          index,
-          isOver,
-          canDrop,
-          dropPosition,
-          hoverMiddleY: hoverBoundingRect
-            ? (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
-            : null,
-          hoverClientY: clientOffset
-            ? clientOffset.y - (hoverBoundingRect?.top || 0)
-            : null,
-        });
-      }
-
-      return { isOver, canDrop, dropPosition };
-    },
-    canDrop: (draggedItem: DragItem) => {
-      const canDrop = !(draggedItem.id === item.id);
-      console.log("Can Drop Check:", {
-        draggedItemId: draggedItem.id,
-        targetItemId: item.id,
-        canDrop,
-      });
-      return canDrop;
-    },
-    hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
-      if (!ref.current) return;
-
-      const dragIndex = draggedItem.index;
-      const hoverIndex = index;
-
-      // Don't replace items with themselves
-      if (dragIndex === hoverIndex) {
-        console.log("Skipping hover - same index");
-        return;
-      }
-
-      // Determine rectangle on screen
-      const hoverBoundingRect = ref.current.getBoundingClientRect();
-      const hoverMiddleY =
-        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-      const clientOffset = monitor.getClientOffset();
-      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
-
-      // Make the drop zones more forgiving by using 40% of the item height
-      const dropThreshold = hoverMiddleY * 0.8;
-
-      console.log("Hover State:", {
-        dragIndex,
-        hoverIndex,
-        hoverClientY,
-        dropThreshold,
-        hoverMiddleY,
-        shouldMove:
-          !(dragIndex < hoverIndex && hoverClientY < dropThreshold) &&
-          !(dragIndex > hoverIndex && hoverClientY > dropThreshold),
-      });
-
-      // Only perform the move when the mouse has crossed the threshold
-      if (dragIndex < hoverIndex && hoverClientY < dropThreshold) return;
-      if (dragIndex > hoverIndex && hoverClientY > dropThreshold) return;
-
-      moveItem(dragIndex, hoverIndex);
-      draggedItem.index = hoverIndex;
-    },
-  });
-
-  // Combine drag and drop refs
-  drag(drop(ref));
-
-  const opacity = isDragging ? 0.4 : 1;
-
-  // Enhanced visual feedback for drop zones
-  const getDropZoneStyles = () => {
-    if (!isOver || !canDrop) return {};
-
-    const baseStyle = {
-      position: "relative" as const,
-      transition: "all 0.2s ease-in-out",
-    };
-
-    if (dropPosition === "before") {
-      return {
-        ...baseStyle,
-        borderTop: "2px solid theme(colors.pri-pur.500)",
-        marginTop: "2px",
-      };
-    } else if (dropPosition === "after") {
-      return {
-        ...baseStyle,
-        borderBottom: "2px solid theme(colors.pri-pur.500)",
-        marginBottom: "2px",
-      };
-    }
-
-    return baseStyle;
-  };
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        opacity,
-        ...getDropZoneStyles(),
-      }}
-      className={`transition-all duration-200 ${
-        isDragging ? "cursor-grabbing" : "cursor-grab"
-      } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
-      role="button"
-      tabIndex={0}
-      aria-grabbed={isDragging}
-      aria-dropeffect="move"
-    >
-      {item.type === "section"
-        ? renderSection(item as SectionItem)
-        : isTaskItem
-        ? renderTask(item as Task)
-        : null}
-    </div>
-  );
-};
-
 export function Dashboard() {
   const { currentUser } = useAuth();
-  const [items, setItems] = useState<ListItem[]>([]);
+  const [items, setItems] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
-  const [isCreatingTimestamp, setIsCreatingTimestamp] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [selectedSection, setSelectedSection] = useState<SectionItem | null>(
-    null
-  );
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [editingTitle, setEditingTitle] = useState<string | null>(null);
-  const [editingTime, setEditingTime] = useState<string | null>(null);
-  const [newTaskInputs, setNewTaskInputs] = useState<{
-    [key: number]: { title: string; description: string };
-  }>({});
-  const [selectedDay, setSelectedDay] = useState<number>(0);
-  const [completedPosition, setCompletedPosition] = useState<
-    "top" | "bottom" | "mixed"
-  >(() => {
-    const savedPosition = localStorage.getItem("completedPosition");
-    return (savedPosition as "top" | "bottom" | "mixed") || "mixed";
-  });
-  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
-  const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
-  const [editingSection, setEditingSection] = useState<SectionItem | null>(
-    null
-  );
-  const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
-  const sortMenuRef = useRef<HTMLDivElement>(null);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDescription, setNewTaskDescription] = useState("");
-  const [newSectionTitle, setNewSectionTitle] = useState("");
-  const [newSectionTime, setNewSectionTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
-  const [weatherCondition, setWeatherCondition] = useState<string | null>(null);
-  const taskInputRef = useRef<HTMLInputElement>(null);
-  const sectionInputRef = useRef<HTMLInputElement>(null);
-
-  // Add new drag and drop state
-  const [dragState, setDragState] = useState<DragState | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-
-  // Add new state for preview animation
-  const [previewAnimation, setPreviewAnimation] = useState<{
-    index: number;
-    direction: "up" | "down";
-  } | null>(null);
 
   const [highlightNextTask, setHighlightNextTask] = useState(() => {
     const savedState = localStorage.getItem("highlightNextTask");
@@ -341,12 +91,13 @@ export function Dashboard() {
     };
   }, []);
 
-  const isTask = (item: ListItem): item is Task => {
-    return item.type === "task";
-  };
-
-  const isSection = (item: ListItem): item is SectionItem => {
-    return item.type === "section";
+  const isTask = (item: Task | SectionItem): item is Task => {
+    return (
+      "title" in item &&
+      "description" in item &&
+      "completed" in item &&
+      "date" in item
+    );
   };
 
   // Helper function to parse date strings
@@ -404,9 +155,7 @@ export function Dashboard() {
   // Update filteredAndSortedItems to filter for today and sort
   const filteredAndSortedItems = items
     .filter((item) => {
-      const itemDate = parseDateString(
-        isTask(item) ? item.date : item.scheduledTime || item.createdAt
-      );
+      const itemDate = parseDateString(item.date);
       const today = getTodayInUserTimezone();
 
       // Compare dates by their date parts only (ignoring time)
@@ -416,28 +165,7 @@ export function Dashboard() {
       return itemDateStr === todayStr;
     })
     .sort((a, b) => {
-      // If both items have order, use that for custom sorting
-      if (
-        completedPosition === "mixed" &&
-        a.order !== undefined &&
-        b.order !== undefined
-      ) {
-        return a.order - b.order;
-      }
-
-      // For completed on top/bottom sorting
-      const aIsCompleted = isTask(a) && a.completed;
-      const bIsCompleted = isTask(b) && b.completed;
-
-      if (completedPosition === "top") {
-        if (aIsCompleted && !bIsCompleted) return -1;
-        if (!aIsCompleted && bIsCompleted) return 1;
-      } else if (completedPosition === "bottom") {
-        if (aIsCompleted && !bIsCompleted) return 1;
-        if (!aIsCompleted && bIsCompleted) return -1;
-      }
-
-      // If both items are in the same completion state, maintain their relative order
+      // Sort by order property
       if (a.order !== undefined && b.order !== undefined) {
         return a.order - b.order;
       }
@@ -479,11 +207,8 @@ export function Dashboard() {
       if (currentUser && isMidnight) {
         await taskService.moveIncompleteTasksToNextDay(currentUser.uid);
         // Reload data after moving tasks
-        const [tasks, sections] = await Promise.all([
-          taskService.getUserTasks(currentUser.uid),
-          taskService.getUserSections(currentUser.uid),
-        ]);
-        setItems([...tasks, ...sections]);
+        const tasks = await taskService.getUserTasks(currentUser.uid);
+        setItems(tasks);
       }
     };
 
@@ -518,17 +243,14 @@ export function Dashboard() {
         // Check cache first
         const cachedWeather = localStorage.getItem("weatherCache");
         if (cachedWeather) {
-          const {
-            temperature: cachedTemp,
-            condition: cachedCondition,
-            timestamp,
-          } = JSON.parse(cachedWeather) as WeatherCache;
+          const { temperature: cachedTemp, timestamp } = JSON.parse(
+            cachedWeather
+          ) as WeatherCache;
           const cacheAge = Date.now() - timestamp;
 
           // Use cache if it's less than 15 minutes old
           if (cacheAge < 15 * 60 * 1000) {
             setTemperature(cachedTemp);
-            setWeatherCondition(cachedCondition);
             return;
           }
         }
@@ -562,16 +284,14 @@ export function Dashboard() {
         }
 
         const newTemp = Math.round(data.main.temp);
-        const newCondition = data.weather[0]?.main || null;
 
         // Update state
         setTemperature(newTemp);
-        setWeatherCondition(newCondition);
 
         // Update cache
         const weatherCache: WeatherCache = {
           temperature: newTemp,
-          condition: newCondition,
+          condition: data.weather[0]?.main || null,
           timestamp: Date.now(),
         };
         localStorage.setItem("weatherCache", JSON.stringify(weatherCache));
@@ -643,80 +363,9 @@ export function Dashboard() {
     try {
       setIsLoading(true);
       const tasks = await taskService.getUserTasks(currentUser.uid);
-      const sections = await taskService.getUserSections(currentUser.uid);
-      const savedTasks = await taskService.getSavedTasks(currentUser.uid);
-
-      // Get today's date in user's timezone
-      const today = getTodayInUserTimezone();
-
-      // Filter tasks for today
-      const todaysTasks = tasks.filter((task) => {
-        const taskDate = parseDateString(task.date);
-        taskDate.setHours(0, 0, 0, 0);
-
-        const taskDateStr = taskDate.toISOString().split("T")[0];
-        const todayStr = today.toISOString().split("T")[0];
-
-        return taskDateStr === todayStr;
-      });
-
-      // Filter sections for today
-      const todaysSections = sections.filter((section) => {
-        const sectionDate = parseDateString(
-          section.scheduledTime || section.createdAt
-        );
-        sectionDate.setHours(0, 0, 0, 0);
-
-        const sectionDateStr = sectionDate.toISOString().split("T")[0];
-        const todayStr = today.toISOString().split("T")[0];
-
-        return sectionDateStr === todayStr;
-      });
-
-      // Convert tasks to new format and update isSaved state
-      const tasksWithType = todaysTasks.map((task) => ({
-        ...task,
-        type: "task" as const,
-        isSaved: savedTasks.some(
-          (savedTask) => savedTask.originalTaskId === task.id
-        ),
-      }));
-
-      // Convert sections to new format
-      const sectionsWithType = todaysSections.map((section) => ({
-        ...section,
-        type: "section" as const,
-      }));
-
-      // Combine and sort items
-      const allItems = [...tasksWithType, ...sectionsWithType].sort((a, b) => {
-        // If both items have order, use that for custom sorting
-        if (a.order !== undefined && b.order !== undefined) {
-          return a.order - b.order;
-        }
-
-        // For completed on top/bottom sorting
-        const aIsCompleted = isTask(a) && a.completed;
-        const bIsCompleted = isTask(b) && b.completed;
-
-        if (completedPosition === "top") {
-          if (aIsCompleted && !bIsCompleted) return -1;
-          if (!aIsCompleted && bIsCompleted) return 1;
-        } else if (completedPosition === "bottom") {
-          if (aIsCompleted && !bIsCompleted) return 1;
-          if (!aIsCompleted && bIsCompleted) return -1;
-        }
-
-        // If both items are in the same completion state, maintain their relative order
-        if (a.order !== undefined && b.order !== undefined) {
-          return a.order - b.order;
-        }
-        return 0;
-      });
-
-      setItems(allItems);
+      setItems(tasks);
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("Error loading tasks:", error);
     } finally {
       setIsLoading(false);
     }
@@ -784,45 +433,6 @@ export function Dashboard() {
     }
   };
 
-  const formatTimeFromInput = (input: string): string => {
-    // Allow only numbers and specific symbols
-    const cleaned = input.replace(/[^0-9.,:;-]/g, "");
-
-    if (cleaned.length === 0) return "";
-
-    // Split by any of the allowed separators
-    const parts = cleaned.split(/[.,:;-]/);
-    const numbers = parts.join("").replace(/\D/g, "");
-
-    if (numbers.length === 0) return "";
-
-    // Handle different input lengths
-    if (numbers.length <= 2) {
-      // Just hours
-      const hours = parseInt(numbers);
-      if (hours > 23) return "23:00";
-      return `${hours.toString().padStart(2, "0")}:00`;
-    } else if (numbers.length <= 4) {
-      // Hours and minutes
-      const hours = parseInt(numbers.slice(0, -2));
-      const minutes = parseInt(numbers.slice(-2));
-      if (hours > 23) return "23:00";
-      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-    } else {
-      // Too many digits, take first 4
-      const hours = parseInt(numbers.slice(0, 2));
-      const minutes = parseInt(numbers.slice(2, 4));
-      if (hours > 23) return "23:00";
-      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-    }
-  };
-
   const handleAddTask = async (title: string, description: string) => {
     if (!currentUser) {
       console.error("No user logged in");
@@ -847,16 +457,6 @@ export function Dashboard() {
       setItems((prevItems) => [newTask, ...prevItems]);
     } catch (error) {
       console.error("Error creating task:", error);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddTask(newTaskTitle, newTaskDescription);
-    } else if (e.key === "Escape") {
-      setNewTaskTitle("");
-      setNewTaskDescription("");
     }
   };
 
@@ -896,230 +496,23 @@ export function Dashboard() {
     }
   };
 
-  const [focusedInput, setFocusedInput] = useState<"task" | "section" | null>(
-    null
-  );
-
-  const handleDragStart = (
-    e: React.DragEvent,
-    item: ListItem,
-    index: number
-  ) => {
-    e.stopPropagation();
-    console.log("=== Drag Start ===");
-    console.log("Item:", { id: item.id, type: item.type, order: item.order });
-    console.log("Source Index:", index);
-
-    setIsDragging(true);
-    setDragState({
-      item,
-      sourceIndex: index,
-      currentIndex: index,
-      position: "after",
-      originalOrder: item.order || 0,
-    });
-
-    // Set drag image
-    const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
-    dragImage.style.opacity = "0.8";
-    dragImage.style.transform = "scale(1.02)";
-    dragImage.style.boxShadow =
-      "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
-    document.body.appendChild(dragImage);
-    e.dataTransfer.setDragImage(dragImage, 0, 0);
-    setTimeout(() => document.body.removeChild(dragImage), 0);
-
-    // Add a semi-transparent effect to the dragged item
-    (e.target as HTMLElement).style.opacity = "0.4";
-
-    console.log("Drag State Set:", {
-      sourceIndex: index,
-      currentIndex: index,
-      position: "after",
-      originalOrder: item.order || 0,
-    });
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!dragState || !listContainerRef.current) return;
-
-    const listRect = listContainerRef.current.getBoundingClientRect();
-    const mouseY = e.clientY;
-    const relativeY = mouseY - listRect.top;
-    const itemHeight = listRect.height / filteredAndSortedItems.length;
-    const itemTop = index * itemHeight;
-    const itemBottom = (index + 1) * itemHeight;
-
-    // Calculate position based on mouse position relative to the item's center
-    const position =
-      relativeY < (itemTop + itemBottom) / 2 ? "before" : ("after" as const);
-
-    // Check if we're dragging over a completed item
-    const targetItem = filteredAndSortedItems[index];
-    const isDraggingOverCompleted = isTask(targetItem) && targetItem.completed;
-
-    console.log("=== Drag Over ===");
-    console.log("Current Index:", index);
-    console.log("Mouse Position:", {
-      y: mouseY,
-      relativeY,
-      itemTop,
-      itemBottom,
-      itemHeight,
-      center: (itemTop + itemBottom) / 2,
-    });
-    console.log("Drop Position:", position);
-    console.log("Target Item:", {
-      id: targetItem.id,
-      type: targetItem.type,
-      order: targetItem.order,
-      isCompleted: isTask(targetItem) ? targetItem.completed : false,
-    });
-
-    // Don't update if we're over the same position
-    if (dragState.currentIndex === index && dragState.position === position) {
-      console.log("Skipping update - same position");
-      return;
-    }
-
-    // Update drag state
-    setDragState((prev) => {
-      if (!prev) return null;
-
-      // Calculate if we need to animate items
-      const oldIndex = prev.currentIndex;
-      const newIndex = index;
-
-      if (oldIndex !== newIndex) {
-        // Determine animation direction
-        const direction = newIndex > oldIndex ? "up" : "down";
-        setPreviewAnimation({ index: newIndex, direction });
-        console.log("Animation:", { direction, newIndex });
-      }
-
-      const newState: DragState = {
-        ...prev,
-        currentIndex: index,
-        position,
-        isDraggingOverCompleted,
-      };
-
-      console.log("New Drag State:", newState);
-      return newState;
-    });
-  };
-
-  const handleDragEnd = (e: React.DragEvent) => {
-    e.stopPropagation();
-    console.log("=== Drag End ===");
-    console.log("Final Drag State:", dragState);
-
-    setIsDragging(false);
-    setDragState(null);
-    setPreviewAnimation(null);
-    (e.target as HTMLElement).style.opacity = "1";
-  };
-
-  const handleDrop = async (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!dragState) return;
-
-    const { item, sourceIndex, position, originalOrder } = dragState;
-
-    // Calculate the target index
-    let targetIndex = position === "before" ? index : index + 1;
-
-    // Adjust target index if we're moving an item forward
-    if (sourceIndex < targetIndex) {
-      targetIndex--;
-    }
-
-    // Ensure target index is within bounds
-    targetIndex = Math.max(0, Math.min(targetIndex, items.length - 1));
-
-    // Don't do anything if we're dropping at the same position
-    if (sourceIndex === targetIndex) {
-      console.log("Skipping drop - same position");
-      setDragState(null);
-      setPreviewAnimation(null);
-      setIsDragging(false);
-      return;
-    }
-
-    console.log("Calculated Target Index:", targetIndex);
-    console.log(
-      "Original Items:",
-      items.map((item) => ({ id: item.id, order: item.order }))
-    );
-
-    // Create new array with reordered items
-    const newItems = [...items];
-    const [movedItem] = newItems.splice(sourceIndex, 1);
-    newItems.splice(targetIndex, 0, movedItem);
-
-    // Update orders to ensure they are sequential
-    const updatedItems = newItems.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
-
-    console.log(
-      "Updated Items:",
-      updatedItems.map((item) => ({ id: item.id, order: item.order }))
-    );
-
-    // Update state immediately
-    setItems(updatedItems);
-    setDragState(null);
-    setPreviewAnimation(null);
-    setIsDragging(false);
-
-    // Save the new order to the database
-    try {
-      if (currentUser) {
-        const taskUpdates = updatedItems.filter(isTask) as Task[];
-        const sectionUpdates = updatedItems.filter(isSection) as SectionItem[];
-
-        console.log("Saving to database:", {
-          taskUpdates,
-          sectionUpdates,
-        });
-
-        await Promise.all([
-          taskService.updateTaskOrder(taskUpdates),
-          taskService.updateSectionOrder(sectionUpdates),
-        ]);
-
-        console.log("Database update successful");
-      }
-    } catch (error) {
-      console.error("Error saving item order:", error);
-      // Revert state changes if the database update fails
-      setItems(items);
-    }
-  };
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        sortMenuRef.current &&
-        !sortMenuRef.current.contains(event.target as Node)
+        listContainerRef.current &&
+        !listContainerRef.current.contains(event.target as Node)
       ) {
-        setIsSortMenuOpen(false);
+        setIsCreatingTask(false);
       }
     };
 
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsSortMenuOpen(false);
+        setIsCreatingTask(false);
       }
     };
 
-    if (isSortMenuOpen) {
+    if (isCreatingTask) {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("keydown", handleEscapeKey);
     }
@@ -1128,399 +521,39 @@ export function Dashboard() {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscapeKey);
     };
-  }, [isSortMenuOpen]);
+  }, [isCreatingTask]);
 
-  // Update the handleAddSection function
-  const handleAddSection = async (title: string, time: string) => {
-    if (!currentUser) return;
-
-    try {
-      // Get today's date in user's timezone
-      const today = getTodayInUserTimezone();
-      // Set to noon for better visibility
-      today.setHours(12, 0, 0, 0);
-
-      await taskService.createSection(currentUser.uid, {
-        text: title,
-        time: time,
-        scheduledTime: today.toISOString(),
-      });
-
-      // Reload data to show the new section
-      loadData();
-    } catch (error) {
-      console.error("Error creating section:", error);
-    }
-  };
-
-  // Update the time display in the section item
-  const formatTime = (time: string | undefined) => {
-    if (!time) return "";
-    return time;
-  };
-
-  const handleSectionKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddSection(newSectionTitle, newSectionTime);
-    } else if (e.key === "Escape") {
-      setNewSectionTitle("");
-      setNewSectionTime("");
-    }
-  };
-
-  // Add handleDeleteSection function
-  const handleDeleteSection = async (sectionId: string) => {
-    try {
-      await taskService.deleteSection(sectionId);
-      setItems(
-        items.filter((item) => !isSection(item) || item.id !== sectionId)
-      );
-    } catch (error) {
-      console.error("Error deleting section:", error);
-    }
-  };
-
-  // Add handleEditSection function
-  const handleEditSection = async (
-    sectionId: string,
-    updates: Partial<SectionItem>
-  ) => {
-    try {
-      await taskService.updateSection(sectionId, updates);
-      setItems(
-        items.map((item) =>
-          isSection(item) && item.id === sectionId
-            ? { ...item, ...updates }
-            : item
-        )
-      );
-    } catch (error) {
-      console.error("Error updating section:", error);
-    }
-  };
-
-  // Update the input click handler
-  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    e.stopPropagation();
-    const input = e.currentTarget;
-    // Only focus if not already focused
-    if (document.activeElement !== input) {
-      input.focus();
-    }
-  };
-
-  // Update the section input
-  const renderSection = (item: SectionItem) => (
-    <div
-      className={`p-4 ${
-        item.backgroundColor || "bg-neu-900"
-      } rounded-lg flex items-center justify-between focus:outline-none focus:ring-4 focus:ring-pri-pur-500`}
-      tabIndex={0}
-      onClick={() => setSelectedSection(item)}
-    >
-      <div className="flex-1">
-        <h3 className="text-lg font-inter font-semibold text-neu-300">
-          {item.text}
-        </h3>
-      </div>
-      <div className="mx-4">
-        <h3 className="text-base font-inter font-semibold text-neu-400">
-          {formatTime(item.time)}
-        </h3>
-      </div>
-      <div className="flex items-center space-x-2">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedSection(item);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              e.stopPropagation();
-              setSelectedSection(item);
-            }
-          }}
-          className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg"
-          aria-label={`Edit section "${item.text}"`}
-        >
-          <Pen size={24} color="currentColor" autoSize={false} />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDeleteSection(item.id);
-          }}
-          className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg"
-          aria-label={`Delete section "${item.text}"`}
-        >
-          <TrashBinTrash size={24} color="currentColor" autoSize={false} />
-        </button>
-      </div>
-    </div>
-  );
-
-  // Add new handler for saving tasks
-  const handleSaveTask = async (taskId: string) => {
-    if (!currentUser) return;
+  // Update the moveItem function
+  const moveItem = async (dragIndex: number, hoverIndex: number) => {
+    if (dragIndex === hoverIndex) return;
 
     try {
-      // Get the task from items
-      const task = items.find((item) => item.id === taskId);
-      if (!task || !isTask(task)) return;
+      // Create new array with reordered items
+      const newItems = [...filteredAndSortedItems];
+      const [movedItem] = newItems.splice(dragIndex, 1);
+      newItems.splice(hoverIndex, 0, movedItem);
 
-      // Get all saved tasks first
-      const savedTasks = await taskService.getSavedTasks(currentUser.uid);
+      // Update orders to ensure they are sequential
+      const updatedItems = newItems.map((item, index) => ({
+        ...item,
+        order: index,
+      }));
 
-      // Check if this task is already saved (by matching originalTaskId)
-      const existingSavedTask = savedTasks.find(
-        (savedTask) => savedTask.originalTaskId === taskId
-      );
+      // Update local state immediately for smooth UI
+      setItems(updatedItems);
 
-      if (existingSavedTask) {
-        // If task is already saved, unsave it
-        await taskService.unsaveTask(existingSavedTask.id);
-
-        // Update local state
-        setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === taskId ? { ...item, isSaved: false } : item
-          )
-        );
-
-        toast.success("Task removed from library");
-        return;
+      // Save to database
+      if (currentUser) {
+        await taskService.updateTaskOrder(updatedItems);
       }
-
-      // If task is not saved, save it
-      await taskService.saveTask(taskId);
-
-      // Update local state
-      setItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === taskId ? { ...item, isSaved: true } : item
-        )
-      );
-
-      toast.success("Task saved to library");
     } catch (error) {
-      console.error("Error saving/unsaving task:", error);
-      toast.error("Failed to update task library");
+      console.error("Error saving item order:", error);
+      // Reload items from database on error
+      if (currentUser) {
+        const tasks = await taskService.getUserTasks(currentUser.uid);
+        setItems(tasks);
+      }
     }
-  };
-
-  // Update the renderTask function to include the save button
-  const renderTask = (item: Task) => {
-    const isNextTask =
-      highlightNextTask &&
-      !item.completed &&
-      items.filter((i) => isTask(i) && !i.completed).indexOf(item) === 0;
-
-    const handleTaskClick = (item: Task, e: React.MouseEvent) => {
-      // Don't open modal if clicking on buttons, inputs, or if we're editing
-      if (
-        e.target instanceof HTMLElement &&
-        (e.target.closest("button") ||
-          e.target.closest("input") ||
-          editingTask?.id === item.id)
-      ) {
-        e.stopPropagation();
-        return;
-      }
-
-      // Clear any existing timeout
-      if (clickTimeout) {
-        clearTimeout(clickTimeout);
-        setClickTimeout(null);
-        // If we had a timeout, this is a double click
-        setEditingTask(item);
-        return;
-      }
-
-      // Set a new timeout
-      const timeout = setTimeout(() => {
-        setSelectedTask(item);
-        setClickTimeout(null);
-      }, 200); // 200ms delay to allow for double click
-
-      setClickTimeout(timeout);
-    };
-
-    return (
-      <div
-        key={item.id}
-        data-task-id={item.id}
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setSelectedTask(item);
-          }
-        }}
-        className={`task-item p-4 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 ${
-          item.completed
-            ? "bg-sup-suc-400 bg-opacity-50"
-            : isTask(item) && item.backgroundColor
-            ? item.backgroundColor
-            : "bg-neu-gre-200"
-        } ${
-          isNextTask
-            ? "highlighted-task ring-2 ring-pri-pur-500 ring-opacity-60"
-            : ""
-        } focus:outline-none focus:ring-4 focus:ring-pri-pur-500`}
-        onClick={(e) => handleTaskClick(item, e)}
-      >
-        <div className="flex items-center space-x-4 flex-1">
-          <div className="flex items-center justify-center h-full">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleTaskCompletion(item.id, !item.completed, e);
-              }}
-              className={`transition-all duration-300 flex items-center justify-center ${
-                item.completed
-                  ? "text-neu-100 hover:text-neu-100 scale-95"
-                  : "text-pri-pur-500 hover:text-sup-suc-500 hover:scale-95"
-              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-full p-1`}
-              aria-label={`Mark task "${item.title}" as ${
-                item.completed ? "incomplete" : "complete"
-              }`}
-            >
-              {item.completed ? (
-                <CheckSquare size={32} color="currentColor" autoSize={false} />
-              ) : (
-                <Record
-                  size={32}
-                  color="currentColor"
-                  autoSize={false}
-                  className={isNextTask ? "animate-bounce-subtle" : ""}
-                />
-              )}
-            </button>
-          </div>
-          <div className="flex-1 flex items-center">
-            <div className="flex-1">
-              <h3
-                className={`text-base font-inter font-regular ${
-                  editingTask?.id === item.id
-                    ? ""
-                    : "transition-all duration-300"
-                } ${item.completed ? "text-neu-100 scale-95" : "text-neu-100"}`}
-              >
-                {editingTask?.id === item.id ? (
-                  <input
-                    ref={taskInputRef}
-                    type="text"
-                    value={editingTask.title}
-                    onChange={(e) =>
-                      setEditingTask({
-                        ...editingTask,
-                        title: e.target.value,
-                      })
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleEditTask(item.id, {
-                          title: editingTask.title,
-                        });
-                      } else if (e.key === "Escape") {
-                        setEditingTask(null);
-                      }
-                    }}
-                    onBlur={() => {
-                      handleEditTask(item.id, {
-                        title: editingTask.title,
-                      });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full bg-transparent text-base font-inter font-regular text-neu-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-500"
-                    autoFocus
-                  />
-                ) : (
-                  item.title
-                )}
-              </h3>
-              {item.subtasks && item.subtasks.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {item.subtasks.map((subtask) => (
-                    <div
-                      key={subtask.id}
-                      className="flex items-center space-x-2"
-                    >
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          subtask.completed ? "bg-sup-suc-500" : "bg-neu-500"
-                        }`}
-                      />
-                      <span
-                        className={`font-inter text-sm ${
-                          subtask.completed
-                            ? "line-through text-neu-400"
-                            : "text-neu-400"
-                        }`}
-                      >
-                        {subtask.title}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex items-center space-x-2 ml-4">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSaveTask(item.id);
-                }}
-                className={`p-2 flex items-center justify-center ${
-                  item.isSaved
-                    ? "text-pri-pur-500 hover:text-pri-pur-400"
-                    : "text-neu-400 hover:text-pri-pur-500"
-                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg`}
-                aria-label={`${item.isSaved ? "Unsave" : "Save"} task "${
-                  item.title
-                }"`}
-              >
-                <Bookmark size={24} color="currentColor" autoSize={false} />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedTask(item);
-                }}
-                className={`p-2 flex items-center justify-center ${
-                  item.completed
-                    ? "text-neu-100 hover:text-neu-100"
-                    : "text-neu-400 hover:text-neu-100"
-                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg`}
-                aria-label={`Edit task "${item.title}"`}
-              >
-                <Pen size={24} color="currentColor" autoSize={false} />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteTask(item.id);
-                }}
-                className={`p-2 flex items-center justify-center ${
-                  item.completed
-                    ? "text-neu-100 hover:text-neu-100"
-                    : "text-neu-400 hover:text-red-500"
-                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-pur-500 rounded-lg`}
-                aria-label={`Delete task "${item.title}"`}
-              >
-                <TrashBinTrash
-                  size={24}
-                  color="currentColor"
-                  autoSize={false}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   // Update the globalStyles
@@ -1750,186 +783,6 @@ export function Dashboard() {
     }
   `;
 
-  // Update the moveItem function
-  const moveItem = async (dragIndex: number, hoverIndex: number) => {
-    // Get the actual indices in the original items array
-    const draggedItem = filteredAndSortedItems[dragIndex];
-    const originalDragIndex = items.findIndex(
-      (item) => item.id === draggedItem.id
-    );
-    const targetItem = filteredAndSortedItems[hoverIndex];
-    const originalHoverIndex = items.findIndex(
-      (item) => item.id === targetItem.id
-    );
-
-    // Create new array with reordered items
-    const newItems = [...items];
-    const [movedItem] = newItems.splice(originalDragIndex, 1);
-    newItems.splice(originalHoverIndex, 0, movedItem);
-
-    // Update orders to ensure they are sequential
-    const updatedItems = newItems.map((item, index) => ({
-      ...item,
-      order: index,
-    }));
-
-    setItems(updatedItems);
-
-    // Save to database
-    try {
-      if (currentUser) {
-        const taskUpdates = updatedItems.filter(isTask) as Task[];
-        const sectionUpdates = updatedItems.filter(isSection) as SectionItem[];
-
-        await Promise.all([
-          taskService.updateTaskOrder(taskUpdates),
-          taskService.updateSectionOrder(sectionUpdates),
-        ]);
-      }
-    } catch (error) {
-      console.error("Error saving item order:", error);
-      setItems(items); // Revert on error
-    }
-  };
-
-  // Add handleUpdateSection function
-  const handleUpdateSection = async (
-    sectionId: string,
-    updates: Partial<SectionItem>
-  ) => {
-    try {
-      await taskService.updateSection(sectionId, updates);
-      setItems(
-        items.map((item) =>
-          isSection(item) && item.id === sectionId
-            ? { ...item, ...updates }
-            : item
-        )
-      );
-      // Only close the modal if explicitly requested
-      if (updates.shouldClose) {
-        setSelectedSection(null);
-      }
-    } catch (error) {
-      console.error("Error updating section:", error);
-    }
-  };
-
-  // Add handleClearCompleted function
-  const handleClearCompleted = async () => {
-    const completedTasks = items
-      .filter((item) => isTask(item) && item.completed)
-      .map((item) => item.id);
-
-    const updatedItems = items.filter(
-      (item) => !isTask(item) || !item.completed
-    );
-    setItems(updatedItems);
-
-    try {
-      if (currentUser) {
-        // Delete completed tasks from Firestore
-        await Promise.all(
-          completedTasks.map((taskId) => taskService.deleteTask(taskId))
-        );
-      }
-    } catch (error) {
-      console.error("Error clearing completed tasks:", error);
-      // Revert the state if the update fails
-      setItems(items);
-    }
-  };
-
-  const handleMoveItem = async (item: Task | SectionItem, targetDate: Date) => {
-    if (!currentUser) return;
-
-    try {
-      const targetDateStr = targetDate.toISOString();
-      const targetDateLocal = targetDate.toLocaleString();
-
-      if ("title" in item) {
-        // It's a task
-        await taskService.updateTaskDate(item.id, targetDate);
-      } else {
-        // It's a section
-        await taskService.updateSectionDate(item.id, targetDate);
-      }
-
-      // Refresh data
-      await loadData();
-    } catch (error) {
-      console.error("Error moving item:", error);
-    }
-  };
-
-  const handleTaskComplete = async (taskId: string) => {
-    if (!currentUser) return;
-
-    try {
-      await taskService.toggleTaskCompletion(taskId, true);
-      await loadData();
-    } catch (error) {
-      console.error("Error completing task:", error);
-    }
-  };
-
-  const handleTaskUncomplete = async (taskId: string) => {
-    if (!currentUser) return;
-
-    try {
-      await taskService.toggleTaskCompletion(taskId, false);
-      await loadData();
-    } catch (error) {
-      console.error("Error uncompleting task:", error);
-    }
-  };
-
-  // Add handleTaskSelect function
-  const handleTaskSelect = async (task: Task) => {
-    // If the task is from the task library, add it to the items list
-    if (task.isSaved === false) {
-      try {
-        // First reload the data to ensure we have the latest state
-        await loadData();
-        // Then add the new task to the items list
-        const newTask = { ...task, type: "task" as const };
-        setItems([newTask, ...items]);
-      } catch (error) {
-        console.error("Error handling new task:", error);
-      }
-    } else {
-      setSelectedTask(task);
-    }
-  };
-
-  const handleRemoveTask = async (taskId: string) => {
-    try {
-      // Get the saved task to find its originalTaskId
-      const savedTasks = await taskService.getSavedTasks(
-        currentUser?.uid || ""
-      );
-      const savedTask = savedTasks.find((task) => task.id === taskId);
-
-      if (savedTask?.originalTaskId) {
-        // Update the original task's isSaved state in the UI
-        setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === savedTask.originalTaskId
-              ? { ...item, isSaved: false }
-              : item
-          )
-        );
-      }
-
-      // Just unsave the task, don't delete it
-      await taskService.unsaveTask(taskId);
-      toast.success("Task template removed from library");
-    } catch (error) {
-      console.error("Error removing task from library:", error);
-      toast.error("Failed to remove task from library");
-    }
-  };
-
   // Save timer state whenever it changes
   useEffect(() => {
     if (timeLeft > 0) {
@@ -1986,6 +839,89 @@ export function Dashboard() {
     localStorage.removeItem("pomodoroTimerState");
   };
 
+  const handleClearCompleted = async () => {
+    const completedTasks = items
+      .filter((item) => item.completed)
+      .map((item) => item.id);
+
+    const updatedItems = items.filter((item) => !item.completed);
+    setItems(updatedItems);
+
+    try {
+      if (currentUser) {
+        // Delete completed tasks from Firestore
+        await Promise.all(
+          completedTasks.map((taskId) => taskService.deleteTask(taskId))
+        );
+      }
+    } catch (error) {
+      console.error("Error clearing completed tasks:", error);
+      // Revert the state if the update fails
+      setItems(items);
+    }
+  };
+
+  const handleTaskSelect = async (task: Task) => {
+    setSelectedTask(task);
+  };
+
+  const handleRemoveTask = async (taskId: string) => {
+    try {
+      await taskService.deleteTask(taskId);
+      setItems(items.filter((item) => item.id !== taskId));
+    } catch (error) {
+      console.error("Error removing task:", error);
+    }
+  };
+
+  const handleSaveTask = async (taskId: string) => {
+    if (!currentUser) return;
+
+    try {
+      // Get the task from items
+      const task = items.find((item) => item.id === taskId);
+      if (!task) return;
+
+      // Get all saved tasks first
+      const savedTasks = await taskService.getSavedTasks(currentUser.uid);
+
+      // Check if this task is already saved (by matching originalTaskId)
+      const existingSavedTask = savedTasks.find(
+        (savedTask) => savedTask.originalTaskId === taskId
+      );
+
+      if (existingSavedTask) {
+        // If task is already saved, unsave it
+        await taskService.unsaveTask(existingSavedTask.id);
+
+        // Update local state
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === taskId ? { ...item, isSaved: false } : item
+          )
+        );
+
+        toast.success("Task removed from library");
+        return;
+      }
+
+      // If task is not saved, save it
+      await taskService.saveTask(taskId);
+
+      // Update local state
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === taskId ? { ...item, isSaved: true } : item
+        )
+      );
+
+      toast.success("Task saved to library");
+    } catch (error) {
+      console.error("Error saving/unsaving task:", error);
+      toast.error("Failed to update task library");
+    }
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
@@ -2001,44 +937,27 @@ export function Dashboard() {
       />
       <PageTransition>
         <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800">
-          <div className="p-4 sm:p-16 lg:p-16">
-            <div className="max-w-4xl mx-auto space-y-2 sm:space-y-4 lg:space-y-2 pb-32 sm:pb-48 lg:pb-96">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="py-8">
               <DashboardHeader
-                dayOfWeek={dayOfWeek}
                 currentDate={currentDate}
+                dayOfWeek={dayOfWeek}
                 temperature={temperature}
-                weatherCondition={weatherCondition}
-                onAddTask={handleAddTask}
-                onAddSection={handleAddSection}
-                onTimerClick={() => setIsTimerVisible(true)}
-                isTimerActive={timeLeft > 0}
+                getWeatherIcon={getWeatherIcon}
+                isTimerVisible={isTimerVisible}
+                setIsTimerVisible={setIsTimerVisible}
                 timeLeft={timeLeft}
                 isTimerRunning={isTimerRunning}
+                selectedInterval={selectedInterval}
+                onTimerStart={handleTimerStart}
                 onTimerPauseResume={handleTimerPauseResume}
                 onTimerCancel={handleTimerCancel}
               />
-
-              <AnimatePresence mode="wait">
-                {isTimerVisible && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                  >
-                    <PomodoroTimer
-                      onClose={() => setIsTimerVisible(false)}
-                      onTimerStart={handleTimerStart}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-16 pr-0 sm:pr-8 lg:pr-16 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300">
+              <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-0 pr-0 sm:pr-8 lg:pr-0 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300 bg-neu-whi-100 dark:bg-transparent">
                 <TaskProgress
                   completionPercentage={completionPercentage}
-                  completedPosition={completedPosition}
-                  onCompletedPositionChange={setCompletedPosition}
+                  completedPosition="mixed"
+                  onCompletedPositionChange={() => {}}
                   onClearCompleted={handleClearCompleted}
                   onTaskSelect={handleTaskSelect}
                   onRemoveTask={handleRemoveTask}
@@ -2058,10 +977,7 @@ export function Dashboard() {
                     onTaskEdit={setEditingTask}
                     onTaskDelete={handleDeleteTask}
                     onTaskSave={handleSaveTask}
-                    onSectionSelect={setSelectedSection}
-                    onSectionDelete={handleDeleteSection}
                     onMoveItem={moveItem}
-                    isTask={isTask}
                   />
                 </div>
               </div>
@@ -2080,19 +996,6 @@ export function Dashboard() {
           }}
           onUpdate={handleEditTask}
           onDelete={handleDeleteTask}
-        />
-      )}
-      {selectedSection && (
-        <SectionModal
-          section={selectedSection}
-          isOpen={!!selectedSection}
-          onClose={(section) => {
-            if (section.shouldClose) {
-              setSelectedSection(null);
-            }
-          }}
-          onUpdate={handleEditSection}
-          onDelete={handleDeleteSection}
         />
       )}
     </DndProvider>

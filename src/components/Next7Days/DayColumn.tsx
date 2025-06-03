@@ -34,20 +34,17 @@ type DragItem = {
   type: string;
   index: number;
   dayIndex: number;
-  item: Task | SectionItem;
+  item: Task;
 };
 
 const DraggableItem = ({
   item,
   index,
   moveItem,
-  isTaskItem,
   renderTask,
-  renderSection,
-  isTask,
   dayIndex,
 }: {
-  item: Task | SectionItem;
+  item: Task;
   index: number;
   moveItem: (
     dragIndex: number,
@@ -55,16 +52,13 @@ const DraggableItem = ({
     sourceDay: number,
     targetDay: number
   ) => void;
-  isTaskItem: boolean;
   renderTask: (task: Task, dayIndex: number) => JSX.Element;
-  renderSection: (section: SectionItem) => JSX.Element;
-  isTask: (item: Task | SectionItem) => item is Task;
   dayIndex: number;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [{ isDragging }, drag] = useDrag({
     type: "ITEM",
-    item: { id: item.id, type: item.type, index, dayIndex, item },
+    item: { id: item.id, type: "task", index, dayIndex, item },
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -81,28 +75,14 @@ const DraggableItem = ({
     }
   >({
     accept: "ITEM",
-    collect: (monitor: DropTargetMonitor) => {
-      const isOver = monitor.isOver();
-      const canDrop = monitor.canDrop();
-      const clientOffset = monitor.getClientOffset();
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
-
-      let dropPosition: "before" | "after" | null = null;
-      if (isOver && hoverBoundingRect && clientOffset) {
-        const hoverMiddleY =
-          (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-        dropPosition = hoverClientY < hoverMiddleY ? "before" : "after";
+    hover(item: DragItem, monitor: DropTargetMonitor) {
+      if (!ref.current) {
+        return;
       }
 
-      return { isOver, canDrop, dropPosition };
-    },
-    hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
-      if (!ref.current) return;
-
-      const dragIndex = draggedItem.index;
+      const dragIndex = item.index;
       const hoverIndex = index;
-      const sourceDay = draggedItem.dayIndex;
+      const sourceDay = item.dayIndex;
       const targetDay = dayIndex;
 
       // Don't replace items with themselves
@@ -134,9 +114,20 @@ const DraggableItem = ({
       moveItem(dragIndex, hoverIndex, sourceDay, targetDay);
 
       // Update the dragged item's index and day
-      draggedItem.index = hoverIndex;
-      draggedItem.dayIndex = targetDay;
+      item.index = hoverIndex;
+      item.dayIndex = targetDay;
     },
+    collect: (monitor: DropTargetMonitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+      dropPosition: monitor.isOver()
+        ? monitor.getClientOffset()!.y <
+          (ref.current?.getBoundingClientRect().top || 0) +
+            (ref.current?.getBoundingClientRect().height || 0) / 2
+          ? "before"
+          : "after"
+        : null,
+    }),
   });
 
   // Combine drag and drop refs
@@ -180,14 +171,12 @@ const DraggableItem = ({
       className={`transition-all duration-200 ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
       } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
+      role="button"
+      tabIndex={0}
       aria-grabbed={isDragging}
       aria-dropeffect="move"
     >
-      {item.type === "section"
-        ? renderSection(item as SectionItem)
-        : isTaskItem
-        ? renderTask(item as Task, dayIndex)
-        : null}
+      {renderTask(item, dayIndex)}
     </div>
   );
 };
@@ -373,31 +362,31 @@ export const DayColumn = ({
             ) : day.items.length === 0 ? (
               <EmptyDayDropZone dayIndex={dayIndex} moveItem={moveItem} />
             ) : (
-              sortItems(day.items).map((item, index) => {
-                const isTaskItem = isTask(item);
-                const isHiding = hidingItems.has(item.id);
+              sortItems(day.items)
+                .filter((item): item is Task => item.type === "task")
+                .map((item, index) => {
+                  const isHiding = hidingItems.has(item.id);
 
-                return (
-                  <div
-                    key={item.id}
-                    className={`relative task-item transition-all duration-300 ${
-                      isHiding ? "opacity-0 scale-95" : "opacity-100 scale-100"
-                    }`}
-                    role="listitem"
-                  >
-                    <DraggableItem
-                      item={item}
-                      index={index}
-                      moveItem={moveItem}
-                      isTaskItem={isTaskItem}
-                      renderTask={renderTask}
-                      renderSection={renderSection}
-                      isTask={isTask}
-                      dayIndex={dayIndex}
-                    />
-                  </div>
-                );
-              })
+                  return (
+                    <div
+                      key={item.id}
+                      className={`relative task-item transition-all duration-300 ${
+                        isHiding
+                          ? "opacity-0 scale-95"
+                          : "opacity-100 scale-100"
+                      }`}
+                      role="listitem"
+                    >
+                      <DraggableItem
+                        item={item}
+                        index={index}
+                        moveItem={moveItem}
+                        renderTask={renderTask}
+                        dayIndex={dayIndex}
+                      />
+                    </div>
+                  );
+                })
             )}
           </div>
         </div>

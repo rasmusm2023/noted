@@ -3,6 +3,7 @@ import { MotivationalQuote } from "../Greeting/MotivationalQuote";
 import { TimerButton } from "../Buttons/TimerButton";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { TimeInterval } from "../Pomodoro/PomodoroTimer";
 
 // Import weather icons
 import sunIcon from "../../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -18,15 +19,15 @@ interface DashboardHeaderProps {
   dayOfWeek: string;
   currentDate: string;
   temperature: number | null;
-  weatherCondition: string | null;
-  onAddTask: (title: string, description: string) => void;
-  onAddSection: (title: string, time: string) => void;
-  onTimerClick: () => void;
-  isTimerActive: boolean;
-  timeLeft?: number;
-  isTimerRunning?: boolean;
-  onTimerPauseResume?: () => void;
-  onTimerCancel?: () => void;
+  getWeatherIcon: (condition: string | null) => JSX.Element | null;
+  isTimerVisible: boolean;
+  setIsTimerVisible: (visible: boolean) => void;
+  timeLeft: number;
+  isTimerRunning: boolean;
+  selectedInterval: TimeInterval;
+  onTimerStart: (interval: TimeInterval) => void;
+  onTimerPauseResume: () => void;
+  onTimerCancel: () => void;
 }
 
 const getWeatherIcon = (condition: string | null) => {
@@ -60,13 +61,13 @@ export const DashboardHeader = ({
   dayOfWeek,
   currentDate,
   temperature,
-  weatherCondition,
-  onAddTask,
-  onAddSection,
-  onTimerClick,
-  isTimerActive,
+  getWeatherIcon,
+  isTimerVisible,
+  setIsTimerVisible,
   timeLeft,
   isTimerRunning,
+  selectedInterval,
+  onTimerStart,
   onTimerPauseResume,
   onTimerCancel,
 }: DashboardHeaderProps) => {
@@ -98,8 +99,8 @@ export const DashboardHeader = ({
               </div>
               <div className="hidden lg:block mt-4">
                 <TimerButton
-                  onClick={onTimerClick}
-                  isActive={isTimerActive}
+                  onClick={() => onTimerStart(selectedInterval)}
+                  isActive={isTimerVisible}
                   timeLeft={timeLeft}
                   isRunning={isTimerRunning}
                   onPauseResume={onTimerPauseResume}
@@ -158,7 +159,7 @@ export const DashboardHeader = ({
                       transition={{ duration: 0.3, delay: 0.8 }}
                       className="w-4 h-4 sm:w-6 sm:h-6 -mt-4 sm:-mt-3.5 lg:mt-0"
                     >
-                      {getWeatherIcon(weatherCondition)}
+                      {getWeatherIcon(null)}
                     </motion.div>
                     <motion.span
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -224,7 +225,7 @@ export const DashboardHeader = ({
                   transition={{ duration: 0.3, delay: 0.8 }}
                   className="w-6 h-6 sm:w-8 sm:h-8"
                 >
-                  {getWeatherIcon(weatherCondition)}
+                  {getWeatherIcon(null)}
                 </motion.div>
                 <motion.span
                   initial={{ opacity: 0, scale: 0.8 }}
