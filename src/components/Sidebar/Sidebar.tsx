@@ -426,14 +426,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           border-r border-neu-gre-300 dark:border-neu-gre-700
           transform lg:transform-none
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-          overflow-hidden`}
+          overflow-visible`}
         role="navigation"
         aria-label="Main navigation"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col overflow-hidden">
           {/* Logo and Toggle */}
           <div className="p-4 flex items-center justify-between border-b border-neu-gre-300 dark:border-neu-gre-700">
             {isOpen ? (
@@ -826,6 +826,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 <button
                   ref={settingsButtonRef}
                   onClick={() => {
+                    if (!isOpen) {
+                      onToggle();
+                    }
                     setIsSettingsMenuOpen(!isSettingsMenuOpen);
                     if (!isSettingsMenuOpen) {
                       setIsHighlightSubmenuOpen(false);
@@ -854,12 +857,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 {isSettingsMenuOpen && (
                   <div
                     className={`absolute ${
-                      isOpen
-                        ? "bottom-full left-0 mb-2"
-                        : "bottom-0 left-full ml-2"
-                    } ${
-                      isOpen ? "w-full" : "w-72"
-                    } bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[99999]`}
+                      isOpen ? "left-0" : "left-[6rem]"
+                    } bottom-[5rem] w-[16rem] bg-neu-whi-100 dark:bg-neu-bla-800 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[99999]`}
                     role="menu"
                     aria-orientation="vertical"
                     aria-labelledby="settings-menu-button"
@@ -869,211 +868,93 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         ref={darkModeButtonRef}
                         onClick={() => {
                           toggleTheme();
-                          setIsSettingsMenuOpen(false);
                         }}
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-bla-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
                         role="menuitem"
                         aria-label={
-                          theme === "dark"
-                            ? "Switch to light mode"
-                            : "Switch to dark mode"
+                          theme === "light"
+                            ? "Switch to dark mode"
+                            : "Switch to light mode"
                         }
                       >
-                        {theme === "dark" ? (
-                          <>
-                            <Icon
-                              icon="mingcute:sun-fill"
-                              width={16}
-                              height={16}
-                              className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
-                              aria-hidden="true"
-                            />
-                            <span>Light Mode</span>
-                          </>
-                        ) : (
-                          <>
-                            <Icon
-                              icon="mingcute:moon-fill"
-                              width={16}
-                              height={16}
-                              className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
-                              aria-hidden="true"
-                            />
-                            <span>Dark Mode</span>
-                          </>
-                        )}
+                        <Icon
+                          icon="mingcute:sun-fill"
+                          width={16}
+                          height={16}
+                          className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
+                          aria-hidden="true"
+                        />
+                        <span className="flex justify-between items-center w-full">
+                          {theme === "light" ? (
+                            <>
+                              Light Mode
+                              <span className="px-2 py-0.5 rounded-md bg-sup-sys-100 dark:bg-sup-sys-900/50 text-sup-sys-500 dark:text-sup-sys-400 font-semibold truncate">
+                                ON
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              Dark Mode
+                              <span className="px-2 py-0.5 rounded-md bg-sup-sys-100 dark:bg-sup-sys-900/50 text-sup-sys-500 dark:text-sup-sys-400 font-semibold truncate">
+                                ON
+                              </span>
+                            </>
+                          )}
+                        </span>
                       </button>
 
                       {/* Highlight Next Task Option */}
-                      <div className="relative group">
-                        <button
-                          ref={highlightNextTaskButtonRef}
-                          onClick={() => {
-                            setIsHighlightSubmenuOpen(!isHighlightSubmenuOpen);
-                            setIsLanguageSubmenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md`}
-                          role="menuitem"
-                          aria-expanded={isHighlightSubmenuOpen}
-                          aria-haspopup="true"
-                          aria-label="Highlight next task options"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <Icon
-                              icon="mingcute:fullscreen-fill"
-                              width={16}
-                              height={16}
-                              aria-hidden="true"
-                            />
-                            <span>Highlight next task</span>
-                          </div>
-                          <AltArrowRight
-                            size={15}
-                            color="currentColor"
-                            aria-hidden="true"
-                          />
-                        </button>
-
-                        {/* Submenu */}
-                        <div
-                          className={`absolute ${
-                            isOpen
-                              ? "left-full top-0 ml-1"
-                              : "left-full -top-12 ml-1"
-                          } w-24 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[99999] ${
-                            isHighlightSubmenuOpen ? "block" : "hidden"
-                          }`}
-                          role="menu"
-                          aria-label="Highlight next task options"
-                        >
-                          <button
-                            ref={highlightYesButtonRef}
-                            onClick={() => {
-                              handleHighlightNextTask(true);
-                              setIsSettingsMenuOpen(false);
-                            }}
-                            className={`w-full flex items-center px-2 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
+                      <button
+                        ref={highlightNextTaskButtonRef}
+                        onClick={() => {
+                          handleHighlightNextTask(!highlightNextTask);
+                        }}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-bla-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
+                        role="menuitem"
+                        aria-label="Toggle highlight next task"
+                      >
+                        <Icon
+                          icon="mingcute:fullscreen-fill"
+                          width={16}
+                          height={16}
+                          aria-hidden="true"
+                        />
+                        <span className="flex justify-between items-center w-full">
+                          Highlight next task
+                          <span
+                            className={`px-2 py-0.5 rounded-md font-semibold truncate ${
                               highlightNextTask
-                                ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                                : ""
+                                ? "bg-sup-sys-100 dark:bg-sup-sys-900/50 text-sup-sys-500 dark:text-sup-sys-400"
+                                : "bg-neu-gre-100 dark:bg-neu-gre-800/50 text-neu-gre-500 dark:text-neu-gre-400"
                             }`}
-                            role="menuitem"
-                            aria-label="Enable highlight next task"
-                            aria-pressed={highlightNextTask}
                           >
-                            <span>Yes</span>
-                            {highlightNextTask && (
-                              <Unread
-                                size={16}
-                                color="currentColor"
-                                className="ml-1"
-                                aria-hidden="true"
-                              />
-                            )}
-                          </button>
-                          <button
-                            ref={highlightNoButtonRef}
-                            onClick={() => {
-                              handleHighlightNextTask(false);
-                              setIsSettingsMenuOpen(false);
-                            }}
-                            className={`w-full flex items-center px-2 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md ${
-                              !highlightNextTask
-                                ? "bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50"
-                                : ""
-                            }`}
-                            role="menuitem"
-                            aria-label="Disable highlight next task"
-                            aria-pressed={!highlightNextTask}
-                          >
-                            <span>No</span>
-                            {!highlightNextTask && (
-                              <Unread
-                                size={16}
-                                color="currentColor"
-                                className="ml-1"
-                                aria-hidden="true"
-                              />
-                            )}
-                          </button>
-                        </div>
-                      </div>
+                            {highlightNextTask ? "ON" : "OFF"}
+                          </span>
+                        </span>
+                      </button>
 
                       {/* Language Option */}
-                      <div className="relative group">
-                        <button
-                          onClick={() => {
-                            setIsLanguageSubmenuOpen(!isLanguageSubmenuOpen);
-                            setIsHighlightSubmenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md`}
-                          role="menuitem"
-                          aria-expanded={isLanguageSubmenuOpen}
-                          aria-haspopup="true"
-                          aria-label="Language options"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <Icon
-                              icon="mingcute:translate-2-fill"
-                              width={16}
-                              height={16}
-                              aria-hidden="true"
-                            />
-                            <span>Language</span>
-                          </div>
-                          <AltArrowRight
-                            size={15}
-                            color="currentColor"
-                            aria-hidden="true"
-                          />
-                        </button>
-
-                        {/* Language Submenu */}
-                        <div
-                          className={`absolute ${
-                            isOpen
-                              ? "left-full top-0 ml-1"
-                              : "left-full -top-12 ml-1"
-                          } w-24 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg border border-neu-gre-200 dark:border-neu-gre-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 z-[99999] ${
-                            isLanguageSubmenuOpen ? "block" : "hidden"
-                          }`}
-                          role="menu"
-                          aria-label="Language options"
-                        >
-                          <button
-                            ref={languageEnglishButtonRef}
-                            onClick={() => {
-                              // Placeholder for language change
-                              setIsSettingsMenuOpen(false);
-                            }}
-                            className={`w-full flex items-center px-2 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md bg-neu-gre-200 dark:bg-neu-gre-600 text-neu-gre-900 dark:text-neu-gre-50`}
-                            role="menuitem"
-                            aria-label="Select English language"
-                            aria-pressed={true}
-                          >
-                            <span>English</span>
-                            <Unread
-                              size={16}
-                              color="currentColor"
-                              className="ml-1"
-                              aria-hidden="true"
-                            />
-                          </button>
-                          <button
-                            ref={languageSwedishButtonRef}
-                            onClick={() => {
-                              // Placeholder for language change
-                              setIsSettingsMenuOpen(false);
-                            }}
-                            className={`w-full flex items-center px-2 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md`}
-                            role="menuitem"
-                            aria-label="Select Swedish language"
-                            aria-pressed={false}
-                          >
-                            <span>Swedish</span>
-                          </button>
-                        </div>
-                      </div>
+                      <button
+                        onClick={() => {
+                          // Placeholder for language change
+                        }}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-bla-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
+                        role="menuitem"
+                        aria-label="Toggle language"
+                      >
+                        <Icon
+                          icon="mingcute:translate-2-fill"
+                          width={16}
+                          height={16}
+                          aria-hidden="true"
+                        />
+                        <span className="flex justify-between items-center w-full">
+                          Language
+                          <span className="px-2 py-0.5 rounded-md bg-neu-gre-100 dark:bg-neu-gre-800/50 text-neu-gre-500 dark:text-neu-gre-400 font-semibold truncate">
+                            English
+                          </span>
+                        </span>
+                      </button>
 
                       {/* Divider */}
                       <div
@@ -1086,9 +967,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         ref={logoutButtonRef}
                         onClick={() => {
                           logout();
-                          setIsSettingsMenuOpen(false);
                         }}
-                        className={`w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md`}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-bla-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
                         role="menuitem"
                         aria-label="Logout"
                       >
