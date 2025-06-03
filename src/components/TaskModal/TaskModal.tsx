@@ -70,18 +70,6 @@ const TASK_COLORS = [
   },
 ];
 
-// Add these keyframes at the top of the file, after the imports
-const fadeOut = {
-  opacity: 0,
-  transition: "opacity 200ms ease-out",
-};
-
-const scaleOut = {
-  transform: "scale(0.95)",
-  opacity: 0,
-  transition: "transform 200ms ease-out, opacity 200ms ease-out",
-};
-
 export function TaskModal({
   task,
   isOpen,

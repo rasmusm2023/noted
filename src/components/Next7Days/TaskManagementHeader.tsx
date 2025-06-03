@@ -1,4 +1,3 @@
-import { Icon } from "@iconify/react";
 import { ClearCompletedButton } from "../Buttons/ClearCompletedButton";
 
 interface TaskManagementHeaderProps {

@@ -220,7 +220,7 @@ export const TaskLibraryButton = ({
             className={`fixed lg:absolute ${
               variant === "next7days"
                 ? "right-0 lg:left-0"
-                : "left-0 right-0 mx-auto lg:left-0 lg:right-auto lg:mx-0"
+                : "left-0 right-0 mx-auto lg:left-1/2 lg:-translate-x-1/2"
             } mt-2 ${
               variant === "next7days"
                 ? "w-[320px]"

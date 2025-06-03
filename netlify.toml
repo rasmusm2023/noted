@@ -1,0 +1,11 @@
+[build]
+  command = "tsc -b --noEmit false && vite build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 

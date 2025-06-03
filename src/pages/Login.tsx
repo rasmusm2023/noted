@@ -94,17 +94,12 @@ export function Login() {
       setLoading(true);
 
       if (isLogin) {
-        const userCredential = await login(email, password);
+        await login(email, password);
         isNavigating.current = true;
         const from = location.state?.from?.pathname || "/";
         navigate(from, { replace: true });
       } else {
-        const userCredential = await signup(
-          email,
-          password,
-          firstName.trim(),
-          lastName.trim()
-        );
+        await signup(email, password, firstName.trim(), lastName.trim());
         isNavigating.current = true;
         navigate("/", { replace: true });
       }

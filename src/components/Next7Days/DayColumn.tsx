@@ -1,7 +1,7 @@
-import { useRef } from "react";
+import React, { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
-import type { Task, SectionItem } from "../../types/task";
+import type { Task } from "../../types/task";
 import { TaskCreationInput } from "./TaskCreationInput";
 import { TaskLibraryButton } from "../Buttons/TaskLibraryButton";
 import { Icon } from "@iconify/react";
@@ -10,23 +10,20 @@ interface DayColumnProps {
   day: {
     id: string;
     date: Date;
-    items: (Task | SectionItem)[];
+    items: Task[];
   };
   dayIndex: number;
   isLoading: boolean;
   hidingItems: Set<string>;
   onAddTask: (dayIndex: number, title: string, task?: Task) => void;
-  onSectionAdded: () => void;
   moveItem: (
     dragIndex: number,
     hoverIndex: number,
     sourceDay: number,
     targetDay: number
   ) => void;
-  renderTask: (task: Task, dayIndex: number) => JSX.Element;
-  renderSection: (section: SectionItem) => JSX.Element;
-  isTask: (item: Task | SectionItem) => item is Task;
-  sortItems: (items: (Task | SectionItem)[]) => (Task | SectionItem)[];
+  renderTask: (task: Task, dayIndex: number) => React.ReactElement;
+  sortItems: (items: Task[]) => Task[];
 }
 
 type DragItem = {
@@ -52,7 +49,7 @@ const DraggableItem = ({
     sourceDay: number,
     targetDay: number
   ) => void;
-  renderTask: (task: Task, dayIndex: number) => JSX.Element;
+  renderTask: (task: Task, dayIndex: number) => React.ReactElement;
   dayIndex: number;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -236,23 +233,12 @@ export const DayColumn = ({
   isLoading,
   hidingItems,
   onAddTask,
-  onSectionAdded,
   moveItem,
   renderTask,
-  renderSection,
-  isTask,
   sortItems,
 }: DayColumnProps) => {
   const isToday = dayIndex === 0;
   const isTomorrow = dayIndex === 1;
-
-  const handleTaskSelect = (task: Task) => {
-    onAddTask(dayIndex, task.title, task);
-  };
-
-  const handleRemoveTask = async (taskId: string) => {
-    // This will be handled by the TaskLibraryButton component
-  };
 
   return (
     <div
@@ -320,7 +306,7 @@ export const DayColumn = ({
             </div>
             <TaskLibraryButton
               onTaskSelect={(task) => onAddTask(dayIndex, task.title, task)}
-              onRemoveTask={async (taskId) => {
+              onRemoveTask={async () => {
                 // Handle task removal if needed
               }}
               variant="next7days"
@@ -364,31 +350,27 @@ export const DayColumn = ({
             ) : day.items.length === 0 ? (
               <EmptyDayDropZone dayIndex={dayIndex} moveItem={moveItem} />
             ) : (
-              sortItems(day.items)
-                .filter((item): item is Task => item.type === "task")
-                .map((item, index) => {
-                  const isHiding = hidingItems.has(item.id);
+              sortItems(day.items).map((item, index) => {
+                const isHiding = hidingItems.has(item.id);
 
-                  return (
-                    <div
-                      key={item.id}
-                      className={`relative task-item transition-all duration-300 ${
-                        isHiding
-                          ? "opacity-0 scale-95"
-                          : "opacity-100 scale-100"
-                      }`}
-                      role="listitem"
-                    >
-                      <DraggableItem
-                        item={item}
-                        index={index}
-                        moveItem={moveItem}
-                        renderTask={renderTask}
-                        dayIndex={dayIndex}
-                      />
-                    </div>
-                  );
-                })
+                return (
+                  <div
+                    key={item.id}
+                    className={`relative task-item transition-all duration-300 ${
+                      isHiding ? "opacity-0 scale-95" : "opacity-100 scale-100"
+                    }`}
+                    role="listitem"
+                  >
+                    <DraggableItem
+                      item={item}
+                      index={index}
+                      moveItem={moveItem}
+                      renderTask={renderTask}
+                      dayIndex={dayIndex}
+                    />
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

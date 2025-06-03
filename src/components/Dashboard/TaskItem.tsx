@@ -64,14 +64,7 @@ export const TaskItem = ({
         }
       }}
       onFocus={(e) => {
-        console.log("Focused element:", {
-          element: e.target,
-          className: e.target.className,
-          id: e.target.id,
-          tagName: e.target.tagName,
-          role: e.target.getAttribute("role"),
-          tabIndex: e.target.getAttribute("tabIndex"),
-        });
+        // Focus handling logic if needed
       }}
       className={taskItemClasses}
       onClick={() => onSelect(task)}

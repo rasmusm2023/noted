@@ -1,59 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
-import type { Task, SectionItem as SectionItemType } from "../types/task";
-import type { BatchOperation } from "../services/taskService";
+import type { Task } from "../types/task";
 import { Icon } from "@iconify/react";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
-import { SectionModal } from "../components/SectionModal/SectionModal";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
+import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { StatsModal } from "../components/Next7Days/StatsModal";
 import { TaskManagementHeader } from "../components/Next7Days/TaskManagementHeader";
 import { DayColumn } from "../components/Next7Days/DayColumn";
 import { TaskItem } from "../components/Next7Days/TaskItem";
-import { SectionItem as SectionItemComponent } from "../components/Next7Days/SectionItem";
 import { toast } from "react-hot-toast";
 import { ClearCompletedButton } from "../components/Buttons/ClearCompletedButton";
-
-type ListItem = Task | SectionItemType;
 
 type DayData = {
   id: string;
   date: Date;
-  items: ListItem[];
-};
-
-type DragState = {
-  item: ListItem;
-  sourceIndex: number;
-  currentIndex: number;
-  position: "before" | "after";
-  isDraggingOverCompleted?: boolean;
-  originalOrder: number;
-};
-
-type DragItem = {
-  id: string;
-  type: string;
-  index: number;
-  dayIndex: number;
-  item: ListItem;
-};
-
-// Add debounce utility at the top of the file
-const debounce = (func: Function, wait: number) => {
-  let timeout: NodeJS.Timeout;
-  return function executedFunction(...args: any[]) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
+  items: Task[];
 };
 
 // Add cache types
@@ -64,23 +28,10 @@ type Cache<T> = {
 
 // Add offline queue type
 type QueuedOperation = {
-  type: "task" | "section";
   operation: "create" | "update" | "delete";
   data: any;
   timestamp: number;
-};
-
-// Add stats types
-type FirestoreStats = {
-  uptime: string;
-  totalOperations: number;
-  dailyStats: {
-    reads: number;
-    writes: number;
-    lastReset: number;
-  };
-  operationsByType: Record<string, number>;
-  operationsByCollection: Record<string, number>;
+  type: "task"; // Add type field
 };
 
 export function Next7Days() {
@@ -88,37 +39,13 @@ export function Next7Days() {
   const [days, setDays] = useState<DayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [selectedSection, setSelectedSection] =
-    useState<SectionItemType | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [editingTitle, setEditingTitle] = useState<string | null>(null);
-  const [editingTime, setEditingTime] = useState<string | null>(null);
-  const [isCreatingTask, setIsCreatingTask] = useState(false);
-  const [isCreatingTimestamp, setIsCreatingTimestamp] = useState(false);
-  const [newTaskInputs, setNewTaskInputs] = useState<{
-    [key: number]: { title: string; description: string };
-  }>({});
-  const [selectedDay, setSelectedDay] = useState<number>(0);
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
-  const [completedPosition, setCompletedPosition] = useState<
-    "top" | "bottom" | "mixed"
-  >(() => {
+  const [completedPosition] = useState<"top" | "bottom" | "mixed">(() => {
     const savedPosition = localStorage.getItem("completedPosition");
     return (savedPosition as "top" | "bottom" | "mixed") || "mixed";
   });
-  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
-  const [editingSection, setEditingSection] = useState<SectionItemType | null>(
-    null
-  );
-  const [sortOption, setSortOption] = useState<
-    "custom" | "time" | "alphabetical"
-  >("custom");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
-  const [focusedInput, setFocusedInput] = useState<"task" | "section" | null>(
-    null
-  );
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const [highlightNextTask, setHighlightNextTask] = useState(() => {
     const savedState = localStorage.getItem("highlightNextTask");
@@ -126,16 +53,8 @@ export function Next7Days() {
   });
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
-  const sortMenuRef = useRef<HTMLDivElement>(null);
-  const taskInputRef = useRef<HTMLInputElement>(null);
-  const sectionInputRef = useRef<HTMLInputElement>(null);
-
   // Add caches
   const [taskCache, setTaskCache] = useState<Cache<Task>>({
-    data: new Map(),
-    lastUpdated: 0,
-  });
-  const [sectionCache, setSectionCache] = useState<Cache<SectionItemType>>({
     data: new Map(),
     lastUpdated: 0,
   });
@@ -151,7 +70,7 @@ export function Next7Days() {
   const [pendingUpdates, setPendingUpdates] = useState<{
     sourceDay: number;
     targetDay: number;
-    items: ListItem[];
+    items: Task[];
   } | null>(null);
 
   const daysContainerRef = useRef<HTMLDivElement>(null);
@@ -234,18 +153,8 @@ export function Next7Days() {
     }));
   };
 
-  const updateSectionCache = (section: SectionItemType) => {
-    setSectionCache((prev) => ({
-      data: new Map(prev.data).set(section.id, section),
-      lastUpdated: Date.now(),
-    }));
-  };
-
-  const getFromCache = (id: string, type: "task" | "section") => {
-    if (type === "task") {
-      return taskCache.data.get(id);
-    }
-    return sectionCache.data.get(id);
+  const getFromCache = (id: string, type: "task") => {
+    return taskCache.data.get(id);
   };
 
   // Add offline queue processing
@@ -267,21 +176,6 @@ export function Next7Days() {
               break;
             case "delete":
               await taskService.deleteTask(operation.data.id);
-              break;
-          }
-        } else {
-          switch (operation.operation) {
-            case "create":
-              await taskService.createSection(currentUser.uid, operation.data);
-              break;
-            case "update":
-              await taskService.updateSection(
-                operation.data.id,
-                operation.data
-              );
-              break;
-            case "delete":
-              await taskService.deleteSection(operation.data.id);
               break;
           }
         }
@@ -326,7 +220,6 @@ export function Next7Days() {
     try {
       setIsLoading(true);
       const tasks = await taskService.getUserTasks(currentUser.uid);
-      const sections = await taskService.getUserSections(currentUser.uid);
 
       // Group tasks by day
       const tasksByDay = tasks.reduce(
@@ -370,57 +263,12 @@ export function Next7Days() {
         {}
       );
 
-      // Distribute sections across days based on their date
-      const sectionsByDay: Record<number, SectionItemType[]> = {};
-
-      sections.forEach((section) => {
-        // Parse the date from the section's scheduledTime field
-        const sectionDate = parseDateString(
-          section.scheduledTime || section.createdAt
-        );
-
-        // Find the corresponding day index
-        const dayIndex = days.findIndex((day) => {
-          const dayDate = new Date(day.date);
-          dayDate.setHours(0, 0, 0, 0);
-          const sectionDateCopy = new Date(sectionDate);
-          sectionDateCopy.setHours(0, 0, 0, 0);
-
-          // Compare dates using time values to avoid timezone issues
-          const dayTime = dayDate.getTime();
-          const sectionTime = sectionDateCopy.getTime();
-          return dayTime === sectionTime;
-        });
-
-        if (dayIndex !== -1) {
-          if (!sectionsByDay[dayIndex]) {
-            sectionsByDay[dayIndex] = [];
-          }
-
-          // Ensure section has all required properties
-          const sectionWithType: SectionItemType = {
-            ...section,
-            type: "section" as const,
-            userId: section.userId,
-            createdAt: section.createdAt,
-            updatedAt: section.updatedAt,
-            order: section.order || 0,
-            scheduledTime: section.scheduledTime || section.createdAt, // Ensure scheduledTime is set
-          };
-
-          sectionsByDay[dayIndex].push(sectionWithType);
-        }
-      });
-
-      // Update days with tasks and sections
+      // Update days with tasks
       setDays((prevDays) => {
         const newDays = prevDays.map((day, index) => {
           const updatedDay = {
             ...day,
-            items: [
-              ...(sectionsByDay[index] || []),
-              ...(tasksByDay[index] || []),
-            ],
+            items: [...(tasksByDay[index] || [])],
           };
           return updatedDay;
         });
@@ -501,15 +349,11 @@ export function Next7Days() {
     return date;
   };
 
-  const isTask = (item: ListItem): item is Task => {
+  const isTask = (item: Task): item is Task => {
     return item.type === "task";
   };
 
-  const isSection = (item: ListItem): item is SectionItemType => {
-    return item.type === "section";
-  };
-
-  const sortItems = (items: ListItem[]) => {
+  const sortItems = (items: Task[]) => {
     return items.sort((a, b) => {
       // If both items have order, use that for custom sorting
       if (a.order !== undefined && b.order !== undefined) {
@@ -517,15 +361,12 @@ export function Next7Days() {
       }
 
       // For completed on top/bottom sorting
-      const aIsCompleted = isTask(a) && a.completed;
-      const bIsCompleted = isTask(b) && b.completed;
-
       if (completedPosition === "top") {
-        if (aIsCompleted && !bIsCompleted) return -1;
-        if (!aIsCompleted && bIsCompleted) return 1;
+        if (a.completed && !b.completed) return -1;
+        if (!a.completed && b.completed) return 1;
       } else if (completedPosition === "bottom") {
-        if (aIsCompleted && !bIsCompleted) return 1;
-        if (!aIsCompleted && bIsCompleted) return -1;
+        if (a.completed && !b.completed) return 1;
+        if (!a.completed && b.completed) return -1;
       }
 
       // If both items are in the same completion state, maintain their relative order
@@ -594,86 +435,9 @@ export function Next7Days() {
 
         return newDays;
       });
-
-      setNewTaskInputs((prev) => ({
-        ...prev,
-        [dayIndex]: { title: "", description: "" },
-      }));
     } catch (error) {
       console.error("Error creating task:", error);
       toast.error("Failed to create task");
-    }
-  };
-
-  const handleAddSection = async (dayIndex: number) => {
-    if (!currentUser) {
-      console.error("No user logged in");
-      return;
-    }
-
-    try {
-      const taskDate = days[dayIndex].date;
-      taskDate.setHours(12, 0, 0, 0);
-
-      const sectionData = {
-        text: "New Section",
-        time: "",
-        scheduledTime: taskDate.toISOString(),
-      };
-
-      const newSection = await taskService.createSection(
-        currentUser.uid,
-        sectionData
-      );
-      updateSectionCache(newSection);
-
-      // Update UI
-      setDays((prevDays) => {
-        const newDays = [...prevDays];
-        const day = newDays[dayIndex];
-        const updatedItems = day.items.map((item) => ({
-          ...item,
-          order: (item.order ?? 0) + 1,
-        }));
-
-        newDays[dayIndex] = {
-          ...day,
-          items: [{ ...newSection, type: "section" as const }, ...updatedItems],
-        };
-
-        return newDays;
-      });
-    } catch (error) {
-      console.error("Error creating section:", error);
-      toast.error("Failed to create section");
-    }
-  };
-
-  const handleTaskInputChange = (
-    dayIndex: number,
-    field: "title" | "description",
-    value: string
-  ) => {
-    setNewTaskInputs((prev) => ({
-      ...prev,
-      [dayIndex]: {
-        ...(prev[dayIndex] || { title: "", description: "" }),
-        [field]: value,
-      },
-    }));
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent, dayIndex: number) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const title = newTaskInputs[dayIndex]?.title || "";
-      handleAddTask(dayIndex, title);
-    } else if (e.key === "Escape") {
-      setIsCreatingTask(false);
-      setNewTaskInputs((prev) => ({
-        ...prev,
-        [dayIndex]: { title: "", description: "" },
-      }));
     }
   };
 
@@ -736,9 +500,7 @@ export function Next7Days() {
             ? {
                 ...day,
                 items: day.items.map((item) =>
-                  isTask(item) && item.id === taskId
-                    ? { ...item, completed }
-                    : item
+                  item.id === taskId ? { ...item, completed } : item
                 ),
               }
             : day
@@ -749,45 +511,6 @@ export function Next7Days() {
     }
   };
 
-  const formatTimeFromInput = (input: string): string => {
-    // Allow only numbers and specific symbols
-    const cleaned = input.replace(/[^0-9.,:;-]/g, "");
-
-    if (cleaned.length === 0) return "";
-
-    // Split by any of the allowed separators
-    const parts = cleaned.split(/[.,:;-]/);
-    const numbers = parts.join("").replace(/\D/g, "");
-
-    if (numbers.length === 0) return "";
-
-    // Handle different input lengths
-    if (numbers.length <= 2) {
-      // Just hours
-      const hours = parseInt(numbers);
-      if (hours > 23) return "23:00";
-      return `${hours.toString().padStart(2, "0")}:00`;
-    } else if (numbers.length <= 4) {
-      // Hours and minutes
-      const hours = parseInt(numbers.slice(0, -2));
-      const minutes = parseInt(numbers.slice(-2));
-      if (hours > 23) return "23:00";
-      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-    } else {
-      // Too many digits, take first 4
-      const hours = parseInt(numbers.slice(0, 2));
-      const minutes = parseInt(numbers.slice(2, 4));
-      if (hours > 23) return "23:00";
-      if (minutes > 59) return `${hours.toString().padStart(2, "0")}:59`;
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-    }
-  };
-
   const handleEditTask = async (taskId: string, updates: Partial<Task>) => {
     try {
       await taskService.updateTask(taskId, updates);
@@ -795,12 +518,11 @@ export function Next7Days() {
         const newDays = [...prevDays];
         newDays.forEach((day) => {
           day.items = day.items.map((item) =>
-            isTask(item) && item.id === taskId ? { ...item, ...updates } : item
+            item.id === taskId ? { ...item, ...updates } : item
           );
         });
         return newDays;
       });
-      setEditingTask(null);
     } catch (error) {
       console.error("Error updating task:", error);
     }
@@ -813,7 +535,7 @@ export function Next7Days() {
       // Get the task from days
       const task = days
         .flatMap((day) => day.items)
-        .find((item) => isTask(item) && item.id === taskId) as Task;
+        .find((item) => item.id === taskId) as Task;
       if (!task) return;
 
       // Get all saved tasks first
@@ -833,9 +555,7 @@ export function Next7Days() {
           prevDays.map((day) => ({
             ...day,
             items: day.items.map((item) =>
-              isTask(item) && item.id === taskId
-                ? { ...item, isSaved: false }
-                : item
+              item.id === taskId ? { ...item, isSaved: false } : item
             ),
           }))
         );
@@ -852,9 +572,7 @@ export function Next7Days() {
         prevDays.map((day) => ({
           ...day,
           items: day.items.map((item) =>
-            isTask(item) && item.id === taskId
-              ? { ...item, isSaved: true }
-              : item
+            item.id === taskId ? { ...item, isSaved: true } : item
           ),
         }))
       );
@@ -872,54 +590,12 @@ export function Next7Days() {
       setDays((prevDays) => {
         const newDays = [...prevDays];
         newDays.forEach((day) => {
-          day.items = day.items.filter(
-            (item) => !isTask(item) || item.id !== taskId
-          );
+          day.items = day.items.filter((item) => item.id !== taskId);
         });
         return newDays;
       });
     } catch (error) {
       console.error("Error deleting task:", error);
-    }
-  };
-
-  const handleEditSection = async (
-    sectionId: string,
-    updates: Partial<SectionItemType>
-  ) => {
-    try {
-      await taskService.updateSection(sectionId, updates);
-      setDays((prevDays) => {
-        const newDays = [...prevDays];
-        newDays.forEach((day) => {
-          day.items = day.items.map((item) =>
-            isSection(item) && item.id === sectionId
-              ? { ...item, ...updates }
-              : item
-          );
-        });
-        return newDays;
-      });
-      setEditingSection(null);
-    } catch (error) {
-      console.error("Error updating section:", error);
-    }
-  };
-
-  const handleDeleteSection = async (sectionId: string) => {
-    try {
-      await taskService.deleteSection(sectionId);
-      setDays((prevDays) => {
-        const newDays = [...prevDays];
-        newDays.forEach((day) => {
-          day.items = day.items.filter(
-            (item) => !isSection(item) || item.id !== sectionId
-          );
-        });
-        return newDays;
-      });
-    } catch (error) {
-      console.error("Error deleting section:", error);
     }
   };
 
@@ -979,14 +655,6 @@ export function Next7Days() {
       />
     );
   };
-
-  const renderSection = (item: SectionItemType) => (
-    <SectionItemComponent
-      section={item}
-      onSectionClick={setSelectedSection}
-      onSectionDelete={handleDeleteSection}
-    />
-  );
 
   // Clean up timeout on unmount
   useEffect(() => {
@@ -1163,162 +831,6 @@ export function Next7Days() {
     }
   `;
 
-  // Add DraggableItem component
-  const DraggableItem = ({
-    item,
-    index,
-    moveItem,
-    isTaskItem,
-    renderTask,
-    renderSection,
-    isTask,
-    dayIndex,
-  }: {
-    item: ListItem;
-    index: number;
-    moveItem: (
-      dragIndex: number,
-      hoverIndex: number,
-      sourceDay: number,
-      targetDay: number
-    ) => void;
-    isTaskItem: boolean;
-    renderTask: (task: Task, dayIndex: number) => JSX.Element;
-    renderSection: (section: SectionItemType) => JSX.Element;
-    isTask: (item: ListItem) => item is Task;
-    dayIndex: number;
-  }) => {
-    const ref = useRef<HTMLDivElement>(null);
-    const [{ isDragging }, drag] = useDrag({
-      type: "ITEM",
-      item: { id: item.id, type: item.type, index, dayIndex, item },
-      collect: (monitor: DragSourceMonitor) => ({
-        isDragging: monitor.isDragging(),
-      }),
-      canDrag: () => true,
-    });
-
-    const [{ isOver, canDrop, dropPosition }, drop] = useDrop<
-      DragItem,
-      void,
-      {
-        isOver: boolean;
-        canDrop: boolean;
-        dropPosition: "before" | "after" | null;
-      }
-    >({
-      accept: "ITEM",
-      collect: (monitor: DropTargetMonitor) => {
-        const isOver = monitor.isOver();
-        const canDrop = monitor.canDrop();
-        const clientOffset = monitor.getClientOffset();
-        const hoverBoundingRect = ref.current?.getBoundingClientRect();
-
-        let dropPosition: "before" | "after" | null = null;
-        if (isOver && hoverBoundingRect && clientOffset) {
-          const hoverMiddleY =
-            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-          dropPosition = hoverClientY < hoverMiddleY ? "before" : "after";
-        }
-
-        return { isOver, canDrop, dropPosition };
-      },
-      hover: (draggedItem: DragItem, monitor: DropTargetMonitor) => {
-        if (!ref.current) return;
-
-        const dragIndex = draggedItem.index;
-        const hoverIndex = index;
-        const sourceDay = draggedItem.dayIndex;
-        const targetDay = dayIndex;
-
-        // Don't replace items with themselves
-        if (dragIndex === hoverIndex && sourceDay === targetDay) {
-          return;
-        }
-
-        // Determine rectangle on screen
-        const hoverBoundingRect = ref.current.getBoundingClientRect();
-        const hoverMiddleY =
-          (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-        const clientOffset = monitor.getClientOffset();
-        const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
-
-        // Only perform the move when the mouse has crossed half of the items height
-        // When dragging downwards, only move when the cursor is below 50%
-        // When dragging upwards, only move when the cursor is above 50%
-        const isDraggingDown = dragIndex < hoverIndex;
-        const isDraggingUp = dragIndex > hoverIndex;
-
-        if (isDraggingDown && hoverClientY < hoverMiddleY) {
-          return;
-        }
-        if (isDraggingUp && hoverClientY > hoverMiddleY) {
-          return;
-        }
-
-        // Time to actually perform the action
-        moveItem(dragIndex, hoverIndex, sourceDay, targetDay);
-
-        // Update the dragged item's index and day
-        draggedItem.index = hoverIndex;
-        draggedItem.dayIndex = targetDay;
-      },
-    });
-
-    // Combine drag and drop refs
-    drag(drop(ref));
-
-    const opacity = isDragging ? 0.4 : 1;
-
-    // Enhanced visual feedback for drop zones
-    const getDropZoneStyles = () => {
-      if (!isOver || !canDrop) return {};
-
-      const baseStyle = {
-        position: "relative" as const,
-        transition: "all 0.2s ease-in-out",
-      };
-
-      if (dropPosition === "before") {
-        return {
-          ...baseStyle,
-          borderTop: "2px solid theme(colors.pri-pur.500)",
-          marginTop: "2px",
-        };
-      } else if (dropPosition === "after") {
-        return {
-          ...baseStyle,
-          borderBottom: "2px solid theme(colors.pri-pur.500)",
-          marginBottom: "2px",
-        };
-      }
-
-      return baseStyle;
-    };
-
-    return (
-      <div
-        ref={ref}
-        style={{
-          opacity,
-          ...getDropZoneStyles(),
-        }}
-        className={`transition-all duration-200 ${
-          isDragging ? "cursor-grabbing" : "cursor-grab"
-        } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
-        aria-grabbed={isDragging}
-        aria-dropeffect="move"
-      >
-        {item.type === "section"
-          ? renderSection(item as SectionItemType)
-          : isTaskItem
-          ? renderTask(item as Task, dayIndex)
-          : null}
-      </div>
-    );
-  };
-
   // Add this after other useEffect hooks
   useEffect(() => {
     if (pendingUpdates) {
@@ -1336,11 +848,6 @@ export function Next7Days() {
               scheduledTime: targetDate.toLocaleString(),
               date: targetDate.toISOString(),
             });
-          } else if (isSection(movedItem)) {
-            await taskService.updateSection(movedItem.id, {
-              order: movedItem.order,
-              scheduledTime: targetDate.toLocaleString(),
-            });
           }
 
           // Update orders for other items that changed
@@ -1348,10 +855,6 @@ export function Next7Days() {
           const updatePromises = otherItems.map((item) => {
             if (isTask(item)) {
               return taskService.updateTask(item.id, {
-                order: item.order,
-              });
-            } else if (isSection(item)) {
-              return taskService.updateSection(item.id, {
                 order: item.order,
               });
             }
@@ -1630,11 +1133,8 @@ export function Next7Days() {
                     isLoading={isLoading}
                     hidingItems={hidingItems}
                     onAddTask={handleAddTask}
-                    onSectionAdded={reloadData}
                     moveItem={moveItem}
                     renderTask={renderTask}
-                    renderSection={renderSection}
-                    isTask={isTask}
                     sortItems={sortItems}
                   />
                 </div>
@@ -1657,19 +1157,6 @@ export function Next7Days() {
             }}
             onUpdate={handleEditTask}
             onDelete={handleDeleteTask}
-          />
-        )}
-        {selectedSection && (
-          <SectionModal
-            section={selectedSection}
-            isOpen={!!selectedSection}
-            onClose={(section) => {
-              if (section.shouldClose) {
-                setSelectedSection(null);
-              }
-            }}
-            onUpdate={handleEditSection}
-            onDelete={handleDeleteSection}
           />
         )}
 

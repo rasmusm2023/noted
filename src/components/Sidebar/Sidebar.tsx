@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLists } from "../../contexts/ListContext";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Unread, AltArrowRight } from "solar-icon-set";
 import { Icon } from "@iconify/react";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
@@ -21,51 +20,6 @@ const avatars = [
   { id: 4, src: avatar4 },
 ];
 
-interface MenuItem {
-  id: string;
-  label: string;
-  icon: () => JSX.Element;
-  path: string;
-}
-
-interface MenuSection {
-  title: string;
-  items: MenuItem[];
-}
-
-const menuSections: MenuSection[] = [
-  {
-    title: "Tasks",
-    items: [
-      {
-        id: "today",
-        label: "Today",
-        icon: () => (
-          <Icon icon="mingcute:schedule-fill" width={20} height={20} />
-        ),
-        path: "/",
-      },
-      {
-        id: "next7days",
-        label: "Next 7 Days",
-        icon: () => <Icon icon="mingcute:trello-fill" width={20} height={20} />,
-        path: "/next7days",
-      },
-    ],
-  },
-  {
-    title: "Progress",
-    items: [
-      {
-        id: "goals",
-        label: "Goals",
-        icon: () => <Icon icon="mingcute:target-fill" width={24} height={24} />,
-        path: "/goals",
-      },
-    ],
-  },
-];
-
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -82,7 +36,7 @@ interface UserDetails {
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const { currentUser, logout } = useAuth();
-  const { lists, loading, error, addList, clearError } = useLists();
+  const { lists, addList } = useLists();
   const location = useLocation();
   const navigate = useNavigate();
   const [isAddingList, setIsAddingList] = useState(false);
@@ -108,12 +62,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     return savedState ? JSON.parse(savedState) : true;
   });
   const [isHighlightSubmenuOpen, setIsHighlightSubmenuOpen] = useState(false);
-  const [isLanguageSubmenuOpen, setIsLanguageSubmenuOpen] = useState(false);
   const highlightYesButtonRef = useRef<HTMLButtonElement>(null);
   const highlightNoButtonRef = useRef<HTMLButtonElement>(null);
-  const languageEnglishButtonRef = useRef<HTMLButtonElement>(null);
-  const languageSwedishButtonRef = useRef<HTMLButtonElement>(null);
-  const [isNext7DaysHovered, setIsNext7DaysHovered] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const minSwipeDistance = 50;
@@ -511,7 +461,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="p-4 flex items-center justify-between border-b border-neu-gre-300 dark:border-neu-gre-700">
             {isOpen ? (
               <img
-                src="/assets/logos/Noted-logo-purple.png"
+                src={
+                  theme === "dark"
+                    ? "/assets/logos/Noted-logo-dark.png"
+                    : "/assets/logos/Noted-logo-light.png"
+                }
                 alt="Noted"
                 className="h-6"
               />
@@ -877,7 +831,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     setIsSettingsMenuOpen(!isSettingsMenuOpen);
                     if (!isSettingsMenuOpen) {
                       setIsHighlightSubmenuOpen(false);
-                      setIsLanguageSubmenuOpen(false);
                     }
                   }}
                   className={`w-full flex items-center ${

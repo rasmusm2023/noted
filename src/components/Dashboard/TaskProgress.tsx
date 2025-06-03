@@ -4,8 +4,6 @@ import type { Task } from "../../types/task";
 
 interface TaskProgressProps {
   completionPercentage: number;
-  completedPosition: "top" | "bottom" | "mixed";
-  onCompletedPositionChange: (position: "top" | "bottom" | "mixed") => void;
   onClearCompleted: () => void;
   onTaskSelect: (task: Task) => void;
   onRemoveTask: (taskId: string) => void;
@@ -15,8 +13,6 @@ interface TaskProgressProps {
 
 export const TaskProgress = ({
   completionPercentage,
-  completedPosition,
-  onCompletedPositionChange,
   onClearCompleted,
   onTaskSelect,
   onRemoveTask,
