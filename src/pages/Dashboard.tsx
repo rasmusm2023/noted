@@ -967,6 +967,11 @@ export function Dashboard() {
                   onClearCompleted={handleClearCompleted}
                   onTaskSelect={handleTaskSelect}
                   onRemoveTask={handleRemoveTask}
+                  totalTasks={filteredAndSortedItems.length}
+                  completedTasks={
+                    filteredAndSortedItems.filter((task) => task.completed)
+                      .length
+                  }
                 />
 
                 <QuickActions onAddTask={handleAddTask} />
