@@ -130,36 +130,36 @@ export function Login() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-purple-rose-peach bg-[length:200%_200%] animate-gradientMove flex font-inter"
+      className="min-h-screen bg-gradient-purple-rose-peach bg-[length:200%_200%] animate-gradientMove flex flex-col-reverse lg:flex-row font-inter"
       role="main"
       aria-label="Authentication page"
     >
       <div
-        className={`w-[50%] rounded-tr-[100px] rounded-br-[100px] h-screen animate-fadeIn backdrop-blur-xl transition-all duration-500 ${
+        className={`w-full lg:w-[50%] rounded-t-[50px] lg:rounded-none lg:rounded-tr-[100px] lg:rounded-br-[100px] min-h-[60vh] lg:h-screen animate-fadeIn backdrop-blur-xl transition-all duration-500 ${
           isLogin
             ? "bg-neu-whi-100/40 shadow-2xl border-2 border-neu-whi-100/25"
             : "bg-neu-bla-900/60 shadow-2xl border-2 border-neu-bla-100/25"
         }`}
       >
-        <div className="h-full flex items-center justify-center">
-          <div className="w-full max-w-xl space-y-8 px-12">
+        <div className="h-full flex items-center justify-center py-8 lg:py-0">
+          <div className="w-full max-w-xl space-y-6 lg:space-y-8 px-4 sm:px-8 lg:px-12">
             <div>
               <h2
-                className={`text-center text-5xl font-bold font-inter animate-fadeIn transition-all duration-500 tracking-tight ${
+                className={`text-center text-3xl sm:text-4xl lg:text-5xl font-bold font-inter animate-fadeIn transition-all duration-500 tracking-tight ${
                   isLogin ? "text-neu-gre-800" : "text-neu-whi-100"
                 }`}
               >
                 {isLogin ? "Welcome back" : "Create a new account"}
               </h2>
               {isLogin && (
-                <p className="text-center text-neu-gre-700 mt-2 font-inter font-semibold text-base">
+                <p className="text-center text-neu-gre-700 mt-2 font-inter font-semibold text-sm sm:text-base">
                   Please enter your details.
                 </p>
               )}
             </div>
             <form
               ref={formRef}
-              className="mt-4 space-y-6 font-inter animate-fadeIn transition-all duration-500"
+              className="mt-4 space-y-4 lg:space-y-6 font-inter animate-fadeIn transition-all duration-500"
               onSubmit={handleSubmit}
               aria-label={isLogin ? "Sign in form" : "Sign up form"}
             >
@@ -302,7 +302,7 @@ export function Login() {
                 <Button
                   type="submit"
                   variant="primary"
-                  className="w-full py-4 text-md text-neu-whi-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 font-inter transition-all duration-300 ease-in-out"
+                  className="w-full py-4 sm:py-5 lg:py-4 text-base sm:text-lg lg:text-md text-neu-whi-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 font-inter transition-all duration-300 ease-in-out"
                   disabled={loading}
                   aria-label={
                     loading
@@ -340,7 +340,7 @@ export function Login() {
                   variant="secondary"
                   onClick={handleGoogleLogin}
                   disabled={loading}
-                  className="w-full py-4 text-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 font-inter transition-all duration-300 ease-in-out flex items-center justify-center gap-2 bg-white hover:bg-neu-whi-200"
+                  className="w-full py-4 sm:py-5 lg:py-4 text-base sm:text-lg lg:text-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 font-inter transition-all duration-300 ease-in-out flex items-center justify-center gap-2 bg-white hover:bg-neu-whi-200"
                   aria-label="Sign in with Google"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -372,7 +372,7 @@ export function Login() {
                       setError("");
                       setEmailWarning("");
                     }}
-                    className={`w-full text-center font-medium transition-all duration-300 ease-in-out font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md p-2 hover:scale-[1.02] ${
+                    className={`w-full text-center font-medium transition-all duration-300 ease-in-out font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md p-2 hover:scale-[1.02] text-sm ${
                       isLogin
                         ? "text-neu-gre-900 hover:text-neu-gre-800"
                         : "text-neu-whi-100 hover:text-neu-whi-200"
@@ -393,14 +393,22 @@ export function Login() {
           </div>
         </div>
       </div>
-      <div className="w-[45%] flex items-center">
-        <div className="max-w-3xl space-y-16 px-12 opacity-75">
-          <h1 className="text-6xl font-medium text-neu-whi-100 mb-4xl animate-fadeIn font-inte">
-            Structure your days.
-          </h1>
-          <h2 className="text-6xl font-medium text-neu-whi-100 mb-4xl animate-fadeIn font-inter">
-            Manage your goals.
-          </h2>
+      <div className="w-full lg:w-[45%] flex items-center justify-center lg:justify-start py-4 lg:py-0">
+        <div className="max-w-3xl space-y-2 lg:space-y-16 px-4 sm:px-8 lg:px-12 opacity-75">
+          {isLogin ? (
+            <>
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left">
+                Structure your days.
+              </h1>
+              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left">
+                Manage your goals.
+              </h2>
+            </>
+          ) : (
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left">
+              Let's get you started 🚀
+            </h1>
+          )}
         </div>
       </div>
     </div>
