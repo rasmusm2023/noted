@@ -171,19 +171,19 @@ export const TaskLibraryButton = ({
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative inline-block" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         tabIndex={1}
         className={`task-library-button flex items-center ${
           variant === "next7days"
-            ? "justify-center w-8 h-8 rounded-md bg-pri-pur-400/10 hover:bg-pri-pur-400/20 dark:bg-pri-pur-500/20 dark:hover:bg-pri-pur-500/30"
+            ? "justify-center w-11 h-11 rounded-md bg-pri-pur-400/20 hover:bg-pri-pur-400/30 dark:bg-pri-pur-500/30 dark:hover:bg-pri-pur-500/40"
             : "gap-2 px-3 sm:px-4 py-2 sm:py-2.5 lg:py-2.5 rounded-md"
         } transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
           isOpen
             ? "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600 dark:bg-pri-pur-500 dark:hover:bg-pri-pur-600"
             : variant === "next7days"
-            ? "text-pri-pur-400 hover:text-pri-pur-500 dark:text-pri-pur-300 dark:hover:text-pri-pur-200"
+            ? "text-pri-pur-500 hover:text-pri-pur-600 dark:text-pri-pur-200 dark:hover:text-pri-pur-100"
             : "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600 dark:bg-pri-pur-500 dark:hover:bg-pri-pur-600"
         }`}
       >
@@ -191,11 +191,11 @@ export const TaskLibraryButton = ({
           icon="mingcute:classify-2-fill"
           className={`${
             variant === "next7days"
-              ? "w-5 h-5"
+              ? "w-6 h-6"
               : "w-6 h-6 sm:w-6 sm:h-6 lg:w-5 lg:h-5"
           } ${
             variant === "next7days"
-              ? "text-pri-pur-400 dark:text-pri-pur-300"
+              ? "text-pri-pur-500 dark:text-pri-pur-200"
               : "text-neu-whi-100"
           }`}
         />
@@ -217,10 +217,10 @@ export const TaskLibraryButton = ({
               duration: 0.2,
               ease: "easeInOut",
             }}
-            className={`fixed lg:absolute ${
+            className={`absolute ${
               variant === "next7days"
-                ? "left-0"
-                : "left-0 right-0 mx-auto lg:left-0 lg:right-auto lg:mx-0"
+                ? "right-0 lg:left-0"
+                : "right-0 lg:left-0"
             } mt-2 ${
               variant === "next7days"
                 ? "w-[320px]"

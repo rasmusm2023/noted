@@ -292,9 +292,9 @@ export const DayColumn = ({
         className={`py-4 px-2 h-fit shadow-lg ${
           dayIndex <= 1
             ? dayIndex === 0
-              ? "bg-gradient-to-b from-pri-pur-500/10 to-neu-gre-300/75 dark:from-pri-pur-500/20 dark:to-neu-gre-700 rounded-tr-xl rounded-br-xl rounded-bl-xl"
-              : "bg-gradient-to-b from-sec-rose-500/10 to-neu-gre-300/75 dark:from-sec-rose-500/20 dark:to-neu-gre-700 rounded-tr-xl rounded-br-xl rounded-bl-xl"
-            : "bg-neu-gre-300/75 dark:bg-neu-gre-700 rounded-xl"
+              ? "bg-gradient-to-b from-pri-pur-500/5 to-neu-gre-300/50 dark:from-pri-pur-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+              : "bg-gradient-to-b from-sec-rose-500/5 to-neu-gre-300/50 dark:from-sec-rose-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+            : "bg-neu-gre-300/50 dark:bg-neu-gre-700/50 rounded-xl"
         }`}
       >
         <div className="flex flex-col h-full">

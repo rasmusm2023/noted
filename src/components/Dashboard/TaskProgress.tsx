@@ -22,7 +22,7 @@ export const TaskProgress = ({
   return (
     <div className="flex items-center rounded-5xl justify-between mb-6">
       <div className="flex items-center gap-8">
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-inter font-bold text-neu-gre-800 dark:text-neu-gre-100">
+        <h2 className="text-3xl sm:text-3xl lg:text-3xl font-inter font-bold text-neu-gre-800 dark:text-neu-gre-100">
           Today
         </h2>
         <div className="hidden 2xl:flex items-center gap-2">

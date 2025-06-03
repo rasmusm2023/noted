@@ -136,7 +136,7 @@ export const TaskItem = ({
                 onCompletion(task.id, !task.completed, syntheticEvent);
               }
             }}
-            className={`transition-all duration-300 flex items-center justify-center min-w-[44px] min-h-[44px] p-2 sm:p-2.5 ${
+            className={`transition-all duration-300 flex items-center justify-center min-w-[32px] min-h-[32px] p-2 sm:p-2 ${
               task.completed
                 ? "text-sup-suc-600 dark:text-sup-suc-800 hover:text-sup-suc-600"
                 : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500"
@@ -227,7 +227,7 @@ export const TaskItem = ({
           )}
         </div>
         <div className="flex items-center ml-2 sm:ml-4">
-          <div className="flex flex-col lg:flex-row items-center gap-0 sm:gap-2">
+          <div className="flex flex-col lg:flex-row items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
