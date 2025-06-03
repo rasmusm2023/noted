@@ -36,6 +36,7 @@ export function Dashboard() {
   const [currentDate, setCurrentDate] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
+  const [weatherCondition, setWeatherCondition] = useState<string | null>(null);
 
   const [highlightNextTask, setHighlightNextTask] = useState(() => {
     const savedState = localStorage.getItem("highlightNextTask");
@@ -243,14 +244,17 @@ export function Dashboard() {
         // Check cache first
         const cachedWeather = localStorage.getItem("weatherCache");
         if (cachedWeather) {
-          const { temperature: cachedTemp, timestamp } = JSON.parse(
-            cachedWeather
-          ) as WeatherCache;
+          const {
+            temperature: cachedTemp,
+            condition: cachedCondition,
+            timestamp,
+          } = JSON.parse(cachedWeather) as WeatherCache;
           const cacheAge = Date.now() - timestamp;
 
           // Use cache if it's less than 15 minutes old
           if (cacheAge < 15 * 60 * 1000) {
             setTemperature(cachedTemp);
+            setWeatherCondition(cachedCondition);
             return;
           }
         }
@@ -287,6 +291,7 @@ export function Dashboard() {
 
         // Update state
         setTemperature(newTemp);
+        setWeatherCondition(data.weather[0]?.main || null);
 
         // Update cache
         const weatherCache: WeatherCache = {
@@ -952,6 +957,7 @@ export function Dashboard() {
                 onTimerStart={handleTimerStart}
                 onTimerPauseResume={handleTimerPauseResume}
                 onTimerCancel={handleTimerCancel}
+                weatherCondition={weatherCondition}
               />
               <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-0 pr-0 sm:pr-8 lg:pr-0 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300 bg-neu-whi-100 dark:bg-transparent">
                 <TaskProgress

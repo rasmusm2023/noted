@@ -28,6 +28,7 @@ interface DashboardHeaderProps {
   onTimerStart: (interval: TimeInterval) => void;
   onTimerPauseResume: () => void;
   onTimerCancel: () => void;
+  weatherCondition: string | null;
 }
 
 const getWeatherIcon = (condition: string | null) => {
@@ -70,6 +71,7 @@ export const DashboardHeader = ({
   onTimerStart,
   onTimerPauseResume,
   onTimerCancel,
+  weatherCondition,
 }: DashboardHeaderProps) => {
   // Abbreviate the day of the week to 3 letters
   const abbreviatedDay = dayOfWeek.substring(0, 3);
@@ -159,7 +161,7 @@ export const DashboardHeader = ({
                       transition={{ duration: 0.3, delay: 0.8 }}
                       className="w-4 h-4 sm:w-6 sm:h-6 -mt-4 sm:-mt-3.5 lg:mt-0"
                     >
-                      {getWeatherIcon(null)}
+                      {getWeatherIcon(weatherCondition)}
                     </motion.div>
                     <motion.span
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -225,7 +227,7 @@ export const DashboardHeader = ({
                   transition={{ duration: 0.3, delay: 0.8 }}
                   className="w-6 h-6 sm:w-8 sm:h-8"
                 >
-                  {getWeatherIcon(null)}
+                  {getWeatherIcon(weatherCondition)}
                 </motion.div>
                 <motion.span
                   initial={{ opacity: 0, scale: 0.8 }}

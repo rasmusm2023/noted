@@ -62,12 +62,6 @@ const menuSections: MenuSection[] = [
         icon: () => <Icon icon="mingcute:target-fill" width={24} height={24} />,
         path: "/goals",
       },
-      {
-        id: "habits",
-        label: "Habits",
-        icon: () => <Icon icon="mingcute:heart-fill" width={24} height={24} />,
-        path: "/habits",
-      },
     ],
   },
 ];
@@ -123,6 +117,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const minSwipeDistance = 50;
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const firstMenuItemRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -329,6 +326,67 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     };
   }, [isHighlightSubmenuOpen]);
 
+  // Add focus trap effect
+  useEffect(() => {
+    if (!isOpen) {
+      // When menu is closed, remove all focusable elements from tab order except the open menu button
+      const focusableElements = sidebarRef.current?.querySelectorAll(
+        'button:not([aria-label="Open navigation menu"]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      focusableElements?.forEach((el) => {
+        (el as HTMLElement).setAttribute("tabindex", "-1");
+      });
+      return;
+    }
+
+    // When menu is open, restore tabindex for all focusable elements
+    const focusableElements = sidebarRef.current?.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    focusableElements?.forEach((el) => {
+      (el as HTMLElement).setAttribute("tabindex", "0");
+    });
+
+    const handleFocusTrap = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      const elements = Array.from(focusableElements || []) as HTMLElement[];
+      const closeButton = closeButtonRef.current as HTMLElement;
+      const closeButtonIndex = elements.indexOf(closeButton);
+
+      // Remove close button from the array to handle it separately
+      elements.splice(closeButtonIndex, 1);
+
+      const firstElement = elements[0];
+      const lastElement = elements[elements.length - 1];
+
+      if (e.shiftKey) {
+        // If shift + tab and focus is on first element, move to close button
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          closeButton.focus();
+        }
+      } else {
+        // If tab and focus is on close button, move to first element
+        if (document.activeElement === closeButton) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+        // If tab and focus is on last menu item, move to close button
+        else if (document.activeElement === lastElement) {
+          e.preventDefault();
+          closeButton.focus();
+        }
+      }
+    };
+
+    // Focus the first menu item when menu opens
+    firstMenuItemRef.current?.focus();
+
+    document.addEventListener("keydown", handleFocusTrap);
+    return () => document.removeEventListener("keydown", handleFocusTrap);
+  }, [isOpen]);
+
   const handleNavigation = (path: string) => {
     navigate(path);
   };
@@ -395,16 +453,18 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Mobile Menu Trigger Button */}
       <button
         onClick={onToggle}
-        className={`lg:hidden fixed bottom-4 left-4 z-[9999] p-3 rounded-full bg-pri-pur-500 dark:bg-pri-pur-600 text-white shadow-lg hover:bg-pri-pur-600 dark:hover:bg-pri-pur-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ${
+        tabIndex={3}
+        className={`lg:hidden fixed bottom-4 left-4 z-[9999] p-3 rounded-full bg-sec-pea-500 dark:bg-sec-pea-600 text-neu-bla-800 dark:text-neu-whi-100 shadow-[0_4px_14px_rgba(239,112,155,0.4)] dark:shadow-[0_4px_14px_rgba(239,112,155,0.3)] hover:bg-sec-pea-600 dark:hover:bg-sec-pea-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200 ${
           isOpen ? "hidden" : "block"
         }`}
-        aria-label="Open menu"
+        aria-label="Open navigation menu"
         aria-expanded={isOpen}
+        aria-controls="sidebar-navigation"
       >
         <Icon
           icon="mingcute:menu-fill"
-          width={24}
-          height={24}
+          width={32}
+          height={32}
           aria-hidden="true"
         />
       </button>
@@ -420,6 +480,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
+        ref={sidebarRef}
         className={`fixed lg:relative h-full z-50 transition-all duration-300 ease-in-out
           ${isOpen ? "w-72" : "w-0 lg:w-24"} 
           bg-neu-whi-100 dark:bg-neu-gre-900 
@@ -438,14 +499,18 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="p-4 flex items-center justify-between border-b border-neu-gre-300 dark:border-neu-gre-700">
             {isOpen ? (
               <img
-                src="/assets/logos/dori-logotype-638x200.png"
-                alt="Dori"
-                className="h-8"
+                src="/assets/logos/Noted-logo-purple.png"
+                alt="Noted"
+                className="h-6"
               />
             ) : (
               <img
-                src="/assets/logos/dori-logo-200x200.png"
-                alt="Dori"
+                src={
+                  theme === "dark"
+                    ? "/assets/favicon/Noted-favicon-purple.png"
+                    : "/assets/favicon/Noted-favicon-light.png"
+                }
+                alt="Noted"
                 className="h-8 w-8"
               />
             )}
@@ -476,6 +541,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           {/* User Profile Section */}
           <div className="px-4 py-3 border-b border-neu-gre-300 dark:border-neu-gre-700">
             <button
+              ref={firstMenuItemRef}
               onClick={() => navigate("/account")}
               className={`w-full flex items-center ${
                 isOpen ? "space-x-3" : "justify-center"
@@ -639,39 +705,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     {isOpen && (
                       <span className="text-sm lg:text-base font-medium">
                         Goals
-                      </span>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate("/habits");
-                      if (window.innerWidth < 1024) onToggle();
-                    }}
-                    className={`w-full flex mb-2 items-center ${
-                      isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                      location.pathname === "/habits"
-                        ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
-                        : "text-neu-gre-900 dark:text-neu-gre-500"
-                    }`}
-                    aria-current={
-                      location.pathname === "/habits" ? "page" : undefined
-                    }
-                  >
-                    <Icon
-                      icon="mingcute:heart-fill"
-                      width={20}
-                      height={20}
-                      className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                        location.pathname === "/habits"
-                          ? "dark:text-neu-whi-100"
-                          : ""
-                      }`}
-                      aria-hidden="true"
-                    />
-                    {isOpen && (
-                      <span className="text-sm lg:text-base font-medium">
-                        Habits
                       </span>
                     )}
                   </button>
@@ -987,9 +1020,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
               {/* Close Button */}
               <button
+                ref={closeButtonRef}
                 onClick={onToggle}
-                className="lg:hidden p-3 rounded-full bg-pri-pur-500 dark:bg-pri-pur-600 text-white shadow-lg hover:bg-pri-pur-600 dark:hover:bg-pri-pur-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ml-2"
-                aria-label="Close menu"
+                className="lg:hidden p-3 rounded-full bg-sec-pea-500 dark:bg-sec-pea-600 text-neu-bla-800 dark:text-neu-whi-100 shadow-[0_4px_14px_rgba(239,112,155,0.4)] dark:shadow-[0_4px_14px_rgba(239,112,155,0.3)] hover:bg-sec-pea-600 dark:hover:bg-sec-pea-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200"
+                aria-label="Close navigation menu"
               >
                 <Icon
                   icon="mingcute:close-fill"

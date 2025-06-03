@@ -174,6 +174,7 @@ export const TaskLibraryButton = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        tabIndex={1}
         className={`task-library-button flex items-center ${
           variant === "next7days"
             ? "justify-center w-8 h-8 rounded-md bg-pri-pur-400/10 hover:bg-pri-pur-400/20 dark:bg-pri-pur-500/20 dark:hover:bg-pri-pur-500/30"

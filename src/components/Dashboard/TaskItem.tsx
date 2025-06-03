@@ -6,6 +6,7 @@ interface TaskItemProps {
   isNextTask: boolean;
   isEditing: boolean;
   editingTitle: string;
+  index: number;
   onCompletion: (
     taskId: string,
     completed: boolean,
@@ -23,6 +24,7 @@ export const TaskItem = ({
   isNextTask,
   isEditing,
   editingTitle,
+  index,
   onCompletion,
   onSelect,
   onEdit,
@@ -30,6 +32,11 @@ export const TaskItem = ({
   onTitleChange,
   onSave,
 }: TaskItemProps) => {
+  const containerTabIndex = 4 + index * 4;
+  const completionTabIndex = containerTabIndex + 1;
+  const saveTabIndex = containerTabIndex + 2;
+  const deleteTabIndex = containerTabIndex + 3;
+
   const taskItemClasses = `
     task-item py-4 px-2 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px]
     ${
@@ -49,7 +56,7 @@ export const TaskItem = ({
     <div
       key={task.id}
       data-task-id={task.id}
-      tabIndex={0}
+      tabIndex={containerTabIndex}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -70,10 +77,10 @@ export const TaskItem = ({
       onClick={() => onSelect(task)}
       role="button"
     >
-      <div className="flex items-center space-x-2 sm:space-x-4 flex-1">
-        <div className="flex items-center justify-center h-full">
+      <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+        <div className="flex items-center justify-center h-full flex-shrink-0">
           <button
-            tabIndex={0}
+            tabIndex={completionTabIndex}
             onClick={(e) => {
               e.stopPropagation();
               onCompletion(task.id, !task.completed, e);
@@ -151,10 +158,10 @@ export const TaskItem = ({
             )}
           </button>
         </div>
-        <div className="flex-1">
-          <div className="flex items-center">
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-center min-w-0 overflow-hidden">
             <h3
-              className={`text-sm sm:text-base font-inter font-medium ${
+              className={`text-sm sm:text-base font-inter font-medium truncate w-full ${
                 isEditing ? "" : "transition-all duration-300"
               } ${
                 task.completed
@@ -224,34 +231,6 @@ export const TaskItem = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onSelect(task);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onSelect(task);
-                }
-              }}
-              className={`hidden lg:flex p-2 sm:p-2.5 items-center justify-center min-w-[44px] min-h-[44px] ${
-                task.completed
-                  ? "text-sup-suc-800 hover:text-pri-pur-600 dark:text-sup-suc-800 dark:hover:text-pri-pur-600"
-                  : isNextTask
-                  ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
-                  : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
-              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-              aria-label={`Edit task "${task.title}"`}
-            >
-              <Icon
-                icon="mingcute:pencil-fill"
-                width={24}
-                height={24}
-                className="w-6 h-6 sm:w-7 sm:h-7"
-              />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
                 onSave(task.id, task.isSaved || false);
               }}
               onKeyDown={(e) => {
@@ -273,6 +252,7 @@ export const TaskItem = ({
               aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
                 task.title
               }"`}
+              tabIndex={saveTabIndex}
             >
               <Icon
                 icon="mingcute:classify-add-2-fill"
@@ -301,6 +281,7 @@ export const TaskItem = ({
                   : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
               } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
               aria-label={`Delete task "${task.title}"`}
+              tabIndex={deleteTabIndex}
             >
               <Icon
                 icon="mingcute:delete-2-fill"

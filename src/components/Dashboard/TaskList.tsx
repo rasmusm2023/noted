@@ -162,8 +162,6 @@ const DraggableItem = ({
       className={`transition-all duration-200 ${
         isDragging ? "cursor-grabbing" : "cursor-grab"
       } ${isOver && canDrop ? "bg-pri-pur-500/5" : ""}`}
-      role="button"
-      tabIndex={0}
       aria-grabbed={isDragging}
       aria-dropeffect="move"
     >
@@ -229,21 +227,24 @@ export const TaskList = ({
     const isNextTask =
       highlightNextTask &&
       !task.completed &&
-      items.filter((i) => !i.completed).indexOf(task) === 0;
+      items.filter((t) => !t.completed).indexOf(task) === 0;
+    const isEditing = editingTask?.id === task.id;
+    const editingTitle = editingTask?.title || "";
 
     return (
       <TaskItem
         key={task.id}
         task={task}
         isNextTask={isNextTask}
-        isEditing={editingTask?.id === task.id}
-        editingTitle={editingTask?.title || ""}
+        isEditing={isEditing}
+        editingTitle={editingTitle}
+        index={items.findIndex((item) => item.id === task.id)}
         onCompletion={onTaskCompletion}
         onSelect={onTaskSelect}
         onEdit={onTaskEdit}
         onDelete={onTaskDelete}
-        onSave={onTaskSave}
         onTitleChange={(title) => onTaskEdit({ ...task, title })}
+        onSave={onTaskSave}
       />
     );
   };

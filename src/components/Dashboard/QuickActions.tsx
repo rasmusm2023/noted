@@ -42,7 +42,6 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
           }
         }}
         role="button"
-        tabIndex={0}
         onKeyDown={(e) => {
           if (!focusedInput && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
@@ -72,6 +71,7 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
               onFocus={() => setFocusedInput("task")}
               onBlur={() => setFocusedInput(null)}
               placeholder="New task"
+              tabIndex={4}
               className="w-full bg-transparent font-semibold text-base sm:text-lg text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus-visible:outline-none"
               autoFocus
             />

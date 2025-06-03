@@ -16,7 +16,6 @@ import { Dashboard } from "./pages/Dashboard";
 import { ListPage } from "./pages/ListPage";
 import { PrivateRoute } from "./components/PrivateRoute";
 import { Next7Days } from "./pages/Next7Days";
-import { Habits } from "./pages/Habits";
 import { Goals } from "./pages/Goals";
 import { Settings } from "./pages/Settings";
 import { Account } from "./pages/Account";
@@ -78,7 +77,6 @@ function AnimatedRoutes() {
               <Route index element={<Dashboard />} />
               <Route path="list/:listId" element={<ListPage />} />
               <Route path="next7days" element={<Next7Days />} />
-              <Route path="habits" element={<Habits />} />
               <Route path="goals" element={<Goals />} />
               <Route path="settings" element={<Settings />} />
               <Route path="account" element={<Account />} />
