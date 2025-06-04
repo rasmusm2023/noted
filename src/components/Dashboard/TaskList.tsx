@@ -23,7 +23,7 @@ interface TaskListProps {
     completed: boolean,
     event: React.MouseEvent
   ) => void;
-  onTaskSelect: (task: Task) => void;
+  onTaskSelect: (task: Task, shouldOpenModal: boolean) => void;
   onTaskEdit: (task: Task | null) => void;
   onTaskDelete: (taskId: string) => void;
   onTaskSave: (taskId: string, isSaved: boolean) => void;
@@ -205,7 +205,7 @@ export const TaskList = ({
         });
 
         // Notify parent component to refresh the task list
-        onTaskSelect(newTask);
+        onTaskSelect(newTask, true);
       } catch (error) {
         console.error("Error creating task from saved task:", error);
       }
@@ -240,7 +240,7 @@ export const TaskList = ({
         editingTitle={editingTitle}
         index={items.findIndex((item) => item.id === task.id)}
         onCompletion={onTaskCompletion}
-        onSelect={onTaskSelect}
+        onSelect={(task) => onTaskSelect(task, true)}
         onEdit={onTaskEdit}
         onDelete={onTaskDelete}
         onTitleChange={(title) => onTaskEdit({ ...task, title })}

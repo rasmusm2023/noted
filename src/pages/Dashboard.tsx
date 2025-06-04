@@ -31,6 +31,24 @@ export function Dashboard() {
     return savedState ? JSON.parse(savedState) : true;
   });
 
+  // Add event listener for highlightNextTask changes
+  useEffect(() => {
+    const handleHighlightNextTaskChange = (event: CustomEvent) => {
+      setHighlightNextTask(event.detail);
+    };
+
+    window.addEventListener(
+      "highlightNextTaskChanged",
+      handleHighlightNextTaskChange as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        "highlightNextTaskChanged",
+        handleHighlightNextTaskChange as EventListener
+      );
+    };
+  }, []);
+
   const isTask = (item: Task | SectionItem): item is Task => {
     return (
       "title" in item &&
@@ -113,7 +131,7 @@ export function Dashboard() {
     });
 
   // Calculate completion percentage
-  const todaysTasks = items.filter(isTask);
+  const todaysTasks = filteredAndSortedItems.filter(isTask);
   const completionPercentage =
     todaysTasks.length > 0
       ? Math.round(
@@ -722,8 +740,15 @@ export function Dashboard() {
     }
   };
 
-  const handleTaskSelect = async (task: Task) => {
-    setSelectedTask(task);
+  const handleTaskSelect = async (
+    task: Task,
+    shouldOpenModal: boolean = false
+  ) => {
+    if (shouldOpenModal) {
+      setSelectedTask(task);
+    }
+    // Reload the task list to show the newly added task
+    await loadData();
   };
 
   const handleRemoveTask = async (taskId: string) => {

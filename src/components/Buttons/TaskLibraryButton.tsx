@@ -108,10 +108,10 @@ export const TaskLibraryButton = ({
     try {
       setAddingTask(task);
 
-      // Create date in UTC to avoid timezone issues
+      // Create date in local timezone
       const taskDate = selectedDate ? new Date(selectedDate) : new Date();
-      // Set to noon UTC
-      taskDate.setUTCHours(12, 0, 0, 0);
+      // Set to noon in local timezone
+      taskDate.setHours(12, 0, 0, 0);
       const isoDate = taskDate.toISOString();
 
       console.log("Creating task with date:", {
@@ -134,7 +134,9 @@ export const TaskLibraryButton = ({
         })),
       });
 
-      onTaskSelect(newTask);
+      // Just reload the task list without opening the modal
+      await onTaskSelect(newTask);
+      setIsOpen(false); // Close the library dropdown
 
       setTimeout(() => {
         setAddingTask(null);
@@ -156,8 +158,8 @@ export const TaskLibraryButton = ({
         prevTasks.filter((task) => task.id !== taskId)
       );
 
-      // Call the remove handler to unsave the task
-      await onRemoveTask(taskId);
+      // Use unsaveTask instead of onRemoveTask
+      await taskService.unsaveTask(taskId);
 
       // If this task has an originalTaskId, we should update the original task's saved state
       if (taskToRemove.originalTaskId) {
@@ -202,7 +204,7 @@ export const TaskLibraryButton = ({
         {variant !== "next7days" && (
           <span className="font-inter font-medium text-sm sm:text-base">
             <span className="lg:hidden">Library</span>
-            <span className="hidden lg:inline">Task Library</span>
+            <span className="hidden lg:inline">Library</span>
           </span>
         )}
       </button>

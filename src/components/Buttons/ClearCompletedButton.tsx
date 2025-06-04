@@ -20,7 +20,7 @@ export const ClearCompletedButton = ({
       />
       <span className="text-sm sm:text-base font-inter font-medium">
         <span className="lg:hidden">Clear</span>
-        <span className="hidden lg:inline">Clear Completed</span>
+        <span className="hidden lg:inline">Clear completed</span>
       </span>
     </button>
   );

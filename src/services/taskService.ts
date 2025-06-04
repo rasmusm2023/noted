@@ -227,12 +227,15 @@ export const taskService = {
 
       // Find tasks that need to be moved to today (uncompleted) or deleted (completed)
       const tasksToUpdate = tasks.filter((task) => {
+        // Use date field for comparison
         const taskDate = new Date(task.date);
         taskDate.setHours(0, 0, 0, 0);
+        // Only move tasks that are from previous days
         return !task.completed && taskDate < today;
       });
 
       const tasksToDelete = tasks.filter((task) => {
+        // Use date field for comparison
         const taskDate = new Date(task.date);
         taskDate.setHours(0, 0, 0, 0);
         return task.completed && taskDate < today;
@@ -249,7 +252,7 @@ export const taskService = {
           const taskRef = doc(db, tasksCollection, task.id);
           batch.update(taskRef, {
             date: todayNoon.toISOString(),
-            scheduledTime: todayNoon.toLocaleString(),
+            scheduledTime: todayNoon.toISOString(), // Use ISO string for consistency
             updatedAt: new Date().toISOString(),
           });
         });
@@ -269,14 +272,27 @@ export const taskService = {
         updatedTasks.forEach((task) => {
           if (tasksToUpdate.some((t) => t.id === task.id)) {
             task.date = todayNoon.toISOString();
-            task.scheduledTime = todayNoon.toLocaleString();
+            task.scheduledTime = todayNoon.toISOString();
           }
         });
 
         return updatedTasks;
       }
 
-      return tasks;
+      // Remove any duplicate tasks (same date and title)
+      const uniqueTasks = tasks.reduce((acc, task) => {
+        const taskDate = new Date(task.date);
+        taskDate.setHours(0, 0, 0, 0);
+        const key = `${taskDate.toISOString()}-${task.title}`;
+
+        // If we haven't seen this task before, add it
+        if (!acc.has(key)) {
+          acc.set(key, task);
+        }
+        return acc;
+      }, new Map<string, Task>());
+
+      return Array.from(uniqueTasks.values());
     } catch (error) {
       console.error("Error in getUserTasks:", error);
       throw error;
