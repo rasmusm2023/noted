@@ -181,6 +181,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const provider = new GoogleAuthProvider();
       // Request additional scopes for profile picture
       provider.addScope("profile");
+
+      // Try to detect if popup is blocked
+      const popup = window.open(
+        "about:blank",
+        "google-signin-popup",
+        "width=500,height=600"
+      );
+      if (!popup) {
+        throw new Error("Popup blocked. Please allow popups for this site.");
+      }
+      popup.close();
+
+      // Attempt to sign in with popup
       const userCredential = await signInWithPopup(auth, provider);
 
       // Check if this is a new user
@@ -222,6 +235,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return userCredential;
     } catch (error: any) {
       setLoading(false);
+      console.error("Google sign-in error:", error);
+
+      // Handle specific error cases
+      if (error.code === "auth/popup-blocked") {
+        throw new Error("Popup blocked. Please allow popups for this site.");
+      } else if (error.code === "auth/popup-closed-by-user") {
+        throw new Error(
+          "Sign-in popup was closed before completing the sign-in."
+        );
+      } else if (error.code === "auth/cancelled-popup-request") {
+        throw new Error("Sign-in was cancelled.");
+      } else if (error.code === "auth/network-request-failed") {
+        throw new Error(
+          "Network error. Please check your internet connection."
+        );
+      }
+
       throw error;
     }
   }

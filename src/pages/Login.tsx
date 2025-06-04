@@ -118,7 +118,10 @@ export function Login() {
       const from = location.state?.from?.pathname || "/";
       navigate(from, { replace: true });
     } catch (err: any) {
-      setError("Failed to sign in with Google. Please try again.");
+      console.error("Google sign-in error:", err);
+      setError(
+        err.message || "Failed to sign in with Google. Please try again."
+      );
       setLoading(false);
     }
   };
