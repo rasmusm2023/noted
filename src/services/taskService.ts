@@ -856,18 +856,22 @@ export const taskService = {
     });
 
     try {
-      const tasks = await this.getUserTasks(userId);
+      const tasksRef = collection(db, tasksCollection);
+      const q = query(tasksRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
       const batch = writeBatch(db);
 
-      tasks.forEach((task) => {
-        const taskRef = doc(db, tasksCollection, task.id);
+      querySnapshot.docs.forEach((doc) => {
+        const taskRef = doc.ref;
         batch.update(taskRef, {
           backgroundColor: "", // Remove any background color
           updatedAt: new Date().toISOString(),
         });
       });
 
-      await batch.commit();
+      if (querySnapshot.docs.length > 0) {
+        await batch.commit();
+      }
     } catch (error) {
       console.error("Error updating tasks for dark mode:", error);
       throw error;

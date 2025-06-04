@@ -11,8 +11,6 @@ import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
 import { TaskProgress } from "../components/Dashboard/TaskProgress";
 import { TaskList } from "../components/Dashboard/TaskList";
 import { QuickActions } from "../components/Dashboard/QuickActions";
-import { timeIntervals } from "../components/Pomodoro/PomodoroTimer";
-import type { TimeInterval } from "../components/Pomodoro/PomodoroTimer";
 import { toast, Toaster } from "react-hot-toast";
 
 export function Dashboard() {
@@ -32,55 +30,6 @@ export function Dashboard() {
     const savedState = localStorage.getItem("highlightNextTask");
     return savedState ? JSON.parse(savedState) : true;
   });
-
-  const [isTimerVisible, setIsTimerVisible] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<number>(() => {
-    const savedState = localStorage.getItem("pomodoroTimerState");
-    if (savedState) {
-      const state = JSON.parse(savedState);
-      if (state.isRunning && state.startTime) {
-        const elapsedSeconds = Math.floor(
-          (Date.now() - state.startTime) / 1000
-        );
-        return Math.max(0, state.timeLeft - elapsedSeconds);
-      }
-      return state.timeLeft;
-    }
-    return 0;
-  });
-  const [isTimerRunning, setIsTimerRunning] = useState(() => {
-    const savedState = localStorage.getItem("pomodoroTimerState");
-    if (savedState) {
-      const state = JSON.parse(savedState);
-      return state.isRunning;
-    }
-    return false;
-  });
-  const [selectedInterval, setSelectedInterval] = useState<TimeInterval>(() => {
-    const savedState = localStorage.getItem("pomodoroTimerState");
-    if (savedState) {
-      const state = JSON.parse(savedState);
-      return state.selectedInterval || timeIntervals[0];
-    }
-    return timeIntervals[0];
-  });
-
-  useEffect(() => {
-    const handleHighlightNextTaskChange = (event: CustomEvent) => {
-      setHighlightNextTask(event.detail);
-    };
-
-    window.addEventListener(
-      "highlightNextTaskChanged",
-      handleHighlightNextTaskChange as EventListener
-    );
-    return () => {
-      window.removeEventListener(
-        "highlightNextTaskChanged",
-        handleHighlightNextTaskChange as EventListener
-      );
-    };
-  }, []);
 
   const isTask = (item: Task | SectionItem): item is Task => {
     return (
@@ -751,62 +700,6 @@ export function Dashboard() {
     }
   `;
 
-  // Save timer state whenever it changes
-  useEffect(() => {
-    if (timeLeft > 0) {
-      localStorage.setItem(
-        "pomodoroTimerState",
-        JSON.stringify({
-          selectedInterval,
-          timeLeft,
-          isRunning: isTimerRunning,
-          startTime: isTimerRunning
-            ? Date.now() - (selectedInterval.minutes * 60 - timeLeft) * 1000
-            : undefined,
-        })
-      );
-    } else {
-      localStorage.removeItem("pomodoroTimerState");
-    }
-  }, [timeLeft, isTimerRunning, selectedInterval]);
-
-  // Timer effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (isTimerRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setIsTimerRunning(false);
-            localStorage.removeItem("pomodoroTimerState");
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [isTimerRunning, timeLeft]);
-
-  const handleTimerStart = (interval: TimeInterval) => {
-    setSelectedInterval(interval);
-    setTimeLeft(interval.minutes * 60);
-    setIsTimerRunning(true);
-    setIsTimerVisible(false);
-  };
-
-  const handleTimerPauseResume = () => {
-    setIsTimerRunning(!isTimerRunning);
-  };
-
-  const handleTimerCancel = () => {
-    setTimeLeft(0);
-    setIsTimerRunning(false);
-    localStorage.removeItem("pomodoroTimerState");
-  };
-
   const handleClearCompleted = async () => {
     const completedTasks = items
       .filter((item) => item.completed)
@@ -911,14 +804,6 @@ export function Dashboard() {
                 currentDate={currentDate}
                 dayOfWeek={dayOfWeek}
                 temperature={temperature}
-                isTimerVisible={isTimerVisible}
-                setIsTimerVisible={setIsTimerVisible}
-                timeLeft={timeLeft}
-                isTimerRunning={isTimerRunning}
-                selectedInterval={selectedInterval}
-                onTimerStart={handleTimerStart}
-                onTimerPauseResume={handleTimerPauseResume}
-                onTimerCancel={handleTimerCancel}
                 weatherCondition={weatherCondition}
               />
               <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-0 pr-0 sm:pr-8 lg:pr-0 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300 bg-neu-whi-100 dark:bg-transparent">

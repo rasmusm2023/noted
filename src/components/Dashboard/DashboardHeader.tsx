@@ -1,9 +1,8 @@
+import { Icon } from "@iconify/react";
 import type { ReactElement } from "react";
 import { Greeting } from "../Greeting/Greeting";
 import { MotivationalQuote } from "../Greeting/MotivationalQuote";
-import { TimerButton } from "../Buttons/TimerButton";
 import { motion, AnimatePresence } from "framer-motion";
-import type { TimeInterval } from "../Pomodoro/PomodoroTimer";
 
 // Import weather icons
 import sunIcon from "../../assets/weather-icons/sun-svgrepo-com(1).svg";
@@ -16,55 +15,16 @@ import windIcon from "../../assets/weather-icons/wind-svgrepo-com.svg";
 import moonIcon from "../../assets/weather-icons/crescent-moon-moon-svgrepo-com.svg";
 
 interface DashboardHeaderProps {
-  dayOfWeek: string;
   currentDate: string;
+  dayOfWeek: string;
   temperature: number | null;
-  isTimerVisible: boolean;
-  setIsTimerVisible: (visible: boolean) => void;
-  timeLeft: number;
-  isTimerRunning: boolean;
-  selectedInterval: TimeInterval;
-  onTimerStart: (interval: TimeInterval) => void;
-  onTimerPauseResume: () => void;
-  onTimerCancel: () => void;
   weatherCondition: string | null;
 }
 
-const getWeatherIcon = (condition: string | null): ReactElement | null => {
-  if (!condition) return null;
-
-  const iconMap: { [key: string]: string } = {
-    Clear: sunIcon,
-    Clouds: cloudIcon,
-    Rain: rainIcon,
-    Snow: snowIcon,
-    Thunderstorm: thunderIcon,
-    Drizzle: rainIcon,
-    Mist: cloudySunIcon,
-    Wind: windIcon,
-    Night: moonIcon,
-  };
-
-  const iconSrc = iconMap[condition];
-  if (!iconSrc) return null;
-
-  return (
-    <img src={iconSrc} alt={`${condition} weather icon`} className="h-8 w-8" />
-  );
-};
-
 export const DashboardHeader = ({
-  dayOfWeek,
   currentDate,
+  dayOfWeek,
   temperature,
-  isTimerVisible,
-  setIsTimerVisible,
-  timeLeft,
-  isTimerRunning,
-  selectedInterval,
-  onTimerStart,
-  onTimerPauseResume,
-  onTimerCancel,
   weatherCondition,
 }: DashboardHeaderProps) => {
   // Abbreviate the day of the week to 3 letters
@@ -72,6 +32,34 @@ export const DashboardHeader = ({
 
   // Split the current date into day and month
   const [month, day] = currentDate.split(" ");
+
+  // Get weather icon based on condition
+  const getWeatherIcon = (condition: string | null): ReactElement | null => {
+    if (!condition) return null;
+
+    const iconMap: { [key: string]: string } = {
+      Clear: sunIcon,
+      Clouds: cloudIcon,
+      Rain: rainIcon,
+      Snow: snowIcon,
+      Thunderstorm: thunderIcon,
+      Drizzle: rainIcon,
+      Mist: cloudySunIcon,
+      Wind: windIcon,
+      Night: moonIcon,
+    };
+
+    const iconSrc = iconMap[condition];
+    if (!iconSrc) return null;
+
+    return (
+      <img
+        src={iconSrc}
+        alt={`${condition} weather icon`}
+        className="h-8 w-8"
+      />
+    );
+  };
 
   return (
     <div className="rounded-3xl lg:rounded-5xl pl-4 sm:pl-8 lg:pl-16 pr-4 sm:pr-8 lg:pr-16 pt-4 sm:pt-6 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.2),0_8px_32px_-8px_rgba(0,0,0,0.16)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.24),0_16px_48px_-16px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden">
@@ -92,20 +80,6 @@ export const DashboardHeader = ({
               </div>
               <div className="text-base sm:text-lg lg:text-lg">
                 <MotivationalQuote className="text-base sm:text-lg lg:text-lg mb-4 sm:mb-8" />
-              </div>
-              <div className="hidden lg:block mt-4">
-                <TimerButton
-                  onClick={() => {
-                    setIsTimerVisible(true);
-                    onTimerStart(selectedInterval);
-                  }}
-                  isActive={isTimerVisible}
-                  timeLeft={timeLeft}
-                  isRunning={isTimerRunning}
-                  onPauseResume={onTimerPauseResume}
-                  onCancel={onTimerCancel}
-                  className="text-xs sm:text-sm lg:text-base"
-                />
               </div>
             </div>
             <div className="flex lg:hidden w-[30%]">
