@@ -390,7 +390,7 @@ export const TaskLibraryButton = ({
                                     }}
                                     role="button"
                                     tabIndex={0}
-                                    className="p-1.5 sm:p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transition-colors duration-200 rounded-md"
+                                    className="p-1.5 sm:p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 duration-200 rounded-md"
                                     aria-label={`Remove task "${task.title}" from library`}
                                   >
                                     <Icon

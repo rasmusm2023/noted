@@ -15,16 +15,6 @@ import { timeIntervals } from "../components/Pomodoro/PomodoroTimer";
 import type { TimeInterval } from "../components/Pomodoro/PomodoroTimer";
 import { toast, Toaster } from "react-hot-toast";
 
-// Import weather icons
-import sunIcon from "../assets/weather-icons/sun-svgrepo-com(1).svg";
-import cloudIcon from "../assets/weather-icons/cloud-svgrepo-com.svg";
-import cloudySunIcon from "../assets/weather-icons/cloudy-sun-svgrepo-com.svg";
-import rainIcon from "../assets/weather-icons/rain-water-svgrepo-com.svg";
-import snowIcon from "../assets/weather-icons/snowflake-svgrepo-com.svg";
-import thunderIcon from "../assets/weather-icons/thunder-svgrepo-com.svg";
-import windIcon from "../assets/weather-icons/wind-svgrepo-com.svg";
-import moonIcon from "../assets/weather-icons/crescent-moon-moon-svgrepo-com.svg";
-
 export function Dashboard() {
   const { currentUser } = useAuth();
   const [items, setItems] = useState<Task[]>([]);
@@ -334,33 +324,6 @@ export function Dashboard() {
     // Cleanup interval on unmount
     return () => clearInterval(refreshInterval);
   }, []);
-
-  const getWeatherIcon = (condition: string | null) => {
-    if (!condition) return null;
-
-    const iconMap: { [key: string]: string } = {
-      Clear: sunIcon,
-      Clouds: cloudIcon,
-      Rain: rainIcon,
-      Snow: snowIcon,
-      Thunderstorm: thunderIcon,
-      Drizzle: rainIcon,
-      Mist: cloudySunIcon,
-      Wind: windIcon,
-      Night: moonIcon,
-    };
-
-    const iconSrc = iconMap[condition];
-    if (!iconSrc) return null;
-
-    return (
-      <img
-        src={iconSrc}
-        alt={`${condition} weather icon`}
-        className="h-8 w-8"
-      />
-    );
-  };
 
   const loadData = async () => {
     if (!currentUser) return;
@@ -948,7 +911,6 @@ export function Dashboard() {
                 currentDate={currentDate}
                 dayOfWeek={dayOfWeek}
                 temperature={temperature}
-                getWeatherIcon={getWeatherIcon}
                 isTimerVisible={isTimerVisible}
                 setIsTimerVisible={setIsTimerVisible}
                 timeLeft={timeLeft}
@@ -962,8 +924,6 @@ export function Dashboard() {
               <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-0 pr-0 sm:pr-8 lg:pr-0 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300 bg-neu-whi-100 dark:bg-transparent">
                 <TaskProgress
                   completionPercentage={completionPercentage}
-                  completedPosition="mixed"
-                  onCompletedPositionChange={() => {}}
                   onClearCompleted={handleClearCompleted}
                   onTaskSelect={handleTaskSelect}
                   onRemoveTask={handleRemoveTask}

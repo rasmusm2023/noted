@@ -1,7 +1,7 @@
+import type { ReactElement } from "react";
 import { Greeting } from "../Greeting/Greeting";
 import { MotivationalQuote } from "../Greeting/MotivationalQuote";
 import { TimerButton } from "../Buttons/TimerButton";
-import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { TimeInterval } from "../Pomodoro/PomodoroTimer";
 
@@ -19,7 +19,6 @@ interface DashboardHeaderProps {
   dayOfWeek: string;
   currentDate: string;
   temperature: number | null;
-  getWeatherIcon: (condition: string | null) => JSX.Element | null;
   isTimerVisible: boolean;
   setIsTimerVisible: (visible: boolean) => void;
   timeLeft: number;
@@ -31,38 +30,33 @@ interface DashboardHeaderProps {
   weatherCondition: string | null;
 }
 
-const getWeatherIcon = (condition: string | null) => {
+const getWeatherIcon = (condition: string | null): ReactElement | null => {
   if (!condition) return null;
 
-  switch (condition.toLowerCase()) {
-    case "clear":
-      return <img src={sunIcon} alt="Sunny" className="w-8 h-8" />;
-    case "clouds":
-      return <img src={cloudIcon} alt="Cloudy" className="w-8 h-8" />;
-    case "partly cloudy":
-      return (
-        <img src={cloudySunIcon} alt="Partly Cloudy" className="w-8 h-8" />
-      );
-    case "rain":
-      return <img src={rainIcon} alt="Rainy" className="w-8 h-8" />;
-    case "snow":
-      return <img src={snowIcon} alt="Snowy" className="w-8 h-8" />;
-    case "thunderstorm":
-      return <img src={thunderIcon} alt="Thunderstorm" className="w-8 h-8" />;
-    case "wind":
-      return <img src={windIcon} alt="Windy" className="w-8 h-8" />;
-    case "night":
-      return <img src={moonIcon} alt="Night" className="w-8 h-8" />;
-    default:
-      return <img src={sunIcon} alt="Weather" className="w-8 h-8" />;
-  }
+  const iconMap: { [key: string]: string } = {
+    Clear: sunIcon,
+    Clouds: cloudIcon,
+    Rain: rainIcon,
+    Snow: snowIcon,
+    Thunderstorm: thunderIcon,
+    Drizzle: rainIcon,
+    Mist: cloudySunIcon,
+    Wind: windIcon,
+    Night: moonIcon,
+  };
+
+  const iconSrc = iconMap[condition];
+  if (!iconSrc) return null;
+
+  return (
+    <img src={iconSrc} alt={`${condition} weather icon`} className="h-8 w-8" />
+  );
 };
 
 export const DashboardHeader = ({
   dayOfWeek,
   currentDate,
   temperature,
-  getWeatherIcon,
   isTimerVisible,
   setIsTimerVisible,
   timeLeft,
@@ -101,7 +95,10 @@ export const DashboardHeader = ({
               </div>
               <div className="hidden lg:block mt-4">
                 <TimerButton
-                  onClick={() => onTimerStart(selectedInterval)}
+                  onClick={() => {
+                    setIsTimerVisible(true);
+                    onTimerStart(selectedInterval);
+                  }}
                   isActive={isTimerVisible}
                   timeLeft={timeLeft}
                   isRunning={isTimerRunning}

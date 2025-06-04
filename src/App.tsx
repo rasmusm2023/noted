@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { ListProvider } from "./contexts/ListContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Layout } from "./components/Layout/Layout";
@@ -27,7 +27,6 @@ function AnimatedRoutes() {
   const [isLoading, setIsLoading] = useState(true);
   const [minimumLoadingTime, setMinimumLoadingTime] = useState(true);
   const loadingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const { currentUser } = useAuth();
 
   useEffect(() => {
     // Start loading timer
