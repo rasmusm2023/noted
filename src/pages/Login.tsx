@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
@@ -17,6 +18,7 @@ export function Login() {
   const location = useLocation();
   const formRef = useRef<HTMLFormElement>(null);
   const isNavigating = useRef(false);
+  const [passwordWarning, setPasswordWarning] = useState("");
 
   // Redirect if already logged in
   useEffect(() => {
@@ -33,6 +35,7 @@ export function Login() {
       if (!isNavigating.current) {
         setEmail("");
         setPassword("");
+        setRepeatPassword("");
         setFirstName("");
         setLastName("");
       }
@@ -55,6 +58,47 @@ export function Login() {
     }
   };
 
+  const validatePassword = (password: string) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    const errors = [];
+    if (password.length < minLength) {
+      errors.push(`At least ${minLength} characters`);
+    }
+    if (!hasUpperCase) {
+      errors.push("one uppercase letter");
+    }
+    if (!hasLowerCase) {
+      errors.push("one lowercase letter");
+    }
+    if (!hasNumbers) {
+      errors.push("one number");
+    }
+    if (!hasSpecialChar) {
+      errors.push("one special character");
+    }
+
+    return errors;
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+
+    if (!isLogin) {
+      const errors = validatePassword(newPassword);
+      if (errors.length > 0) {
+        setPasswordWarning(`Password must contain ${errors.join(", ")}`);
+      } else {
+        setPasswordWarning("");
+      }
+    }
+  };
+
   const getErrorMessage = (errorCode: string) => {
     switch (errorCode) {
       case "auth/invalid-credential":
@@ -66,7 +110,7 @@ export function Login() {
       case "auth/email-already-in-use":
         return "An account with this email already exists. Please try logging in.";
       case "auth/weak-password":
-        return "Password should be at least 6 characters long.";
+        return "Password is too weak. Please ensure it contains at least 8 characters, including uppercase, lowercase, numbers, and special characters.";
       case "auth/invalid-email":
         return "Please enter a valid email address.";
       case "auth/configuration-not-found":
@@ -87,6 +131,19 @@ export function Login() {
     if (!isLogin && (!firstName.trim() || !lastName.trim())) {
       setError("Please enter both first and last name");
       return;
+    }
+
+    if (!isLogin) {
+      const passwordErrors = validatePassword(password);
+      if (passwordErrors.length > 0) {
+        setError(`Password must contain ${passwordErrors.join(", ")}`);
+        return;
+      }
+
+      if (password !== repeatPassword) {
+        setError("Passwords do not match");
+        return;
+      }
     }
 
     try {
@@ -289,11 +346,47 @@ export function Login() {
                     }`}
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handlePasswordChange}
                     aria-label="Password"
                     aria-required="true"
+                    aria-invalid={!!passwordWarning}
+                    aria-describedby={
+                      passwordWarning ? "password-warning" : undefined
+                    }
                   />
+                  {passwordWarning && (
+                    <div
+                      id="password-warning"
+                      className="mt-2 text-sm text-sup-war-500 font-inter animate-fadeIn"
+                      role="alert"
+                    >
+                      {passwordWarning}
+                    </div>
+                  )}
                 </div>
+                {!isLogin && (
+                  <div className="animate-fadeIn">
+                    <label
+                      htmlFor="repeat-password"
+                      className="block text-sm font-medium mb-2 font-inter text-neu-whi-100"
+                    >
+                      Repeat Password
+                    </label>
+                    <input
+                      id="repeat-password"
+                      name="repeatPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      className="appearance-none relative block w-full px-6 py-4 border-2 placeholder-neu-gre-500 rounded-md focus:outline-none focus:ring-4 focus:ring-pri-focus-500 focus:border-transparent text-md transition-all duration-300 ease-in-out font-inter text-sm border-neu-bla-600 text-neu-whi-100 bg-neu-bla-800 hover:border-neu-bla-400"
+                      placeholder="Repeat your password"
+                      value={repeatPassword}
+                      onChange={(e) => setRepeatPassword(e.target.value)}
+                      aria-label="Repeat password"
+                      aria-required="true"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -395,15 +488,15 @@ export function Login() {
         <div className="max-w-3xl space-y-2 lg:space-y-16 px-4 sm:px-8 lg:px-12 opacity-75">
           {isLogin ? (
             <>
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left">
-                Structure your days.
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left whitespace-nowrap">
+                Structure your days 🗓️
               </h1>
-              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left">
-                Manage your goals.
+              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left whitespace-nowrap">
+                Reach your goals 🎯
               </h2>
             </>
           ) : (
-            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left">
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-medium text-neu-whi-100 animate-fadeIn font-inter text-center lg:text-left whitespace-nowrap">
               Let's get you started 🚀
             </h1>
           )}
