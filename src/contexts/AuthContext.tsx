@@ -182,17 +182,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Request additional scopes for profile picture
       provider.addScope("profile");
 
-      // Try to detect if popup is blocked
-      const popup = window.open(
-        "about:blank",
-        "google-signin-popup",
-        "width=500,height=600"
-      );
-      if (!popup) {
-        throw new Error("Popup blocked. Please allow popups for this site.");
-      }
-      popup.close();
-
       // Attempt to sign in with popup
       const userCredential = await signInWithPopup(auth, provider);
 
@@ -237,18 +226,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       console.error("Google sign-in error:", error);
 
-      // Handle specific error cases
-      if (error.code === "auth/popup-blocked") {
-        throw new Error("Popup blocked. Please allow popups for this site.");
+      // Handle specific error cases with user-friendly messages
+      if (error.code === "auth/unauthorized-domain") {
+        throw new Error(
+          "This domain is not authorized for Google sign-in. Please contact support."
+        );
+      } else if (error.code === "auth/popup-blocked") {
+        throw new Error(
+          "Please allow popups for this site in your browser settings to sign in with Google."
+        );
       } else if (error.code === "auth/popup-closed-by-user") {
         throw new Error(
-          "Sign-in popup was closed before completing the sign-in."
+          "Sign-in was cancelled. Please try again and complete the sign-in process."
         );
       } else if (error.code === "auth/cancelled-popup-request") {
-        throw new Error("Sign-in was cancelled.");
+        throw new Error("Sign-in was cancelled. Please try again.");
       } else if (error.code === "auth/network-request-failed") {
         throw new Error(
-          "Network error. Please check your internet connection."
+          "Network error. Please check your internet connection and try again."
         );
       }
 
