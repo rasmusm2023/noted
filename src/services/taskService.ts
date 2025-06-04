@@ -10,10 +10,7 @@ import {
   getDocs,
   writeBatch,
   serverTimestamp,
-  orderBy,
-  Timestamp,
   getDoc,
-  setDoc,
 } from "firebase/firestore";
 import type {
   Task,
@@ -223,6 +220,61 @@ export const taskService = {
           updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
         } as Task;
       });
+
+      // Get today's date at midnight
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Find tasks that need to be moved to today (uncompleted) or deleted (completed)
+      const tasksToUpdate = tasks.filter((task) => {
+        const taskDate = new Date(task.date);
+        taskDate.setHours(0, 0, 0, 0);
+        return !task.completed && taskDate < today;
+      });
+
+      const tasksToDelete = tasks.filter((task) => {
+        const taskDate = new Date(task.date);
+        taskDate.setHours(0, 0, 0, 0);
+        return task.completed && taskDate < today;
+      });
+
+      // If there are tasks to update or delete, process them
+      if (tasksToUpdate.length > 0 || tasksToDelete.length > 0) {
+        const batch = writeBatch(db);
+        const todayNoon = new Date(today);
+        todayNoon.setHours(12, 0, 0, 0); // Set to noon for better visibility
+
+        // Update uncompleted tasks to today
+        tasksToUpdate.forEach((task) => {
+          const taskRef = doc(db, tasksCollection, task.id);
+          batch.update(taskRef, {
+            date: todayNoon.toISOString(),
+            scheduledTime: todayNoon.toLocaleString(),
+            updatedAt: new Date().toISOString(),
+          });
+        });
+
+        // Delete completed tasks from past dates
+        tasksToDelete.forEach((task) => {
+          const taskRef = doc(db, tasksCollection, task.id);
+          batch.delete(taskRef);
+        });
+
+        await batch.commit();
+
+        // Update the tasks array with the new dates and remove deleted tasks
+        const updatedTasks = tasks.filter(
+          (task) => !tasksToDelete.some((t) => t.id === task.id)
+        );
+        updatedTasks.forEach((task) => {
+          if (tasksToUpdate.some((t) => t.id === task.id)) {
+            task.date = todayNoon.toISOString();
+            task.scheduledTime = todayNoon.toLocaleString();
+          }
+        });
+
+        return updatedTasks;
+      }
 
       return tasks;
     } catch (error) {

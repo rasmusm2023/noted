@@ -257,7 +257,7 @@ export const DayColumn = ({
       {isToday && (
         <div>
           <span
-            className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg dark:bg-pri-pur-600"
+            className="inline-block px-4 py-1 bg-sec-pea-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg dark:bg-sec-pea-600"
             role="status"
           >
             Today
@@ -267,7 +267,7 @@ export const DayColumn = ({
       {isTomorrow && (
         <div>
           <span
-            className="inline-block px-4 py-1 bg-sec-rose-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg dark:bg-sec-rose-600"
+            className="inline-block px-4 py-1 bg-pri-pur-500 text-neu-whi-100 text-base font-inter font-medium rounded-t-lg shadow-lg dark:bg-pri-pur-600"
             role="status"
           >
             Tomorrow
@@ -278,8 +278,8 @@ export const DayColumn = ({
         className={`py-4 px-2 h-fit shadow-lg ${
           dayIndex <= 1
             ? dayIndex === 0
-              ? "bg-gradient-to-b from-pri-pur-500/5 to-neu-gre-300/50 dark:from-pri-pur-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
-              : "bg-gradient-to-b from-sec-rose-500/5 to-neu-gre-300/50 dark:from-sec-rose-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+              ? "bg-gradient-to-b from-sec-pea-500/15 to-neu-gre-300/70 dark:from-sec-pea-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+              : "bg-gradient-to-b from-pri-pur-500/15 to-neu-gre-300/70 dark:from-pri-pur-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
             : "bg-neu-gre-300/50 dark:bg-neu-gre-700/50 rounded-xl"
         }`}
       >
