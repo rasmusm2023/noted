@@ -74,37 +74,23 @@ const DatePicker = ({
   }, [value]);
 
   const handleChange = (field: "month" | "day" | "year", value: string) => {
-    console.log(`=== ${field.toUpperCase()} CHANGE ===`);
-    console.log("Previous state:", dateValues);
-    console.log(`New ${field} value:`, value);
-
     // Create new values object with the updated field
     const newValues = {
       ...dateValues,
       [field]: value,
     };
 
-    console.log("New state object:", newValues);
-
     // Update state
     setDateValues(newValues);
 
     // Use newValues directly instead of waiting for state update
-    console.log("Using values for date string:", newValues);
     if (newValues.month && newValues.day && newValues.year) {
       const dateStr = `${newValues.month} ${newValues.day}, ${newValues.year}`;
-      console.log("DatePicker sending date string:", dateStr);
       onChange(dateStr);
     } else {
-      console.log("DatePicker sending None, no stress");
       onChange("None, no stress");
     }
   };
-
-  // Add effect to log state changes
-  useEffect(() => {
-    console.log("DatePicker state updated:", dateValues);
-  }, [dateValues]);
 
   return (
     <div className="space-y-2" role="group" aria-label="Select deadline date">
@@ -113,10 +99,6 @@ const DatePicker = ({
           value={dateValues.month}
           onChange={(e) => {
             const newMonth = e.target.value;
-            console.log(
-              "Month select onChange triggered with value:",
-              newMonth
-            );
             handleChange("month", newMonth);
           }}
           className="flex-1 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"
@@ -135,7 +117,6 @@ const DatePicker = ({
           value={dateValues.day}
           onChange={(e) => {
             const newDay = e.target.value;
-            console.log("Day select onChange triggered with value:", newDay);
             handleChange("day", newDay);
           }}
           className="w-24 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"
@@ -154,7 +135,6 @@ const DatePicker = ({
           value={dateValues.year}
           onChange={(e) => {
             const newYear = e.target.value;
-            console.log("Year select onChange triggered with value:", newYear);
             handleChange("year", newYear);
           }}
           className="w-28 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"

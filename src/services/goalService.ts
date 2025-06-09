@@ -30,7 +30,6 @@ export const goalService = {
     userId: string,
     goalData: Omit<Goal, "id" | "userId" | "createdAt" | "updatedAt">
   ): Promise<Goal> {
-    console.log("goalService.createGoal received deadline:", goalData.deadline);
     const goalsRef = collection(db, "goals");
     const now = new Date();
 
@@ -47,12 +46,7 @@ export const goalService = {
       updatedAt: now,
     };
 
-    console.log("goalService.createGoal processed deadline:", newGoal.deadline);
     const docRef = await addDoc(goalsRef, newGoal);
-    console.log(
-      "goalService.createGoal stored in Firestore with deadline:",
-      newGoal.deadline
-    );
     return { ...newGoal, id: docRef.id } as Goal;
   },
 
