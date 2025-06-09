@@ -55,7 +55,7 @@ export const DashboardHeader = ({
     return (
       <img
         src={iconSrc}
-        alt={`${condition} weather icon`}
+        alt={`${condition} weather condition icon`}
         className="h-8 w-8"
       />
     );

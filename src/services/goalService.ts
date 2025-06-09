@@ -30,12 +30,14 @@ export const goalService = {
     userId: string,
     goalData: Omit<Goal, "id" | "userId" | "createdAt" | "updatedAt">
   ): Promise<Goal> {
+    console.log("goalService.createGoal received deadline:", goalData.deadline);
     const goalsRef = collection(db, "goals");
     const now = new Date();
 
     const newGoal = {
       ...goalData,
       userId,
+      deadline: goalData.deadline ? new Date(goalData.deadline) : null,
       progress:
         goalData.progressType === "percentage"
           ? 0
@@ -45,7 +47,12 @@ export const goalService = {
       updatedAt: now,
     };
 
+    console.log("goalService.createGoal processed deadline:", newGoal.deadline);
     const docRef = await addDoc(goalsRef, newGoal);
+    console.log(
+      "goalService.createGoal stored in Firestore with deadline:",
+      newGoal.deadline
+    );
     return { ...newGoal, id: docRef.id } as Goal;
   },
 
@@ -53,10 +60,13 @@ export const goalService = {
     const goalRef = doc(db, "goals", goalId);
     const now = new Date();
 
-    await updateDoc(goalRef, {
+    const processedUpdates = {
       ...updates,
+      deadline: updates.deadline ? new Date(updates.deadline) : null,
       updatedAt: now,
-    });
+    };
+
+    await updateDoc(goalRef, processedUpdates);
   },
 
   async deleteGoal(goalId: string): Promise<void> {

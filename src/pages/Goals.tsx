@@ -51,55 +51,78 @@ const DatePicker = ({
   onChange: (date: string) => void;
 }) => {
   const { years, months, days } = generateDateOptions();
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedDay, setSelectedDay] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
+  const [dateValues, setDateValues] = useState({
+    month: "",
+    day: "",
+    year: "",
+  });
 
   useEffect(() => {
-    if (value) {
+    if (value && value !== "None, no stress") {
       try {
         const date = parse(value, "MMMM d, yyyy", new Date());
-        setSelectedMonth(months[getMonth(date)]);
-        setSelectedDay(getDate(date).toString());
-        setSelectedYear(getYear(date).toString());
+        setDateValues({
+          month: months[getMonth(date)],
+          day: getDate(date).toString(),
+          year: getYear(date).toString(),
+        });
       } catch (e) {
-        // If parsing fails, reset the fields
-        setSelectedMonth("");
-        setSelectedDay("");
-        setSelectedYear("");
+        console.log("Failed to parse date:", value);
+        // Don't reset state on parse error
       }
     }
   }, [value]);
 
-  const handleChange = (month: string, day: string, year: string) => {
-    if (
-      month &&
-      day &&
-      year &&
-      month !== "Month" &&
-      day !== "Day" &&
-      year !== "Year"
-    ) {
-      const dateStr = `${month} ${day}, ${year}`;
+  const handleChange = (field: "month" | "day" | "year", value: string) => {
+    console.log(`=== ${field.toUpperCase()} CHANGE ===`);
+    console.log("Previous state:", dateValues);
+    console.log(`New ${field} value:`, value);
+
+    // Create new values object with the updated field
+    const newValues = {
+      ...dateValues,
+      [field]: value,
+    };
+
+    console.log("New state object:", newValues);
+
+    // Update state
+    setDateValues(newValues);
+
+    // Use newValues directly instead of waiting for state update
+    console.log("Using values for date string:", newValues);
+    if (newValues.month && newValues.day && newValues.year) {
+      const dateStr = `${newValues.month} ${newValues.day}, ${newValues.year}`;
+      console.log("DatePicker sending date string:", dateStr);
       onChange(dateStr);
     } else {
+      console.log("DatePicker sending None, no stress");
       onChange("None, no stress");
     }
   };
+
+  // Add effect to log state changes
+  useEffect(() => {
+    console.log("DatePicker state updated:", dateValues);
+  }, [dateValues]);
 
   return (
     <div className="space-y-2" role="group" aria-label="Select deadline date">
       <div className="flex gap-2">
         <select
-          value={selectedMonth}
+          value={dateValues.month}
           onChange={(e) => {
-            setSelectedMonth(e.target.value);
-            handleChange(e.target.value, selectedDay, selectedYear);
+            const newMonth = e.target.value;
+            console.log(
+              "Month select onChange triggered with value:",
+              newMonth
+            );
+            handleChange("month", newMonth);
           }}
           className="flex-1 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"
           aria-label="Select month"
         >
-          <option value="Month" className="font-inter">
+          <option value="" className="font-inter">
             Month
           </option>
           {months.map((month) => (
@@ -109,15 +132,16 @@ const DatePicker = ({
           ))}
         </select>
         <select
-          value={selectedDay}
+          value={dateValues.day}
           onChange={(e) => {
-            setSelectedDay(e.target.value);
-            handleChange(selectedMonth, e.target.value, selectedYear);
+            const newDay = e.target.value;
+            console.log("Day select onChange triggered with value:", newDay);
+            handleChange("day", newDay);
           }}
           className="w-24 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"
           aria-label="Select day"
         >
-          <option value="Day" className="font-inter">
+          <option value="" className="font-inter">
             Day
           </option>
           {days.map((day) => (
@@ -127,15 +151,16 @@ const DatePicker = ({
           ))}
         </select>
         <select
-          value={selectedYear}
+          value={dateValues.year}
           onChange={(e) => {
-            setSelectedYear(e.target.value);
-            handleChange(selectedMonth, selectedDay, e.target.value);
+            const newYear = e.target.value;
+            console.log("Year select onChange triggered with value:", newYear);
+            handleChange("year", newYear);
           }}
           className="w-28 px-4 py-2 bg-neu-whi-100 dark:bg-neu-gre-800 rounded-md text-neu-gre-800 dark:text-neu-gre-100 ring-2 ring-neu-gre-300 dark:ring-neu-gre-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 focus-visible:ring-offset-2 transition-all duration-200 font-inter"
           aria-label="Select year"
         >
-          <option value="Year" className="font-inter">
+          <option value="" className="font-inter">
             Year
           </option>
           {years.map((year) => (
@@ -246,15 +271,33 @@ export function Goals() {
     if (!currentUser) return;
 
     try {
+      console.log("Initial deadline value:", newGoal.deadline);
       let parsedDate: Date | null = null;
       if (newGoal.deadline && newGoal.deadline !== "None, no stress") {
         try {
+          console.log("Attempting to parse date:", newGoal.deadline);
+          // Parse the date string into a Date object
           parsedDate = parse(newGoal.deadline, "MMMM d, yyyy", new Date());
+          console.log("Parsed date object:", parsedDate);
+
+          // Validate that the parsed date is valid
+          if (isNaN(parsedDate.getTime())) {
+            console.error("Invalid date parsed:", newGoal.deadline);
+            parsedDate = null;
+          } else {
+            // Ensure the date is set to midnight UTC to avoid timezone issues
+            parsedDate.setUTCHours(0, 0, 0, 0);
+            console.log("Final parsed date after UTC adjustment:", parsedDate);
+          }
         } catch (e) {
           console.error("Error parsing date:", e);
+          parsedDate = null;
         }
+      } else {
+        console.log("No valid date selected, setting to null");
       }
 
+      console.log("Sending to goalService with deadline:", parsedDate);
       const goal = await goalService.createGoal(currentUser.uid, {
         ...newGoal,
         currentStep: 0,
@@ -265,6 +308,7 @@ export function Goals() {
             : (0 / newGoal.totalSteps) * 100,
         status: "active",
       });
+      console.log("Created goal with deadline:", goal.deadline);
       setGoals([...goals, goal]);
       setTasks({ ...tasks, [goal.id]: [] });
       setNewGoal({
@@ -365,9 +409,20 @@ export function Goals() {
       let parsedDate: Date | null = null;
       if (newGoal.deadline && newGoal.deadline !== "None, no stress") {
         try {
+          // Parse the date string into a Date object
           parsedDate = parse(newGoal.deadline, "MMMM d, yyyy", new Date());
+
+          // Validate that the parsed date is valid
+          if (isNaN(parsedDate.getTime())) {
+            console.error("Invalid date parsed:", newGoal.deadline);
+            parsedDate = null;
+          } else {
+            // Ensure the date is set to midnight UTC to avoid timezone issues
+            parsedDate.setUTCHours(0, 0, 0, 0);
+          }
         } catch (e) {
           console.error("Error parsing date:", e);
+          parsedDate = null;
         }
       }
 

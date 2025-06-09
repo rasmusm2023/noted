@@ -404,13 +404,13 @@ export function Account() {
                   {selectedAvatar === 0 && userDetails?.photoURL ? (
                     <img
                       src={userDetails.photoURL}
-                      alt="Current profile avatar"
+                      alt="User's Google profile picture"
                       className="w-32 h-32 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 object-cover"
                     />
                   ) : (
                     <img
                       src={avatars.find((a) => a.id === selectedAvatar)?.src}
-                      alt="Current profile avatar"
+                      alt="Selected profile avatar"
                       className="w-32 h-32 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                     />
                   )}
@@ -454,7 +454,7 @@ export function Account() {
                       >
                         <img
                           src={userDetails.photoURL}
-                          alt=""
+                          alt="Google profile picture option"
                           className="w-full h-auto rounded-sm object-cover aspect-square"
                           aria-hidden="true"
                         />
@@ -477,7 +477,7 @@ export function Account() {
                       >
                         <img
                           src={avatar.src}
-                          alt=""
+                          alt="Selected profile avatar"
                           className="w-full h-auto rounded-sm"
                           aria-hidden="true"
                         />

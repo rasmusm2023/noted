@@ -142,6 +142,7 @@ export const TaskItem = ({
               <Icon
                 icon="mingcute:check-2-fill"
                 className="w-6 h-6 sm:w-7 sm:h-7"
+                aria-label="Mark task as complete"
               />
             ) : (
               <Icon
@@ -252,6 +253,7 @@ export const TaskItem = ({
                 width={24}
                 height={24}
                 className="w-6 h-6 sm:w-7 sm:h-7"
+                aria-label="Add to library"
               />
             </button>
             <button
@@ -281,6 +283,7 @@ export const TaskItem = ({
                 width={24}
                 height={24}
                 className="w-6 h-6 sm:w-7 sm:h-7"
+                aria-label="Delete task"
               />
             </button>
           </div>

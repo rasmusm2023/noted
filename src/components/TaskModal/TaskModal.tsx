@@ -448,7 +448,8 @@ export function TaskModal({
                 <div className="flex items-center space-x-2 sm:space-x-3 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md p-2 sm:p-3 md:p-4 min-w-0">
                   <Icon
                     icon="mingcute:pencil-3-fill"
-                    className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0"
+                    className="w-6 h-6"
+                    aria-label="Edit task"
                   />
                   <textarea
                     ref={titleTextareaRef}
@@ -558,7 +559,8 @@ export function TaskModal({
                   >
                     <Icon
                       icon="mingcute:delete-2-fill"
-                      className="w-5 h-5 sm:w-6 sm:h-6"
+                      className="w-6 h-6"
+                      aria-label="Delete task"
                     />
                   </button>
                   <button
@@ -572,7 +574,8 @@ export function TaskModal({
                   >
                     <Icon
                       icon="mingcute:close-circle-fill"
-                      className="w-5 h-5 sm:w-6 sm:h-6"
+                      className="w-6 h-6"
+                      aria-label="Close modal"
                     />
                   </button>
                 </div>
@@ -660,7 +663,8 @@ export function TaskModal({
                         {subtask.completed ? (
                           <Icon
                             icon="mingcute:check-2-fill"
-                            className="w-5 h-5 sm:w-6 sm:h-6"
+                            className="w-6 h-6"
+                            aria-label="Save changes"
                           />
                         ) : (
                           <Icon

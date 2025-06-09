@@ -279,62 +279,54 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   // Add focus trap effect
   useEffect(() => {
     if (!isOpen) {
-      // When menu is closed, remove all focusable elements from tab order except the open menu button
-      const focusableElements = sidebarRef.current?.querySelectorAll(
-        'button:not([aria-label="Open navigation menu"]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      focusableElements?.forEach((el) => {
-        (el as HTMLElement).setAttribute("tabindex", "-1");
-      });
       return;
     }
 
-    // When menu is open, restore tabindex for all focusable elements
-    const focusableElements = sidebarRef.current?.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    focusableElements?.forEach((el) => {
-      (el as HTMLElement).setAttribute("tabindex", "0");
-    });
+    // Only apply focus trap on mobile/tablet
+    if (window.innerWidth < 1024) {
+      const focusableElements = sidebarRef.current?.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
 
-    const handleFocusTrap = (e: KeyboardEvent) => {
-      if (e.key !== "Tab") return;
+      const handleFocusTrap = (e: KeyboardEvent) => {
+        if (e.key !== "Tab") return;
 
-      const elements = Array.from(focusableElements || []) as HTMLElement[];
-      const closeButton = closeButtonRef.current as HTMLElement;
-      const closeButtonIndex = elements.indexOf(closeButton);
+        const elements = Array.from(focusableElements || []) as HTMLElement[];
+        const closeButton = closeButtonRef.current as HTMLElement;
+        const closeButtonIndex = elements.indexOf(closeButton);
 
-      // Remove close button from the array to handle it separately
-      elements.splice(closeButtonIndex, 1);
+        // Remove close button from the array to handle it separately
+        elements.splice(closeButtonIndex, 1);
 
-      const firstElement = elements[0];
-      const lastElement = elements[elements.length - 1];
+        const firstElement = elements[0];
+        const lastElement = elements[elements.length - 1];
 
-      if (e.shiftKey) {
-        // If shift + tab and focus is on first element, move to close button
-        if (document.activeElement === firstElement) {
-          e.preventDefault();
-          closeButton.focus();
+        if (e.shiftKey) {
+          // If shift + tab and focus is on first element, move to close button
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            closeButton.focus();
+          }
+        } else {
+          // If tab and focus is on close button, move to first element
+          if (document.activeElement === closeButton) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+          // If tab and focus is on last menu item, move to close button
+          else if (document.activeElement === lastElement) {
+            e.preventDefault();
+            closeButton.focus();
+          }
         }
-      } else {
-        // If tab and focus is on close button, move to first element
-        if (document.activeElement === closeButton) {
-          e.preventDefault();
-          firstElement.focus();
-        }
-        // If tab and focus is on last menu item, move to close button
-        else if (document.activeElement === lastElement) {
-          e.preventDefault();
-          closeButton.focus();
-        }
-      }
-    };
+      };
 
-    // Focus the first menu item when menu opens
-    firstMenuItemRef.current?.focus();
+      // Focus the first menu item when menu opens
+      firstMenuItemRef.current?.focus();
 
-    document.addEventListener("keydown", handleFocusTrap);
-    return () => document.removeEventListener("keydown", handleFocusTrap);
+      document.addEventListener("keydown", handleFocusTrap);
+      return () => document.removeEventListener("keydown", handleFocusTrap);
+    }
   }, [isOpen]);
 
   const handleNavigation = (path: string) => {
@@ -466,7 +458,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     ? "/assets/logos/Noted-logo-dark.png"
                     : "/assets/logos/Noted-logo-light.png"
                 }
-                alt="Noted"
+                alt="Noted application logo"
                 className="h-6"
               />
             ) : (
@@ -476,7 +468,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     ? "/assets/favicon/Noted-favicon-purple.png"
                     : "/assets/favicon/Noted-favicon-light.png"
                 }
-                alt="Noted"
+                alt="Noted application icon"
                 className="h-8 w-8"
               />
             )}
@@ -524,14 +516,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               {userDetails?.useGooglePhoto && userDetails?.photoURL ? (
                 <img
                   src={userDetails.photoURL}
-                  alt=""
+                  alt="User's Google profile picture"
                   className="w-8 h-8 rounded-md object-cover"
                   aria-hidden="true"
                 />
               ) : (
                 <img
                   src={avatars[(userDetails?.selectedAvatar || 1) - 1].src}
-                  alt=""
+                  alt="User's selected profile avatar"
                   className="w-8 h-8 rounded-md"
                   aria-hidden="true"
                 />
@@ -586,7 +578,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       className={`text-neu-gre-700 dark:text-neu-gre-500 ${
                         location.pathname === "/" ? "dark:text-neu-whi-100" : ""
                       }`}
-                      aria-hidden="true"
+                      aria-label="Calendar view"
                     />
                     {isOpen && (
                       <span className="text-sm lg:text-base">Today</span>
@@ -619,6 +611,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             ? "dark:text-neu-whi-100"
                             : ""
                         }`}
+                        aria-label="Board view"
                       />
                     </div>
                     {isOpen && (
@@ -666,7 +659,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           ? "dark:text-neu-whi-100"
                           : ""
                       }`}
-                      aria-hidden="true"
+                      aria-label="Goals"
                     />
                     {isOpen && (
                       <span className="text-sm lg:text-base font-medium">
@@ -844,7 +837,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     icon="mingcute:settings-3-fill"
                     width={24}
                     height={24}
-                    aria-hidden="true"
+                    aria-label="Settings"
                   />
                   {isOpen && (
                     <span className="ml-3 text-sm lg:text-base">Settings</span>
@@ -877,10 +870,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       >
                         <Icon
                           icon="mingcute:sun-fill"
-                          width={16}
-                          height={16}
                           className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
-                          aria-hidden="true"
+                          aria-label="Toggle theme"
                         />
                         <span className="flex justify-between items-center w-full">
                           {theme === "light" ? (
@@ -915,7 +906,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           icon="mingcute:fullscreen-fill"
                           width={16}
                           height={16}
-                          aria-hidden="true"
+                          aria-label="Toggle fullscreen"
                         />
                         <span className="flex justify-between items-center w-full">
                           Highlight next task
@@ -944,7 +935,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           icon="mingcute:translate-2-fill"
                           width={16}
                           height={16}
-                          aria-hidden="true"
+                          aria-label="Change language"
                         />
                         <span className="flex justify-between items-center w-full">
                           Language
@@ -974,7 +965,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           icon="mingcute:exit-fill"
                           width={16}
                           height={16}
-                          aria-hidden="true"
+                          aria-label="Sign out"
                         />
                         <span>Logout</span>
                       </button>

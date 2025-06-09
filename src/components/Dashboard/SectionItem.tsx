@@ -46,7 +46,12 @@ export const SectionItem = ({
           className="p-2 text-neu-400 hover:text-neu-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
           aria-label={`Edit section "${section.text}"`}
         >
-          <Icon icon="mingcute:edit-2-fill" width={24} height={24} />
+          <Icon
+            icon="mingcute:edit-2-fill"
+            width={24}
+            height={24}
+            aria-label="Edit section"
+          />
         </button>
         <button
           onClick={(e) => {
@@ -56,7 +61,12 @@ export const SectionItem = ({
           className="p-2 text-neu-400 hover:text-red-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-blue-500 rounded-lg"
           aria-label={`Delete section "${section.text}"`}
         >
-          <Icon icon="mingcute:delete-2-fill" width={24} height={24} />
+          <Icon
+            icon="mingcute:delete-2-fill"
+            width={24}
+            height={24}
+            aria-label="Delete section"
+          />
         </button>
       </div>
     </div>
