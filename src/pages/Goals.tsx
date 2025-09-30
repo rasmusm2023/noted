@@ -472,7 +472,7 @@ export function Goals() {
                 className="text-pri-pur-500 w-6 h-6 sm:w-8 sm:h-8"
                 aria-hidden="true"
               />
-              <h1 className="text-2xl sm:text-3xl font-bold text-neu-gre-800 dark:text-neu-gre-100 font-inter">
+              <h1 className="text-2xl sm:text-3xl font-medium text-neu-gre-800 dark:text-neu-gre-100 font-clash">
                 Goals
               </h1>
             </div>

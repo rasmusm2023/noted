@@ -410,7 +410,7 @@ export function ListPage() {
     <DndProvider backend={HTML5Backend}>
       <div className="mt-0 lg:mt-16 font-inter">
         <div className="max-w-4xl mx-auto px-0 sm:px-6 lg:px-8">
-          <div className="bg-neu-whi-100 dark:bg-neu-gre-800 rounded-5xl py-8 sm:py-8 lg:py-16 px-4 sm:px-8 lg:px-16 transition-all duration-300">
+          <div className="bg-bg-white-50 dark:bg-neu-gray-800 rounded-5xl py-8 sm:py-8 lg:py-16 px-4 sm:px-8 lg:px-16 transition-all duration-300">
             <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2"></div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               {isEditingName ? (
@@ -467,7 +467,7 @@ export function ListPage() {
                     className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
                     aria-hidden="true"
                   />
-                  <h1 className="text-lg sm:text-xl lg:text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100">
+                  <h1 className="text-lg sm:text-xl lg:text-lg font-clash font-medium text-neu-gre-800 dark:text-neu-gre-100">
                     {currentList.name}
                   </h1>
                 </div>

@@ -25,6 +25,7 @@ module.exports = {
       },
       fontFamily: {
         inter: ["Inter", "sans-serif"],
+        clash: ["Clash Display", "sans-serif"],
       },
       fontSize: {
         xs: [
@@ -131,14 +132,37 @@ module.exports = {
         "10xl": "240px",
       },
       backgroundImage: {
+        // New modern gradients
+        "gradient-primary":
+          "linear-gradient(135deg, theme(colors.pri-blue.500) 0%, theme(colors.pri-blue.600) 100%)",
+        "gradient-secondary":
+          "linear-gradient(135deg, theme(colors.sec-purple.500) 0%, theme(colors.task-pink.500) 100%)",
+        "gradient-success":
+          "linear-gradient(135deg, theme(colors.acc-green.500) 0%, theme(colors.acc-green.600) 100%)",
+        "gradient-warm":
+          "linear-gradient(135deg, theme(colors.task-orange.500) 0%, theme(colors.task-pink.500) 100%)",
+        "gradient-cool":
+          "linear-gradient(135deg, theme(colors.task-cyan.500) 0%, theme(colors.pri-blue.500) 100%)",
+        "gradient-sunset":
+          "linear-gradient(135deg, theme(colors.status-warning.500) 0%, theme(colors.status-error.500) 100%)",
+        "gradient-ocean":
+          "linear-gradient(135deg, theme(colors.pri-blue.500) 0%, theme(colors.task-cyan.500) 100%)",
+        "gradient-forest":
+          "linear-gradient(135deg, theme(colors.acc-green.500) 0%, theme(colors.acc-green.600) 100%)",
+        "gradient-lavender":
+          "linear-gradient(135deg, theme(colors.sec-purple.500) 0%, theme(colors.task-purple.500) 100%)",
+        "gradient-rose":
+          "linear-gradient(135deg, theme(colors.task-pink.500) 0%, theme(colors.task-pink.400) 100%)",
+
+        // Backward compatibility gradients
         "gradient-rose-peach":
-          "linear-gradient(90deg, theme(colors.sec-rose.500) 0%, theme(colors.sec-pea.500) 50%, theme(colors.sec-rose.500) 100%)",
+          "linear-gradient(90deg, theme(colors.task-pink.500) 0%, theme(colors.task-orange.500) 50%, theme(colors.task-pink.500) 100%)",
         "gradient-rose-peach-75":
-          "linear-gradient(90deg, rgba(239, 112, 155, 0.75) 0%, rgba(250, 147, 114, 0.75) 100%)",
+          "linear-gradient(90deg, rgba(236, 72, 153, 0.75) 0%, rgba(249, 115, 22, 0.75) 100%)",
         "gradient-purple-rose-peach":
-          "linear-gradient(90deg, theme(colors.pri-pur.500) 0%, theme(colors.sec-rose.500) 50%, theme(colors.sec-pea.500) 100%)",
+          "linear-gradient(90deg, theme(colors.pri-blue.500) 0%, theme(colors.task-pink.500) 50%, theme(colors.task-orange.500) 100%)",
         "gradient-highlighted-task":
-          "linear-gradient(90deg, rgba(167, 139, 250, 0.3) 0%, rgba(109, 40, 217, 0.3) 100%)",
+          "linear-gradient(90deg, rgba(59, 130, 246, 0.3) 0%, rgba(14, 165, 233, 0.3) 100%)",
       },
     },
   },
