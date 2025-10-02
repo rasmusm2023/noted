@@ -38,15 +38,15 @@ export const TaskItem = ({
     task-item py-4 px-2 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px]
     ${
       isNextTask
-        ? "highlighted-task border-2 border-pri-pur-500/30"
+        ? "highlighted-task border-2 border-pri-blue-500/30 bg-gradient-primary"
         : task.completed
-        ? "dark:[background:linear-gradient(90deg,hsla(145,84%,45%,1)_0%,hsla(150,61%,35%,1)_100%)] [background:linear-gradient(90deg,hsla(145,84%,73%,1)_0%,hsla(150,61%,48%,1)_100%)] border-2 border-sup-suc-800/30"
+        ? "bg-gradient-success border-2 border-acc-green-800/30"
         : task.backgroundColor
         ? task.backgroundColor
-        : "bg-task-stone-100 dark:bg-neu-gre-700 border-2 border-neu-gre-500/30"
+        : "bg-task-gray-100 dark:bg-neu-gray-700 border-2 border-neu-gray-500/30"
     }
-    ${editingTask?.id === task.id ? "ring-2 ring-pri-pur-500" : ""}
-    focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500
+    ${editingTask?.id === task.id ? "ring-2 ring-pri-blue-500" : ""}
+    focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus-500
   `;
 
   return (
@@ -101,7 +101,7 @@ export const TaskItem = ({
             ) : (
               <Icon
                 icon="mingcute:round-line"
-                className="w-6 h-6 text-neu-gre-700 dark:text-neu-gre-100 hover:text-sup-suc-500 dark:hover:text-sup-suc-400"
+                className="w-6 h-6 text-neu-gre-700 dark:text-neu-gre-100 hover:text-acc-green-500 dark:hover:text-acc-green-400"
               />
             )}
           </button>
@@ -113,7 +113,7 @@ export const TaskItem = ({
                 editingTask?.id === task.id ? "" : "transition-all duration-300"
               } ${
                 task.completed
-                  ? "text-neu-gre-800 dark:text-sup-suc-800 scale-95"
+                  ? "text-acc-green-800 dark:text-acc-green-200 scale-95"
                   : "text-neu-gre-800 dark:text-neu-whi-100"
               }`}
             >
@@ -143,7 +143,7 @@ export const TaskItem = ({
                     });
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-transparent text-sm font-inter font-regular text-neu-gre-900 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-focus-500"
+                  className="w-full bg-transparent text-sm font-inter font-regular text-neu-gre-900 dark:text-neu-whi-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-focus-500"
                   autoFocus
                 />
               ) : (
@@ -158,23 +158,31 @@ export const TaskItem = ({
                   <div
                     className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                       subtask.completed
-                        ? task.completed
-                          ? "bg-sup-suc-600 dark:bg-sup-suc-800"
-                          : "bg-sup-suc-600 dark:bg-sup-suc-400"
+                        ? isNextTask
+                          ? "bg-acc-green-600 dark:bg-acc-green-300"
+                          : task.completed
+                          ? "bg-acc-green-700 dark:bg-acc-green-300"
+                          : "bg-acc-green-600 dark:bg-acc-green-400"
                         : task.completed
-                        ? "bg-neu-gre-500 dark:bg-neu-gre-700"
+                        ? "bg-neu-gre-500 dark:bg-neu-gre-600"
+                        : isNextTask
+                        ? "bg-bg-white-50 dark:bg-bg-white-50"
                         : "bg-neu-gre-500 dark:bg-neu-gre-400"
                     }`}
                   />
                   <span
                     className={`font-inter text-xs truncate ${
                       subtask.completed
-                        ? task.completed
-                          ? "line-through text-sup-suc-600 dark:text-sup-suc-800"
-                          : "line-through text-sup-suc-600 dark:text-sup-suc-400"
+                        ? isNextTask
+                          ? "line-through text-acc-green-700 dark:text-acc-green-200"
+                          : task.completed
+                          ? "line-through text-acc-green-700 dark:text-acc-green-200"
+                          : "line-through text-acc-green-600 dark:text-acc-green-300"
                         : task.completed
-                        ? "text-neu-400 dark:text-neu-gre-700"
-                        : "text-neu-400 dark:text-neu-gre-400"
+                        ? "text-neu-gre-600 dark:text-neu-gre-300"
+                        : isNextTask
+                        ? "text-bg-white-50 dark:text-bg-white-50"
+                        : "text-neu-gre-600 dark:text-neu-gre-400"
                     }`}
                   >
                     {subtask.title}

@@ -185,7 +185,7 @@ export function Login() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-purple-rose-peach bg-[length:200%_200%] animate-gradientMove flex flex-col-reverse lg:flex-row font-inter"
+      className="min-h-screen bg-gradient-primary bg-[length:200%_200%] animate-gradientMove flex flex-col-reverse lg:flex-row font-inter"
       role="main"
       aria-label="Authentication page"
     >

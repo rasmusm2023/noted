@@ -91,7 +91,7 @@ export function Greeting({ className = "" }: GreetingProps) {
 
   return (
     <div
-      className={`text-base sm:text-lg lg:text-2xl font-bold font-inter text-neu-whi-100 ${className}`}
+      className={`text-base sm:text-lg lg:text-2xl font-medium font-clash text-neu-whi-100 ${className}`}
     >
       <span>{greeting} </span>
       <span>{firstName}</span>

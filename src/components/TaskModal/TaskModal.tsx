@@ -17,8 +17,8 @@ const TASK_COLORS = [
   {
     name: "Stone",
     value:
-      "bg-task-stone-100 dark:bg-neu-gre-700 border-2 border-neu-gre-500/30 dark:border-neu-gre-500/30",
-    hover: "hover:bg-task-stone-hover dark:hover:bg-neu-gre-600",
+      "bg-task-gray-100 dark:bg-neu-gray-700 border-2 border-neu-gray-500/30 dark:border-neu-gray-500/30",
+    hover: "hover:bg-task-gray-200 dark:hover:bg-neu-gray-600",
   },
   {
     name: "Sky",
@@ -420,7 +420,7 @@ export function TaskModal({
 
   return (
     <div
-      className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity ${
+      className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity ${
         isClosing ? "duration-200" : "duration-150"
       } ${isClosing ? "opacity-0" : isOpening ? "opacity-0" : "opacity-100"}`}
       role="dialog"
@@ -429,7 +429,13 @@ export function TaskModal({
     >
       <div
         ref={modalRef}
-        className={`bg-neu-whi-100 dark:bg-neu-gre-800 rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl w-[95%] sm:w-[90%] md:w-[80%] lg:w-[75%] xl:w-[65%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-4 max-h-[85vh] sm:max-h-[85vh] md:max-h-[85vh] lg:max-h-[90vh] overflow-y-auto relative transition-all ${
+        className={`${
+          task.completed
+            ? "bg-gradient-success"
+            : task.backgroundColor
+            ? task.backgroundColor
+            : "bg-task-gray-100 dark:bg-neu-gray-800"
+        } rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl w-[95%] sm:w-[90%] md:w-[80%] lg:w-[75%] xl:w-[65%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-4 max-h-[85vh] sm:max-h-[85vh] md:max-h-[85vh] lg:max-h-[90vh] overflow-y-auto relative transition-all ${
           isClosing ? "duration-200" : "duration-150"
         } ${
           isClosing
@@ -464,7 +470,11 @@ export function TaskModal({
                       }
                     }}
                     onClick={(e) => e.stopPropagation()}
-                    className="flex-1 bg-transparent text-base sm:text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0 min-w-0"
+                    className={`flex-1 bg-transparent text-base sm:text-lg font-inter font-semibold focus:outline-none cursor-text border-b-2 border-transparent focus:border-focus-300 dark:focus:border-focus-500 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0 min-w-0 ${
+                      task.completed
+                        ? "text-acc-green-800 dark:text-acc-green-200"
+                        : "text-neu-gre-800 dark:text-neu-gre-100"
+                    }`}
                     rows={1}
                     style={{ height: "auto" }}
                   />
@@ -591,9 +601,19 @@ export function TaskModal({
                 <div className="flex items-center space-x-2 sm:space-x-3">
                   <Icon
                     icon="mingcute:more-2-fill"
-                    className="text-neu-gre-800 dark:text-neu-gre-100 w-4 h-4 sm:w-5 sm:h-5"
+                    className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                      task.completed
+                        ? "text-acc-green-800 dark:text-acc-green-200"
+                        : "text-neu-gre-800 dark:text-neu-gre-100"
+                    }`}
                   />
-                  <h3 className="text-sm sm:text-md font-medium font-inter text-neu-gre-800 dark:text-neu-gre-100">
+                  <h3
+                    className={`text-sm sm:text-md font-medium font-inter ${
+                      task.completed
+                        ? "text-acc-green-800 dark:text-acc-green-200"
+                        : "text-neu-gre-800 dark:text-neu-gre-100"
+                    }`}
+                  >
                     Subtasks
                   </h3>
                 </div>
@@ -640,7 +660,7 @@ export function TaskModal({
                     onClick={(e) => e.stopPropagation()}
                     className={`p-2 sm:p-3 rounded-lg flex items-center justify-between transition-all duration-300 ${
                       subtask.completed
-                        ? "bg-sup-suc-400 dark:bg-sup-suc-700 bg-opacity-75"
+                        ? "bg-acc-green-400 dark:bg-acc-green-700 bg-opacity-75"
                         : "bg-neu-gre-300 dark:bg-neu-gre-700"
                     }`}
                   >
@@ -654,7 +674,7 @@ export function TaskModal({
                           subtask.completed
                             ? "text-neu-gre-800 dark:text-neu-gre-100 hover:text-neu-gre-600 dark:hover:text-neu-gre-300 scale-95"
                             : "text-neu-gre-800 dark:text-neu-gre-100 hover:text-neu-gre-600 dark:hover:text-neu-gre-300 hover:scale-95"
-                        } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500`}
+                        } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-500`}
                         aria-label={`Mark subtask "${subtask.title}" as ${
                           subtask.completed ? "incomplete" : "complete"
                         }`}

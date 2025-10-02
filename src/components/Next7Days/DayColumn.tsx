@@ -278,8 +278,8 @@ export const DayColumn = ({
         className={`py-4 px-2 h-fit shadow-lg ${
           dayIndex <= 1
             ? dayIndex === 0
-              ? "bg-gradient-to-b from-sec-pea-500/15 to-neu-gre-300/70 dark:from-sec-pea-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
-              : "bg-gradient-to-b from-pri-pur-500/15 to-neu-gre-300/70 dark:from-pri-pur-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+              ? "bg-gradient-to-b from-task-orange-500/15 to-neu-gre-300/70 dark:from-task-orange-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
+              : "bg-gradient-to-b from-pri-blue-500/15 to-neu-gre-300/70 dark:from-pri-blue-500/10 dark:to-neu-gre-700/50 rounded-tr-xl rounded-br-xl rounded-bl-xl"
             : "bg-neu-gre-300/50 dark:bg-neu-gre-700/50 rounded-xl"
         }`}
       >

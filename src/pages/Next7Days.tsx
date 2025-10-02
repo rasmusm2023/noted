@@ -113,7 +113,7 @@ export function Next7Days() {
               }}
               className={`h-3 rounded-full transition-all duration-300 ${
                 currentDayIndex === index
-                  ? "w-8 bg-gradient-to-r from-sec-pea-400 to-sec-pea-600 dark:from-sec-pea-500 dark:to-sec-pea-700 shadow-lg"
+                  ? "w-8 bg-gradient-to-r from-task-orange-400 to-task-orange-600 dark:from-task-orange-500 dark:to-task-orange-700 shadow-lg"
                   : "w-3 bg-neu-gre-300 dark:bg-neu-gre-500 hover:bg-neu-gre-400 dark:hover:bg-neu-gre-400"
               }`}
               aria-label={`Go to day ${index + 1}`}
@@ -1078,10 +1078,10 @@ export function Next7Days() {
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
-      <div className="h-screen flex flex-col bg-neu-whi-100 dark:bg-neu-gre-800">
+      <div className="h-screen flex flex-col bg-bg-white-50 dark:bg-neu-gray-800">
         {/* Desktop Header */}
         <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50 hidden lg:block">
-          <div className="bg-neu-whi-100/95 dark:bg-neu-gre-800/95 backdrop-blur-sm border-b-1 dark:border-neu-gre-700">
+          <div className="bg-bg-white-50/95 dark:bg-neu-gray-800/95 backdrop-blur-sm border-b-1 dark:border-neu-gray-700">
             <TaskManagementHeader onClearCompleted={handleClearCompleted}>
               <div className="flex items-center space-x-3">
                 <Icon
@@ -1089,12 +1089,12 @@ export function Next7Days() {
                   className="text-pri-pur-500 w-6 h-6 sm:w-8 sm:h-8"
                   aria-hidden="true"
                 />
-                <h1 className="text-2xl sm:text-3xl font-bold text-neu-gre-800 dark:text-neu-whi-100 font-inter">
+                <h1 className="text-2xl sm:text-3xl font-medium text-neu-gre-800 dark:text-neu-whi-100 font-clash">
                   Next 7 Days
                 </h1>
               </div>
             </TaskManagementHeader>
-            <div className="border-b border-neu-gre-300/50 dark:border-neu-gre-700/50"></div>
+            <div className="border-b border-neu-gray-300/50 dark:border-neu-gray-700/50"></div>
           </div>
         </div>
 
@@ -1109,7 +1109,7 @@ export function Next7Days() {
                   className="text-pri-pur-500 w-6 h-6"
                   aria-hidden="true"
                 />
-                <h1 className="text-3xl font-bold text-neu-gre-800 dark:text-neu-whi-100 font-inter">
+                <h1 className="text-3xl font-medium text-neu-gre-800 dark:text-neu-whi-100 font-clash">
                   Next 7 Days
                 </h1>
               </div>
