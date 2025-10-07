@@ -74,7 +74,6 @@ export const Next7Days = ({
           key={task.id}
           task={task}
           dayIndex={dayIndex}
-          isNextTask={false}
           editingTask={editingTask}
           onTaskClick={(task: Task, e: React.MouseEvent) => {
             e.stopPropagation();

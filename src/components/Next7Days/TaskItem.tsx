@@ -7,7 +7,6 @@ interface TaskItemProps {
   task: Task;
   goals: Goal[];
   dayIndex: number;
-  isNextTask: boolean;
   editingTask: Task | null;
   onTaskClick: (task: Task, e: React.MouseEvent) => void;
   onTaskCompletion: (
@@ -26,7 +25,6 @@ export const TaskItem = ({
   task,
   goals,
   dayIndex,
-  isNextTask,
   editingTask,
   onTaskClick,
   onTaskCompletion,
@@ -45,9 +43,7 @@ export const TaskItem = ({
   const taskItemClasses = `
     task-item py-4 px-2 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px]
     ${
-      isNextTask
-        ? "highlighted-task border-2 border-pri-blue-500/30 bg-gradient-primary"
-        : task.completed
+      task.completed
         ? "bg-acc-green-400/50 dark:bg-acc-green-900/50 border-2 border-acc-green-800/30 dark:border-acc-green-700/30"
         : task.backgroundColor
         ? task.backgroundColor
@@ -71,9 +67,7 @@ export const TaskItem = ({
       className={taskItemClasses}
       onClick={(e) => onTaskClick(task, e)}
       role="button"
-      aria-label={`${task.title}${task.completed ? " (completed)" : ""}${
-        isNextTask ? " (next task)" : ""
-      }`}
+      aria-label={`${task.title}${task.completed ? " (completed)" : ""}`}
       aria-pressed={task.completed}
     >
       <div className="flex items-center space-x-0 sm:space-x-2 flex-1 min-w-0">
@@ -166,30 +160,22 @@ export const TaskItem = ({
                   <div
                     className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                       subtask.completed
-                        ? isNextTask
-                          ? "bg-acc-green-600 dark:bg-acc-green-300"
-                          : task.completed
+                        ? task.completed
                           ? "bg-acc-green-700 dark:bg-acc-green-300"
                           : "bg-acc-green-600 dark:bg-acc-green-400"
                         : task.completed
                         ? "bg-neu-gre-500 dark:bg-neu-gre-600"
-                        : isNextTask
-                        ? "bg-bg-white-50 dark:bg-bg-white-50"
                         : "bg-neu-gre-500 dark:bg-neu-gre-400"
                     }`}
                   />
                   <span
                     className={`font-inter text-xs truncate ${
                       subtask.completed
-                        ? isNextTask
-                          ? "line-through text-acc-green-700 dark:text-acc-green-200"
-                          : task.completed
+                        ? task.completed
                           ? "line-through text-acc-green-700 dark:text-acc-green-200"
                           : "line-through text-acc-green-600 dark:text-acc-green-300"
                         : task.completed
                         ? "text-neu-gre-600 dark:text-neu-gre-300"
-                        : isNextTask
-                        ? "text-bg-white-50 dark:text-bg-white-50"
                         : "text-neu-gre-600 dark:text-neu-gre-400"
                     }`}
                   >
@@ -235,8 +221,6 @@ export const TaskItem = ({
                 className={`p-2 sm:p-2 flex items-center justify-center min-w-[24px] min-h-[24px] ${
                   task.isSaved
                     ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
-                    : isNextTask
-                    ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
                     : task.completed
                     ? "text-acc-green-800 dark:text-acc-green-300 hover:text-pri-pur-600 dark:hover:text-pri-pur-600"
                     : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-300"
@@ -268,8 +252,6 @@ export const TaskItem = ({
               className={`p-2 sm:p-2 flex items-center justify-center min-w-[24px] min-h-[24px] ${
                 task.completed
                   ? "text-acc-green-800 dark:text-acc-green-300 hover:text-sup-err-500 dark:hover:text-sup-err-400"
-                  : isNextTask
-                  ? "text-pri-pur-400 hover:text-sup-err-500 dark:text-pri-pur-400 dark:hover:text-sup-err-400"
                   : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
               } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
               aria-label={`Delete task "${task.title}"`}

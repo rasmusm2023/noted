@@ -28,29 +28,8 @@ export function Dashboard() {
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [temperature, setTemperature] = useState<number | null>(null);
   const [weatherCondition, setWeatherCondition] = useState<string | null>(null);
-
-  const [highlightNextTask, setHighlightNextTask] = useState(() => {
-    const savedState = localStorage.getItem("highlightNextTask");
-    return savedState ? JSON.parse(savedState) : true;
-  });
-
-  // Add event listener for highlightNextTask changes
-  useEffect(() => {
-    const handleHighlightNextTaskChange = (event: CustomEvent) => {
-      setHighlightNextTask(event.detail);
-    };
-
-    window.addEventListener(
-      "highlightNextTaskChanged",
-      handleHighlightNextTaskChange as EventListener
-    );
-    return () => {
-      window.removeEventListener(
-        "highlightNextTaskChanged",
-        handleHighlightNextTaskChange as EventListener
-      );
-    };
-  }, []);
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
 
   const isTask = (item: Task | SectionItem): item is Task => {
     return (
@@ -199,6 +178,17 @@ export function Dashboard() {
 
   // Add temperature fetching with cache
   useEffect(() => {
+    // Preload API call for faster response
+    const preloadWeatherAPI = () => {
+      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+      if (apiKey) {
+        // Preload the API endpoint with a more realistic location
+        fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=59.3&lon=18.1&units=metric&appid=${apiKey}`
+        ).catch(() => {}); // Ignore errors for preload
+      }
+    };
+
     const fetchTemperature = async (latitude: number, longitude: number) => {
       try {
         // Check cache first
@@ -211,18 +201,24 @@ export function Dashboard() {
           } = JSON.parse(cachedWeather) as WeatherCache;
           const cacheAge = Date.now() - timestamp;
 
-          // Use cache if it's less than 15 minutes old
-          if (cacheAge < 15 * 60 * 1000) {
+          // Use cache if it's less than 5 minutes old
+          if (cacheAge < 5 * 60 * 1000) {
             setTemperature(cachedTemp);
             setWeatherCondition(cachedCondition);
+            setIsWeatherLoading(false);
+            setHasLocationPermission(true);
             return;
           }
         }
+
+        // Set loading state only if we need to fetch from API
+        setIsWeatherLoading(true);
 
         const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
         if (!apiKey) {
           console.error("OpenWeather API key is not configured");
+          setIsWeatherLoading(false);
           return;
         }
 
@@ -232,18 +228,25 @@ export function Dashboard() {
         url.searchParams.append("units", "metric");
         url.searchParams.append("appid", apiKey);
 
-        const response = await fetch(url);
+        // Add timeout to API call
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
         const data = await response.json();
 
         if (data.cod === 401) {
           console.error(
             "Invalid API key. Please check your OpenWeather API key configuration."
           );
+          setIsWeatherLoading(false);
           return;
         }
 
         if (!data.main?.temp) {
           console.error("Unexpected API response format:", data);
+          setIsWeatherLoading(false);
           return;
         }
 
@@ -262,6 +265,11 @@ export function Dashboard() {
         localStorage.setItem("weatherCache", JSON.stringify(weatherCache));
       } catch (error) {
         console.error("Error fetching temperature:", error);
+        if (error.name === "AbortError") {
+          console.log("Weather API request timed out");
+        }
+      } finally {
+        setIsWeatherLoading(false);
       }
     };
 
@@ -270,25 +278,37 @@ export function Dashboard() {
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            fetchTemperature(
-              position.coords.latitude,
-              position.coords.longitude
-            );
+            setHasLocationPermission(true);
+            setIsWeatherLoading(true);
+            // Show immediate feedback
+            setTimeout(() => {
+              fetchTemperature(
+                position.coords.latitude,
+                position.coords.longitude
+              );
+            }, 100); // Small delay to ensure UI updates
           },
           (error) => {
             console.error("Error getting location:", error);
+            setHasLocationPermission(false);
+            setIsWeatherLoading(false);
           }
         );
+      } else {
+        console.error("Geolocation not supported");
+        setHasLocationPermission(false);
+        setIsWeatherLoading(false);
       }
     };
 
-    // Initial fetch
+    // Preload API and initial fetch
+    preloadWeatherAPI();
     getPositionAndFetchWeather();
 
-    // Set up background refresh every 15 minutes
+    // Set up background refresh every 5 minutes
     const refreshInterval = setInterval(
       getPositionAndFetchWeather,
-      15 * 60 * 1000
+      5 * 60 * 1000
     );
 
     // Cleanup interval on unmount
@@ -617,34 +637,6 @@ export function Dashboard() {
       }
     }
 
-    .highlighted-task {
-      animation: none;
-      background: linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
-      background: -moz-linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
-      background: -webkit-linear-gradient(90deg, theme(colors.pri-pur-400) 0%, theme(colors.pri-pur-700) 100%);
-      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#A78BFA,endColorstr=#6D28D9,GradientType=1);
-      position: relative;
-      transition: all 0.3s ease-in-out;
-      border: 2px solid theme(colors.pri-pur-500);
-    }
-
-    .highlighted-task:hover {
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .highlighted-task::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, rgba(167, 139, 250, 0.3) 0%, rgba(109, 40, 217, 0.3) 100%);
-      border-radius: 0.5rem;
-      z-index: 0;
-    }
-
-    .highlighted-task > * {
-      position: relative;
-      z-index: 10;
-    }
 
     @keyframes completeTask {
       0% {
@@ -837,6 +829,8 @@ export function Dashboard() {
                 dayOfWeek={dayOfWeek}
                 temperature={temperature}
                 weatherCondition={weatherCondition}
+                isWeatherLoading={isWeatherLoading}
+                hasLocationPermission={hasLocationPermission}
               />
               <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-0 pr-0 sm:pr-8 lg:pr-0 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300 bg-bg-white-50 dark:bg-transparent">
                 <TaskProgress
@@ -859,7 +853,6 @@ export function Dashboard() {
                     items={filteredAndSortedItems}
                     goals={goals}
                     isLoading={isLoading}
-                    highlightNextTask={highlightNextTask}
                     editingTask={editingTask}
                     onTaskCompletion={handleTaskCompletion}
                     onTaskSelect={setSelectedTask}

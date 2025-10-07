@@ -18,7 +18,6 @@ interface TaskListProps {
   items: Task[];
   goals: Goal[];
   isLoading: boolean;
-  highlightNextTask: boolean;
   editingTask: Task | null;
   onTaskCompletion: (
     taskId: string,
@@ -176,7 +175,6 @@ export const TaskList = ({
   items,
   goals,
   isLoading,
-  highlightNextTask,
   editingTask,
   onTaskCompletion,
   onTaskSelect,
@@ -227,10 +225,6 @@ export const TaskList = ({
   };
 
   const renderTask = (task: Task) => {
-    const isNextTask =
-      highlightNextTask &&
-      !task.completed &&
-      items.filter((t) => !t.completed).indexOf(task) === 0;
     const isEditing = editingTask?.id === task.id;
     const editingTitle = editingTask?.title || "";
 
@@ -239,7 +233,6 @@ export const TaskList = ({
         key={task.id}
         task={task}
         goals={goals}
-        isNextTask={isNextTask}
         isEditing={isEditing}
         editingTitle={editingTitle}
         index={items.findIndex((item) => item.id === task.id)}
