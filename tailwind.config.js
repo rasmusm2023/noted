@@ -140,7 +140,7 @@ module.exports = {
         "gradient-success":
           "linear-gradient(135deg, theme(colors.acc-green.500) 0%, theme(colors.acc-green.600) 100%)",
         "gradient-warm":
-          "linear-gradient(135deg, theme(colors.task-orange.500) 0%, theme(colors.task-pink.500) 100%)",
+          "linear-gradient(135deg, theme(colors.task-orange.300) 0%, theme(colors.task-pink.300) 100%)",
         "gradient-cool":
           "linear-gradient(135deg, theme(colors.task-cyan.500) 0%, theme(colors.pri-blue.500) 100%)",
         "gradient-sunset":

@@ -8,6 +8,7 @@ interface ListContextType {
   error: string | null;
   refreshLists: () => Promise<void>;
   addList: (list: CustomList) => void;
+  updateList: (listId: string, updates: Partial<CustomList>) => void;
   removeList: (listId: string) => void;
   clearError: () => void;
 }
@@ -51,6 +52,14 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
     setLists((prevLists) => [...prevLists, list]);
   };
 
+  const updateList = (listId: string, updates: Partial<CustomList>) => {
+    setLists((prevLists) =>
+      prevLists.map((list) =>
+        list.id === listId ? { ...list, ...updates } : list
+      )
+    );
+  };
+
   const removeList = (listId: string) => {
     setLists((prevLists) => prevLists.filter((list) => list.id !== listId));
   };
@@ -69,6 +78,7 @@ export function ListProvider({ children }: { children: React.ReactNode }) {
     error,
     refreshLists,
     addList,
+    updateList,
     removeList,
     clearError,
   };

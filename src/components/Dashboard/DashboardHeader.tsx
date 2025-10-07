@@ -1,18 +1,39 @@
-import { Icon } from "@iconify/react";
 import type { ReactElement } from "react";
 import { Greeting } from "../Greeting/Greeting";
 import { MotivationalQuote } from "../Greeting/MotivationalQuote";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Import weather icons
-import sunIcon from "../../assets/weather-icons/sun-svgrepo-com(1).svg";
-import cloudIcon from "../../assets/weather-icons/cloud-svgrepo-com.svg";
-import cloudySunIcon from "../../assets/weather-icons/cloudy-sun-svgrepo-com.svg";
-import rainIcon from "../../assets/weather-icons/rain-water-svgrepo-com.svg";
-import snowIcon from "../../assets/weather-icons/snowflake-svgrepo-com.svg";
-import thunderIcon from "../../assets/weather-icons/thunder-svgrepo-com.svg";
-import windIcon from "../../assets/weather-icons/wind-svgrepo-com.svg";
-import moonIcon from "../../assets/weather-icons/crescent-moon-moon-svgrepo-com.svg";
+// Import animated weather icons
+import clearDayIcon from "../../assets/animated-weather-icons/clear-day.svg";
+import clearNightIcon from "../../assets/animated-weather-icons/clear-night.svg";
+import cloudyIcon from "../../assets/animated-weather-icons/cloudy.svg";
+import overcastIcon from "../../assets/animated-weather-icons/overcast.svg";
+import partlyCloudyDayIcon from "../../assets/animated-weather-icons/partly-cloudy-day.svg";
+import partlyCloudyNightIcon from "../../assets/animated-weather-icons/partly-cloudy-night.svg";
+import rainIcon from "../../assets/animated-weather-icons/rain.svg";
+import drizzleIcon from "../../assets/animated-weather-icons/drizzle.svg";
+import snowIcon from "../../assets/animated-weather-icons/snow.svg";
+import sleetIcon from "../../assets/animated-weather-icons/sleet.svg";
+import thunderstormDayIcon from "../../assets/animated-weather-icons/thunderstorms-day.svg";
+import thunderstormNightIcon from "../../assets/animated-weather-icons/thunderstorms-night.svg";
+import thunderstormRainIcon from "../../assets/animated-weather-icons/thunderstorms-rain.svg";
+import fogDayIcon from "../../assets/animated-weather-icons/fog-day.svg";
+import fogNightIcon from "../../assets/animated-weather-icons/fog-night.svg";
+import mistIcon from "../../assets/animated-weather-icons/mist.svg";
+import hazeDayIcon from "../../assets/animated-weather-icons/haze-day.svg";
+import hazeNightIcon from "../../assets/animated-weather-icons/haze-night.svg";
+import smokeIcon from "../../assets/animated-weather-icons/smoke.svg";
+import dustDayIcon from "../../assets/animated-weather-icons/dust-day.svg";
+import dustNightIcon from "../../assets/animated-weather-icons/dust-night.svg";
+import sandIcon from "../../assets/animated-weather-icons/dust-wind.svg";
+import ashIcon from "../../assets/animated-weather-icons/smoke-particles.svg";
+import squallIcon from "../../assets/animated-weather-icons/wind.svg";
+import tornadoIcon from "../../assets/animated-weather-icons/tornado.svg";
+import hurricaneIcon from "../../assets/animated-weather-icons/hurricane.svg";
+import coldIcon from "../../assets/animated-weather-icons/thermometer-colder.svg";
+import hotIcon from "../../assets/animated-weather-icons/thermometer-warmer.svg";
+import windIcon from "../../assets/animated-weather-icons/wind.svg";
+import notAvailableIcon from "../../assets/animated-weather-icons/not-available.svg";
 
 interface DashboardHeaderProps {
   currentDate: string;
@@ -37,20 +58,95 @@ export const DashboardHeader = ({
   const getWeatherIcon = (condition: string | null): ReactElement | null => {
     if (!condition) return null;
 
+    // Determine if it's day or night based on current time
+    const currentHour = new Date().getHours();
+    const isDay = currentHour >= 6 && currentHour < 18;
+
     const iconMap: { [key: string]: string } = {
-      Clear: sunIcon,
-      Clouds: cloudIcon,
+      // Clear conditions
+      Clear: isDay ? clearDayIcon : clearNightIcon,
+
+      // Cloud conditions
+      Clouds: cloudyIcon,
+      Overcast: overcastIcon,
+
+      // Partly cloudy conditions
+      "Partly Cloudy": isDay ? partlyCloudyDayIcon : partlyCloudyNightIcon,
+
+      // Precipitation
       Rain: rainIcon,
+      Drizzle: drizzleIcon,
       Snow: snowIcon,
-      Thunderstorm: thunderIcon,
-      Drizzle: rainIcon,
-      Mist: cloudySunIcon,
+      Sleet: sleetIcon,
+
+      // Thunderstorms
+      Thunderstorm: isDay ? thunderstormDayIcon : thunderstormNightIcon,
+      "Thunderstorm with Rain": thunderstormRainIcon,
+
+      // Atmospheric conditions
+      Fog: isDay ? fogDayIcon : fogNightIcon,
+      Mist: mistIcon,
+      Haze: isDay ? hazeDayIcon : hazeNightIcon,
+      Smoke: smokeIcon,
+      Dust: isDay ? dustDayIcon : dustNightIcon,
+      Sand: sandIcon,
+      Ash: ashIcon,
+
+      // Wind conditions
+      Squall: squallIcon,
       Wind: windIcon,
-      Night: moonIcon,
+
+      // Extreme weather
+      Tornado: tornadoIcon,
+      Hurricane: hurricaneIcon,
+
+      // Temperature extremes
+      Cold: coldIcon,
+      Hot: hotIcon,
+
+      // Fallback
+      Unknown: notAvailableIcon,
     };
 
-    const iconSrc = iconMap[condition];
-    if (!iconSrc) return null;
+    // Handle OpenWeather API specific conditions
+    const getOpenWeatherIcon = (mainCondition: string): string => {
+      switch (mainCondition) {
+        case "Clear":
+          return isDay ? clearDayIcon : clearNightIcon;
+        case "Clouds":
+          return cloudyIcon;
+        case "Rain":
+          return rainIcon;
+        case "Drizzle":
+          return drizzleIcon;
+        case "Snow":
+          return snowIcon;
+        case "Thunderstorm":
+          return isDay ? thunderstormDayIcon : thunderstormNightIcon;
+        case "Mist":
+          return mistIcon;
+        case "Smoke":
+          return smokeIcon;
+        case "Haze":
+          return isDay ? hazeDayIcon : hazeNightIcon;
+        case "Dust":
+          return isDay ? dustDayIcon : dustNightIcon;
+        case "Fog":
+          return isDay ? fogDayIcon : fogNightIcon;
+        case "Sand":
+          return sandIcon;
+        case "Ash":
+          return ashIcon;
+        case "Squall":
+          return squallIcon;
+        case "Tornado":
+          return tornadoIcon;
+        default:
+          return notAvailableIcon;
+      }
+    };
+
+    const iconSrc = iconMap[condition] || getOpenWeatherIcon(condition);
 
     return (
       <img

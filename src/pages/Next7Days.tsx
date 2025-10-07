@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
+import { goalService } from "../services/goalService";
 import type { Task } from "../types/task";
+import type { Goal } from "../services/goalService";
 import { Icon } from "@iconify/react";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
@@ -37,6 +39,7 @@ type QueuedOperation = {
 export function Next7Days() {
   const { currentUser } = useAuth();
   const [days, setDays] = useState<DayData[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -219,7 +222,11 @@ export function Next7Days() {
 
     try {
       setIsLoading(true);
-      const tasks = await taskService.getUserTasks(currentUser.uid);
+      const [tasks, userGoals] = await Promise.all([
+        taskService.getUserTasks(currentUser.uid),
+        goalService.getUserGoals(currentUser.uid),
+      ]);
+      setGoals(userGoals);
 
       // Group tasks by day
       const tasksByDay = tasks.reduce(
@@ -643,6 +650,7 @@ export function Next7Days() {
     return (
       <TaskItem
         task={item}
+        goals={goals}
         dayIndex={dayIndex}
         isNextTask={isNextTask}
         editingTask={editingTask}

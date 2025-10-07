@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
+import { goalService } from "../services/goalService";
 import type { Task, SectionItem } from "../types/task";
+import type { Goal } from "../services/goalService";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
 import { DndProvider } from "react-dnd";
@@ -16,6 +18,7 @@ import { toast, Toaster } from "react-hot-toast";
 export function Dashboard() {
   const { currentUser } = useAuth();
   const [items, setItems] = useState<Task[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -297,10 +300,14 @@ export function Dashboard() {
 
     try {
       setIsLoading(true);
-      const tasks = await taskService.getUserTasks(currentUser.uid);
+      const [tasks, userGoals] = await Promise.all([
+        taskService.getUserTasks(currentUser.uid),
+        goalService.getUserGoals(currentUser.uid),
+      ]);
       setItems(tasks);
+      setGoals(userGoals);
     } catch (error) {
-      console.error("Error loading tasks:", error);
+      console.error("Error loading data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -850,6 +857,7 @@ export function Dashboard() {
                 <div className="rounded-xl pt-4 sm:pt-6 lg:pt-8 pb-4 sm:pb-6 lg:pb-8">
                   <TaskList
                     items={filteredAndSortedItems}
+                    goals={goals}
                     isLoading={isLoading}
                     highlightNextTask={highlightNextTask}
                     editingTask={editingTask}
