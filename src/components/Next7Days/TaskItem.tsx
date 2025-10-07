@@ -1,9 +1,11 @@
 import { useRef } from "react";
 import { Icon } from "@iconify/react";
 import type { Task } from "../../types/task";
+import type { Goal } from "../../services/goalService";
 
 interface TaskItemProps {
   task: Task;
+  goals: Goal[];
   dayIndex: number;
   isNextTask: boolean;
   editingTask: Task | null;
@@ -22,6 +24,7 @@ interface TaskItemProps {
 
 export const TaskItem = ({
   task,
+  goals,
   dayIndex,
   isNextTask,
   editingTask,
@@ -34,16 +37,21 @@ export const TaskItem = ({
 }: TaskItemProps) => {
   const taskInputRef = useRef<HTMLInputElement>(null);
 
+  // Get associated goals for this task
+  const associatedGoals = task.goalIds
+    ? goals.filter((goal) => task.goalIds?.includes(goal.id))
+    : [];
+
   const taskItemClasses = `
     task-item py-4 px-2 rounded-lg flex items-center justify-between shadow-lg hover:shadow-xl transition-all duration-300 m-[1px]
     ${
       isNextTask
         ? "highlighted-task border-2 border-pri-blue-500/30 bg-gradient-primary"
         : task.completed
-        ? "bg-gradient-success border-2 border-acc-green-800/30"
+        ? "bg-acc-green-400/50 dark:bg-acc-green-900/50 border-2 border-acc-green-800/30 dark:border-acc-green-700/30"
         : task.backgroundColor
         ? task.backgroundColor
-        : "bg-task-gray-100 dark:bg-neu-gray-700 border-2 border-neu-gray-500/30"
+        : "bg-neu-gre-300/50 dark:bg-neu-gre-900/50 border-2 border-neu-gre-600/30 dark:border-neu-gre-700/30"
     }
     ${editingTask?.id === task.id ? "ring-2 ring-pri-blue-500" : ""}
     focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus-500
@@ -89,7 +97,7 @@ export const TaskItem = ({
             }}
             className={`transition-all duration-300 flex items-center justify-center min-w-[24px] min-h-[24px] p-2 sm:p-2 ${
               task.completed
-                ? "text-sup-suc-600 dark:text-sup-suc-800 hover:text-sup-suc-600"
+                ? "text-acc-green-800 dark:text-acc-green-300 hover:text-acc-green-700 dark:hover:text-acc-green-400"
                 : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500"
             } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
             aria-label={`Mark task "${task.title}" as ${
@@ -113,7 +121,7 @@ export const TaskItem = ({
                 editingTask?.id === task.id ? "" : "transition-all duration-300"
               } ${
                 task.completed
-                  ? "text-acc-green-800 dark:text-acc-green-200 scale-95"
+                  ? "text-acc-green-800 dark:text-acc-green-300 scale-95"
                   : "text-neu-gre-800 dark:text-neu-whi-100"
               }`}
             >
@@ -191,6 +199,23 @@ export const TaskItem = ({
               ))}
             </div>
           )}
+          {/* Associated Goals Display */}
+          {associatedGoals.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {associatedGoals.map((goal) => (
+                <span
+                  key={goal.id}
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pri-pur-100 dark:bg-pri-pur-900/30 text-pri-pur-700 dark:text-pri-pur-300 border border-pri-pur-200 dark:border-pri-pur-700/50"
+                >
+                  <Icon
+                    icon="mingcute:target-2-fill"
+                    className="w-3 h-3 mr-1"
+                  />
+                  {goal.title}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center ml-2 sm:ml-4">
           <div className="flex flex-col items-center gap-0">
@@ -213,7 +238,7 @@ export const TaskItem = ({
                     : isNextTask
                     ? "text-pri-pur-400 hover:text-pri-pur-600 dark:text-pri-pur-400 dark:hover:text-pri-pur-600"
                     : task.completed
-                    ? "text-sup-suc-800 hover:text-pri-pur-600 dark:text-sup-suc-800 dark:hover:text-pri-pur-600"
+                    ? "text-acc-green-800 dark:text-acc-green-300 hover:text-pri-pur-600 dark:hover:text-pri-pur-600"
                     : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-300"
                 } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
                 aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
@@ -242,7 +267,7 @@ export const TaskItem = ({
               }}
               className={`p-2 sm:p-2 flex items-center justify-center min-w-[24px] min-h-[24px] ${
                 task.completed
-                  ? "text-sup-suc-800 hover:text-sup-err-500 dark:text-sup-suc-800 dark:hover:text-sup-err-400"
+                  ? "text-acc-green-800 dark:text-acc-green-300 hover:text-sup-err-500 dark:hover:text-sup-err-400"
                   : isNextTask
                   ? "text-pri-pur-400 hover:text-sup-err-500 dark:text-pri-pur-400 dark:hover:text-sup-err-400"
                   : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"

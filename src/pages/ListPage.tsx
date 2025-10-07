@@ -205,7 +205,7 @@ const DraggableListItem = ({
 export function ListPage() {
   const { listId } = useParams<{ listId: string }>();
   const { currentUser } = useAuth();
-  const { lists, removeList } = useLists();
+  const { lists, removeList, updateList } = useLists();
   const navigate = useNavigate();
   const [listItems, setListItems] = useState<ListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -351,6 +351,8 @@ export function ListPage() {
     try {
       console.log("Updating list name:", editedName.trim());
       await listService.updateList(listId, { name: editedName.trim() });
+      // Update the context to reflect the change immediately
+      updateList(listId, { name: editedName.trim() });
       setIsEditingName(false);
     } catch (error) {
       console.error("Error updating list name:", error);
@@ -439,7 +441,7 @@ export function ListPage() {
                     }}
                     onFocus={() => console.log("Focused: List title textarea")}
                     onBlur={handleNameEdit}
-                    className="flex-1 bg-transparent text-lg sm:text-xl lg:text-lg font-inter font-semibold text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-400 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
+                    className="flex-1 bg-transparent text-lg sm:text-xl lg:text-lg font-clash font-medium text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-400 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
                     rows={1}
                     style={{ height: "auto" }}
                     aria-label="List title"
@@ -484,7 +486,7 @@ export function ListPage() {
                 New item
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 dark:hover:bg-neu-gre-700/50 rounded-md px-3 sm:px-4 py-2 border-2 border-dashed border-pri-pur-300/50 dark:border-pri-pur-300/50 focus-within:ring-2 focus-within:ring-pri-pur-500/75 dark:focus-within:ring-2 dark:focus-within:ring-pri-pur-500/75 transition-all duration-200 ease-in-out">
+                <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 dark:hover:bg-neu-gre-700/50 rounded-md px-3 sm:px-4 py-2 border-2 border-dashed border-pri-pur-300/50 dark:border-pri-pur-300/50 focus-within:border-solid focus-within:ring-2 focus-within:ring-pri-pur-500/75 dark:focus-within:ring-2 dark:focus-within:ring-pri-pur-500/75 transition-all duration-200 ease-in-out">
                   <div className="flex items-center justify-center">
                     <Icon
                       icon="mingcute:add-fill"

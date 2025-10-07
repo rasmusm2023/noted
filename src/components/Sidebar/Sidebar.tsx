@@ -547,12 +547,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               {/* Tasks Section */}
               <div className="space-y-1">
                 <h2
-                  className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 mb-2 ${
+                  className={`text-sm font-semibold text-neu-gre-700 dark:text-neu-gre-500 mb-2 tracking-wider ${
                     isOpen ? "" : "text-center"
                   }`}
                   id="tasks-section"
                 >
-                  Tasks
+                  TASKS
                 </h2>
                 <div role="group" aria-labelledby="tasks-section">
                   <button
@@ -626,12 +626,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               {/* Progress Section */}
               <div className="space-y-1">
                 <h2
-                  className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 mb-2 ${
+                  className={`text-sm font-semibold text-neu-gre-700 dark:text-neu-gre-500 mb-2 tracking-wider ${
                     isOpen ? "" : "text-center"
                   }`}
                   id="progress-section"
                 >
-                  Progress
+                  PROGRESS
                 </h2>
                 <div role="group" aria-labelledby="progress-section">
                   <button
@@ -678,12 +678,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   } mb-2`}
                 >
                   <h2
-                    className={`text-sm font-medium text-neu-gre-600 dark:text-neu-gre-200 ${
+                    className={`text-sm font-semibold text-neu-gre-700 dark:text-neu-gre-500 tracking-wider ${
                       isOpen ? "" : "text-center"
                     }`}
                     id="lists-section"
                   >
-                    Lists
+                    LISTS
                   </h2>
                   {isOpen && (
                     <button
@@ -876,14 +876,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         <span className="flex justify-between items-center w-full">
                           {theme === "light" ? (
                             <>
-                              Light Mode
-                              <span className="px-2 py-0.5 rounded-md bg-sup-sys-100 dark:bg-sup-sys-900/50 text-sup-sys-500 dark:text-sup-sys-400 font-semibold truncate">
-                                ON
+                              Dark mode
+                              <span className="px-2 py-0.5 rounded-md bg-neu-gre-100 dark:bg-neu-gre-800/50 text-neu-gre-500 dark:text-neu-gre-400 font-semibold truncate">
+                                OFF
                               </span>
                             </>
                           ) : (
                             <>
-                              Dark Mode
+                              Dark mode
                               <span className="px-2 py-0.5 rounded-md bg-sup-sys-100 dark:bg-sup-sys-900/50 text-sup-sys-500 dark:text-sup-sys-400 font-semibold truncate">
                                 ON
                               </span>

@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import type { Task } from "../../types/task";
+import type { Goal } from "../../services/goalService";
 import { TaskItem } from "./TaskItem";
 import { taskService } from "../../services/taskService";
 import { useAuth } from "../../contexts/AuthContext";
@@ -15,6 +16,7 @@ type DragItem = {
 
 interface TaskListProps {
   items: Task[];
+  goals: Goal[];
   isLoading: boolean;
   highlightNextTask: boolean;
   editingTask: Task | null;
@@ -172,6 +174,7 @@ const DraggableItem = ({
 
 export const TaskList = ({
   items,
+  goals,
   isLoading,
   highlightNextTask,
   editingTask,
@@ -235,6 +238,7 @@ export const TaskList = ({
       <TaskItem
         key={task.id}
         task={task}
+        goals={goals}
         isNextTask={isNextTask}
         isEditing={isEditing}
         editingTitle={editingTitle}

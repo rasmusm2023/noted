@@ -215,7 +215,7 @@ const lightColors = {
   "gradient-primary": "linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)",
   "gradient-secondary": "linear-gradient(135deg, #a855f7 0%, #ec4899 100%)",
   "gradient-success": "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-  "gradient-warm": "linear-gradient(135deg, #fdba74 0%, #f9a8d4 100%)",
+  "gradient-warm": "linear-gradient(135deg, #fde68a 0%, #fce7f3 100%)",
   "gradient-cool": "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)",
   "gradient-sunset": "linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)",
   "gradient-ocean": "linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%)",
