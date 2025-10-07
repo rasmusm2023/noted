@@ -50,10 +50,6 @@ export function Next7Days() {
   });
   const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [highlightNextTask, setHighlightNextTask] = useState(() => {
-    const savedState = localStorage.getItem("highlightNextTask");
-    return savedState ? JSON.parse(savedState) : true;
-  });
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   // Add caches
@@ -607,16 +603,6 @@ export function Next7Days() {
   };
 
   const renderTask = (item: Task, dayIndex: number) => {
-    // Find the first uncompleted task across all days
-    const firstUncompletedTask = days.reduce<Task | null>((found, day) => {
-      if (found) return found; // If we already found a task, keep it
-      return (day.items.find((i) => isTask(i) && !i.completed) as Task) || null;
-    }, null);
-
-    // A task is highlighted if it's the first uncompleted task and highlightNextTask is enabled
-    const isNextTask =
-      highlightNextTask && firstUncompletedTask?.id === item.id;
-
     const handleTaskClick = (task: Task, e: React.MouseEvent) => {
       // Don't open modal if clicking on buttons, inputs, or if we're editing
       if (
@@ -652,7 +638,6 @@ export function Next7Days() {
         task={item}
         goals={goals}
         dayIndex={dayIndex}
-        isNextTask={isNextTask}
         editingTask={editingTask}
         onTaskClick={handleTaskClick}
         onTaskCompletion={handleTaskCompletion}

@@ -55,15 +55,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const darkModeButtonRef = useRef<HTMLButtonElement>(null);
-  const highlightNextTaskButtonRef = useRef<HTMLButtonElement>(null);
   const logoutButtonRef = useRef<HTMLButtonElement>(null);
-  const [highlightNextTask, setHighlightNextTask] = useState(() => {
-    const savedState = localStorage.getItem("highlightNextTask");
-    return savedState ? JSON.parse(savedState) : true;
-  });
-  const [isHighlightSubmenuOpen, setIsHighlightSubmenuOpen] = useState(false);
-  const highlightYesButtonRef = useRef<HTMLButtonElement>(null);
-  const highlightNoButtonRef = useRef<HTMLButtonElement>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const minSwipeDistance = 50;
@@ -192,9 +184,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const focusableElements = [
       settingsButtonRef.current,
       darkModeButtonRef.current,
-      highlightNextTaskButtonRef.current,
-      highlightYesButtonRef.current,
-      highlightNoButtonRef.current,
       logoutButtonRef.current,
     ].filter((el): el is HTMLButtonElement => el !== null);
 
@@ -217,64 +206,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             currentIndex >= focusableElements.length - 1 ? 0 : currentIndex + 1;
           focusableElements[nextIndex]?.focus();
         }
-      } else if (
-        event.key === "ArrowDown" &&
-        document.activeElement === highlightNextTaskButtonRef.current
-      ) {
-        // Open submenu and focus first option when pressing down arrow
-        setIsHighlightSubmenuOpen(true);
-        highlightYesButtonRef.current?.focus();
-      } else if (
-        event.key === "ArrowUp" &&
-        document.activeElement === highlightYesButtonRef.current
-      ) {
-        // Close submenu and return focus to parent when pressing up arrow
-        setIsHighlightSubmenuOpen(false);
-        highlightNextTaskButtonRef.current?.focus();
-      } else if (
-        event.key === "ArrowDown" &&
-        document.activeElement === highlightYesButtonRef.current
-      ) {
-        // Move to No option
-        highlightNoButtonRef.current?.focus();
-      } else if (
-        event.key === "ArrowUp" &&
-        document.activeElement === highlightNoButtonRef.current
-      ) {
-        // Move to Yes option
-        highlightYesButtonRef.current?.focus();
-      } else if (event.key === "Escape" && isHighlightSubmenuOpen) {
-        // Close submenu and return focus to parent when pressing escape
-        setIsHighlightSubmenuOpen(false);
-        highlightNextTaskButtonRef.current?.focus();
+      } else if (event.key === "Escape") {
+        // Close settings menu when pressing escape
+        setIsSettingsMenuOpen(false);
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isSettingsMenuOpen, isHighlightSubmenuOpen]);
-
-  // Close submenu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        highlightNextTaskButtonRef.current &&
-        !highlightNextTaskButtonRef.current.contains(event.target as Node) &&
-        !highlightYesButtonRef.current?.contains(event.target as Node) &&
-        !highlightNoButtonRef.current?.contains(event.target as Node)
-      ) {
-        setIsHighlightSubmenuOpen(false);
-      }
-    };
-
-    if (isHighlightSubmenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isHighlightSubmenuOpen]);
+  }, [isSettingsMenuOpen]);
 
   // Add focus trap effect
   useEffect(() => {
@@ -359,17 +299,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     } catch (error) {
       console.error("Error creating list:", error);
     }
-  };
-
-  const handleHighlightNextTask = (value: boolean) => {
-    // Update local state immediately
-    setHighlightNextTask(value);
-    // Save to localStorage
-    localStorage.setItem("highlightNextTask", JSON.stringify(value));
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(
-      new CustomEvent("highlightNextTaskChanged", { detail: value })
-    );
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -823,7 +752,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     }
                     setIsSettingsMenuOpen(!isSettingsMenuOpen);
                     if (!isSettingsMenuOpen) {
-                      setIsHighlightSubmenuOpen(false);
+                      // Settings menu closed
                     }
                   }}
                   className={`w-full flex items-center ${
@@ -889,36 +818,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                               </span>
                             </>
                           )}
-                        </span>
-                      </button>
-
-                      {/* Highlight Next Task Option */}
-                      <button
-                        ref={highlightNextTaskButtonRef}
-                        onClick={() => {
-                          handleHighlightNextTask(!highlightNextTask);
-                        }}
-                        className="w-full flex items-center space-x-2 px-4 py-2 text-sm lg:text-base font-medium text-neu-gre-700 dark:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-bla-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md"
-                        role="menuitem"
-                        aria-label="Toggle highlight next task"
-                      >
-                        <Icon
-                          icon="mingcute:fullscreen-fill"
-                          width={16}
-                          height={16}
-                          aria-label="Toggle fullscreen"
-                        />
-                        <span className="flex justify-between items-center w-full">
-                          Highlight next task
-                          <span
-                            className={`px-2 py-0.5 rounded-md font-semibold truncate ${
-                              highlightNextTask
-                                ? "bg-sup-sys-100 dark:bg-sup-sys-900/50 text-sup-sys-500 dark:text-sup-sys-400"
-                                : "bg-neu-gre-100 dark:bg-neu-gre-800/50 text-neu-gre-500 dark:text-neu-gre-400"
-                            }`}
-                          >
-                            {highlightNextTask ? "ON" : "OFF"}
-                          </span>
                         </span>
                       </button>
 

@@ -40,6 +40,8 @@ interface DashboardHeaderProps {
   dayOfWeek: string;
   temperature: number | null;
   weatherCondition: string | null;
+  isWeatherLoading?: boolean;
+  hasLocationPermission?: boolean;
 }
 
 export const DashboardHeader = ({
@@ -47,6 +49,8 @@ export const DashboardHeader = ({
   dayOfWeek,
   temperature,
   weatherCondition,
+  isWeatherLoading = false,
+  hasLocationPermission = false,
 }: DashboardHeaderProps) => {
   // Abbreviate the day of the week to 3 letters
   const abbreviatedDay = dayOfWeek.substring(0, 3);
@@ -152,7 +156,7 @@ export const DashboardHeader = ({
       <img
         src={iconSrc}
         alt={`${condition} weather condition icon`}
-        className="h-8 w-8"
+        className="h-10 w-10"
       />
     );
   };
@@ -215,31 +219,40 @@ export const DashboardHeader = ({
                     </motion.span>
                   </div>
                 </motion.div>
-                {temperature !== null && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.7 }}
-                    className="flex items-center justify-center bg-neu-whi-100/25 dark:bg-neu-gre-900/40 backdrop-blur-sm rounded-b-2xl px-2 sm:px-4 py-3 sm:py-4 w-full"
-                  >
+                {hasLocationPermission &&
+                  (temperature !== null || isWeatherLoading) && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0.8 }}
-                      className="w-4 h-4 sm:w-6 sm:h-6 -mt-4 sm:-mt-3.5 lg:mt-0"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5, delay: 0.7 }}
+                      className="flex items-center justify-center bg-neu-whi-100/25 dark:bg-neu-gre-900/40 backdrop-blur-sm rounded-b-2xl px-2 sm:px-4 py-3 sm:py-4 w-full"
                     >
-                      {getWeatherIcon(weatherCondition)}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: 0.8 }}
+                        className="w-6 h-6 sm:w-8 sm:h-8 -mt-4 sm:-mt-3.5 lg:mt-0"
+                      >
+                        {isWeatherLoading ? (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-4 w-4 sm:h-6 sm:w-6 border-2 border-neu-gre-100 dark:border-neu-gre-100 border-t-transparent"></div>
+                          </div>
+                        ) : (
+                          getWeatherIcon(weatherCondition)
+                        )}
+                      </motion.div>
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: 0.9 }}
+                        className="text-base sm:text-lg font-medium font-inter text-neu-gre-100 dark:text-neu-gre-100 leading-none ml-1 sm:ml-2"
+                      >
+                        {isWeatherLoading
+                          ? "Getting weather..."
+                          : `${temperature}°C`}
+                      </motion.span>
                     </motion.div>
-                    <motion.span
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0.9 }}
-                      className="text-base sm:text-lg font-medium font-inter text-neu-gre-100 dark:text-neu-gre-100 leading-none ml-1 sm:ml-2"
-                    >
-                      {temperature}°C
-                    </motion.span>
-                  </motion.div>
-                )}
+                  )}
               </div>
             </div>
           </motion.div>
@@ -281,31 +294,40 @@ export const DashboardHeader = ({
                 </motion.span>
               </div>
             </motion.div>
-            {temperature !== null && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-                className="flex items-center justify-center bg-neu-whi-100/25 dark:bg-neu-gre-900/40 backdrop-blur-sm rounded-b-5xl px-4 sm:px-8 py-2 w-[120px] sm:w-[140px]"
-              >
+            {hasLocationPermission &&
+              (temperature !== null || isWeatherLoading) && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.8 }}
-                  className="w-6 h-6 sm:w-8 sm:h-8"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.7 }}
+                  className="flex items-center justify-center bg-neu-whi-100/25 dark:bg-neu-gre-900/40 backdrop-blur-sm rounded-b-5xl px-4 sm:px-8 py-2 w-[120px] sm:w-[140px]"
                 >
-                  {getWeatherIcon(weatherCondition)}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.8 }}
+                    className="w-8 h-8 sm:w-10 sm:h-10"
+                  >
+                    {isWeatherLoading ? (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-2 border-neu-gre-100 dark:border-neu-gre-100 border-t-transparent"></div>
+                      </div>
+                    ) : (
+                      getWeatherIcon(weatherCondition)
+                    )}
+                  </motion.div>
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.9 }}
+                    className="text-base sm:text-lg font-medium font-inter text-neu-gre-100 dark:text-neu-gre-100 leading-none ml-2"
+                  >
+                    {isWeatherLoading
+                      ? "Getting weather..."
+                      : `${temperature}°C`}
+                  </motion.span>
                 </motion.div>
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.9 }}
-                  className="text-base sm:text-lg font-medium font-inter text-neu-gre-100 dark:text-neu-gre-100 leading-none ml-2"
-                >
-                  {temperature}°C
-                </motion.span>
-              </motion.div>
-            )}
+              )}
           </div>
         </div>
       </div>

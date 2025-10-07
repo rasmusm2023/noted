@@ -181,7 +181,7 @@ export const TaskLibraryButton = ({
           variant === "next7days"
             ? "justify-center w-11 h-11 rounded-md bg-pri-pur-400/20 hover:bg-pri-pur-400/30 dark:bg-pri-pur-500/30 dark:hover:bg-pri-pur-500/40"
             : "gap-2 px-3 sm:px-4 py-2 sm:py-2.5 lg:py-2.5 rounded-md"
-        } transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
+        } transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 ${
           isOpen
             ? "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600 dark:bg-pri-pur-500 dark:hover:bg-pri-pur-600"
             : variant === "next7days"
@@ -227,194 +227,223 @@ export const TaskLibraryButton = ({
               variant === "next7days"
                 ? "w-[320px]"
                 : "w-[calc(100vw-2rem)] sm:w-[calc(100vw-4rem)] lg:w-[40rem]"
-            } bg-neu-whi-100 dark:bg-neu-gre-600 rounded-md shadow-lg border border-neu-gre-200 dark:border-neu-gre-700 z-50`}
+            } relative rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl shadow-lg z-50`}
           >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, delay: 0.1 }}
-              className={`${
-                variant === "next7days" ? "p-4" : "p-4 sm:p-6 lg:p-8"
-              }`}
-            >
-              <div className="flex justify-between items-center mb-4 sm:mb-6 lg:mb-8">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <Icon
-                    icon="mingcute:classify-2-fill"
-                    className={`text-neu-gre-800 dark:text-neu-whi-100 ${
-                      variant === "next7days"
-                        ? "w-4 h-4"
-                        : "w-4 h-4 sm:w-5 sm:h-5"
-                    }`}
-                  />
-                  <h3
-                    className={`font-medium font-inter text-neu-gre-800 dark:text-neu-whi-100 ${
-                      variant === "next7days" ? "text-sm" : "text-sm sm:text-md"
-                    }`}
+            {/* Solid background layer */}
+            <div className="absolute inset-0 bg-[#F3F4F6] dark:bg-[#374151] rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl"></div>
+
+            {/* See-through styling layer */}
+            <div className="relative bg-neu-gre-100/50 dark:bg-neu-gre-900/50 border-2 border-neu-gre-400/30 dark:border-neu-gre-700/30 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, delay: 0.1 }}
+                className={`relative z-10 ${
+                  variant === "next7days" ? "p-4" : "p-4 sm:p-6 lg:p-8"
+                }`}
+              >
+                <div className="flex justify-between items-center mb-4 sm:mb-6 lg:mb-8">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <Icon
+                      icon="mingcute:classify-2-fill"
+                      className={`text-neu-gre-800 dark:text-neu-whi-100 ${
+                        variant === "next7days"
+                          ? "w-4 h-4"
+                          : "w-4 h-4 sm:w-5 sm:h-5"
+                      }`}
+                    />
+                    <h3
+                      className={`font-medium font-inter text-neu-gre-800 dark:text-neu-whi-100 ${
+                        variant === "next7days"
+                          ? "text-sm"
+                          : "text-sm sm:text-md"
+                      }`}
+                    >
+                      Your saved tasks
+                    </h3>
+                  </div>
+                  <button
+                    ref={closeButtonRef}
+                    onClick={() => setIsOpen(false)}
+                    className="p-1 text-neu-gre-600 hover:text-neu-gre-800 dark:text-neu-gre-400 dark:hover:text-neu-whi-100 transition-all duration-300 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    aria-label="Close task library"
                   >
-                    Your saved tasks
-                  </h3>
+                    <Icon
+                      icon="mingcute:close-circle-fill"
+                      className={`${
+                        variant === "next7days"
+                          ? "w-5 h-5"
+                          : "w-5 h-5 sm:w-6 sm:h-6"
+                      }`}
+                    />
+                  </button>
                 </div>
-                <button
-                  ref={closeButtonRef}
-                  onClick={() => setIsOpen(false)}
-                  className="p-1 text-neu-gre-600 hover:text-neu-gre-800 dark:text-neu-gre-400 dark:hover:text-neu-whi-100 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
-                  aria-label="Close task library"
-                >
-                  <Icon
-                    icon="mingcute:close-circle-fill"
-                    className={`${
-                      variant === "next7days"
-                        ? "w-5 h-5"
-                        : "w-5 h-5 sm:w-6 sm:h-6"
-                    }`}
-                  />
-                </button>
-              </div>
-              {isLoading ? (
-                <div className="text-neu-gre-800 dark:text-neu-gre-300 text-xs p-2">
-                  Loading tasks...
-                </div>
-              ) : (
-                <>
-                  {savedTasks.length === 0 ? (
-                    <div className="text-neu-gre-800 dark:text-neu-gre-300 font-inter font-regular text-sm sm:text-base mb-4">
-                      No saved tasks
+                {isLoading ? (
+                  <div className="text-neu-gre-800 dark:text-neu-gre-300 text-sm p-4 text-center">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-neu-gre-400 dark:border-neu-gre-500 border-t-transparent"></div>
+                      <span>Loading tasks...</span>
                     </div>
-                  ) : (
-                    <>
-                      <div
-                        className={`text-neu-gre-700 dark:text-neu-gre-400 font-inter font-regular mb-4 ${
-                          variant === "next7days"
-                            ? "text-sm"
-                            : "text-xs sm:text-sm lg:text-base"
-                        }`}
-                      >
-                        Click a task to add it to your todo-list
+                  </div>
+                ) : (
+                  <>
+                    {savedTasks.length === 0 ? (
+                      <div className="text-neu-gre-800 dark:text-neu-gre-300 font-inter font-regular text-sm sm:text-base mb-4 p-4 text-center bg-neu-gre-200/30 dark:bg-neu-gre-800/30 rounded-lg border border-neu-gre-300/30 dark:border-neu-gre-700/30">
+                        <Icon
+                          icon="mingcute:inbox-line"
+                          className="w-8 h-8 mx-auto mb-2 text-neu-gre-500 dark:text-neu-gre-400"
+                        />
+                        <p>No saved tasks</p>
+                        <p className="text-xs text-neu-gre-600 dark:text-neu-gre-400 mt-1">
+                          Save tasks to access them here
+                        </p>
                       </div>
-                      <div className="max-h-[60vh] sm:max-h-128 overflow-y-auto">
-                        <AnimatePresence>
-                          {savedTasks.map((task) => (
-                            <motion.div
-                              key={task.id}
-                              initial={{ opacity: 1, scale: 1 }}
-                              animate={
-                                addingTask?.id === task.id
-                                  ? {
-                                      opacity: 0,
-                                      scale: 0.95,
-                                      y: -20,
-                                      backgroundColor: "#4ade80",
-                                      transition: {
-                                        duration: 0.3,
-                                        ease: "easeOut",
-                                      },
-                                    }
-                                  : {
-                                      opacity: 1,
-                                      scale: 1,
-                                      backgroundColor: "transparent",
-                                      transition: {
-                                        duration: 0.3,
-                                        ease: "easeOut",
-                                      },
-                                    }
-                              }
-                              className="mb-3 sm:mb-4 rounded-xl"
-                            >
-                              <button
-                                onClick={() => handleTaskClick(task)}
-                                className="w-full text-left font-inter font-regular px-3 sm:px-4 py-4 sm:py-6 text-neu-gre-800 dark:text-neu-whi-100 bg-task-stone-100 hover:bg-task-stone-100/80 dark:bg-neu-gre-800 dark:hover:bg-neu-gre-700 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
-                                aria-label={`Add task "${task.title}" to your list`}
+                    ) : (
+                      <>
+                        <div
+                          className={`text-neu-gre-700 dark:text-neu-gre-400 font-inter font-regular mb-4 p-3 bg-neu-gre-200/20 dark:bg-neu-gre-800/20 rounded-lg border border-neu-gre-300/20 dark:border-neu-gre-700/20 ${
+                            variant === "next7days"
+                              ? "text-sm"
+                              : "text-xs sm:text-sm lg:text-base"
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <Icon
+                              icon="mingcute:information-line"
+                              className="w-4 h-4 text-pri-pur-500 dark:text-pri-pur-400"
+                            />
+                            <span>
+                              Click a task to add it to your todo-list
+                            </span>
+                          </div>
+                        </div>
+                        <div className="max-h-[60vh] sm:max-h-128 overflow-y-auto">
+                          <AnimatePresence>
+                            {savedTasks.map((task) => (
+                              <motion.div
+                                key={task.id}
+                                initial={{ opacity: 1, scale: 1 }}
+                                animate={
+                                  addingTask?.id === task.id
+                                    ? {
+                                        opacity: 0,
+                                        scale: 0.95,
+                                        y: -20,
+                                        backgroundColor: "#4ade80",
+                                        transition: {
+                                          duration: 0.3,
+                                          ease: "easeOut",
+                                        },
+                                      }
+                                    : {
+                                        opacity: 1,
+                                        scale: 1,
+                                        backgroundColor: "transparent",
+                                        transition: {
+                                          duration: 0.3,
+                                          ease: "easeOut",
+                                        },
+                                      }
+                                }
+                                className="mb-3 sm:mb-4 rounded-xl border-2 border-pri-pur-500/25 dark:border-pri-pur-400/25 hover:border-pri-pur-600/50 dark:hover:border-pri-pur-300/50 transition-all duration-300"
                               >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2 sm:gap-3">
-                                    <Icon
-                                      icon="mingcute:add-circle-fill"
-                                      className={`text-neu-gre-800 dark:text-neu-gre-300 ${
-                                        variant === "next7days"
-                                          ? "w-5 h-5"
-                                          : "w-5 h-5 sm:w-6 sm:h-6"
-                                      }`}
-                                    />
-                                    <div>
-                                      <div
-                                        className={`font-medium text-neu-gre-800 dark:text-neu-whi-100 ${
+                                <button
+                                  onClick={() => handleTaskClick(task)}
+                                  className="w-full text-left font-inter font-regular px-3 sm:px-4 py-4 sm:py-6 text-neu-gre-800 dark:text-neu-whi-100 bg-neu-gre-200/50 dark:bg-neu-gre-800/50 hover:bg-neu-gre-300/50 dark:hover:bg-neu-gre-700/50 rounded-xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                                  aria-label={`Add task "${task.title}" to your list`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                      <Icon
+                                        icon="mingcute:add-circle-fill"
+                                        className={`text-neu-gre-800 dark:text-neu-gre-300 ${
                                           variant === "next7days"
-                                            ? "text-sm"
-                                            : "text-sm sm:text-base"
+                                            ? "w-5 h-5"
+                                            : "w-5 h-5 sm:w-6 sm:h-6"
                                         }`}
-                                      >
-                                        {task.title}
-                                      </div>
-                                      <div className="flex items-center mt-1">
-                                        {task.description && (
-                                          <div
-                                            className={`text-neu-gre-700 dark:text-neu-gre-400 truncate ${
-                                              variant === "next7days"
-                                                ? "text-xs"
-                                                : "text-xs sm:text-sm"
-                                            }`}
-                                          >
-                                            {task.description}
-                                          </div>
-                                        )}
-                                        {task.subtasks &&
-                                          task.subtasks.length > 0 && (
+                                      />
+                                      <div>
+                                        <div
+                                          className={`font-medium text-neu-gre-800 dark:text-neu-whi-100 ${
+                                            variant === "next7days"
+                                              ? "text-sm"
+                                              : "text-sm sm:text-base"
+                                          }`}
+                                        >
+                                          {task.title}
+                                        </div>
+                                        <div className="flex items-center mt-1">
+                                          {task.description && (
                                             <div
-                                              className={`font-inter font-regular text-neu-gre-600 dark:text-neu-gre-400 ${
+                                              className={`text-neu-gre-700 dark:text-neu-gre-400 truncate ${
                                                 variant === "next7days"
                                                   ? "text-xs"
                                                   : "text-xs sm:text-sm"
                                               }`}
                                             >
-                                              {task.subtasks.length} subtask
-                                              {task.subtasks.length !== 1
-                                                ? "s"
-                                                : ""}
+                                              {task.description}
                                             </div>
                                           )}
+                                          {task.subtasks &&
+                                            task.subtasks.length > 0 && (
+                                              <div
+                                                className={`font-inter font-regular text-neu-gre-600 dark:text-neu-gre-400 ${
+                                                  variant === "next7days"
+                                                    ? "text-xs"
+                                                    : "text-xs sm:text-sm"
+                                                }`}
+                                              >
+                                                {task.subtasks.length} subtask
+                                                {task.subtasks.length !== 1
+                                                  ? "s"
+                                                  : ""}
+                                              </div>
+                                            )}
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                  <div
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleRemoveTask(task.id);
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter" || e.key === " ") {
-                                        e.preventDefault();
+                                    <div
+                                      onClick={(e) => {
                                         e.stopPropagation();
                                         handleRemoveTask(task.id);
-                                      }
-                                    }}
-                                    role="button"
-                                    tabIndex={0}
-                                    className="p-1.5 sm:p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 duration-200 rounded-md"
-                                    aria-label={`Remove task "${task.title}" from library`}
-                                  >
-                                    <Icon
-                                      icon="mingcute:delete-2-fill"
-                                      className={`text-neu-gre-600 hover:text-sup-err-400 dark:text-neu-gre-400 dark:hover:text-sup-err-400 ${
-                                        variant === "next7days"
-                                          ? "w-5 h-5"
-                                          : "w-5 h-5 sm:w-6 sm:h-6"
-                                      }`}
-                                    />
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (
+                                          e.key === "Enter" ||
+                                          e.key === " "
+                                        ) {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          handleRemoveTask(task.id);
+                                        }
+                                      }}
+                                      role="button"
+                                      tabIndex={0}
+                                      className="p-1.5 sm:p-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                                      aria-label={`Remove task "${task.title}" from library`}
+                                    >
+                                      <Icon
+                                        icon="mingcute:delete-2-fill"
+                                        className={`text-neu-gre-600 hover:text-sup-err-400 dark:text-neu-gre-400 dark:hover:text-sup-err-400 ${
+                                          variant === "next7days"
+                                            ? "w-5 h-5"
+                                            : "w-5 h-5 sm:w-6 sm:h-6"
+                                        }`}
+                                      />
+                                    </div>
                                   </div>
-                                </div>
-                              </button>
-                            </motion.div>
-                          ))}
-                        </AnimatePresence>
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
-            </motion.div>
+                                </button>
+                              </motion.div>
+                            ))}
+                          </AnimatePresence>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
