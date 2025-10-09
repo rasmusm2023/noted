@@ -381,25 +381,29 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           {/* Logo and Toggle */}
           <div className="p-4 flex items-center justify-between border-b border-neu-gre-300 dark:border-neu-gre-700">
             {isOpen ? (
-              <img
-                src={
-                  theme === "dark"
-                    ? "/assets/logos/Noted-logo-dark.png"
-                    : "/assets/logos/Noted-logo-light.png"
-                }
-                alt="Noted application logo"
-                className="h-6"
-              />
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md p-1 -m-1 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 transition-colors duration-200"
+                aria-label="Go to Dashboard"
+              >
+                <img
+                  src="/assets/logos/Noted-logotype.webp"
+                  alt="Noted application logo"
+                  className="h-6"
+                />
+              </button>
             ) : (
-              <img
-                src={
-                  theme === "dark"
-                    ? "/assets/favicon/Noted-favicon-purple.png"
-                    : "/assets/favicon/Noted-favicon-light.png"
-                }
-                alt="Noted application icon"
-                className="h-8 w-8"
-              />
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md p-1 -m-1 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 transition-colors duration-200"
+                aria-label="Go to Dashboard"
+              >
+                <img
+                  src="/assets/favicon/Noted-app-icon.png"
+                  alt="Noted application icon"
+                  className="h-8 w-8"
+                />
+              </button>
             )}
             <button
               onClick={onToggle}
@@ -718,7 +722,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       }
                     >
                       <Icon
-                        icon="mingcute:minimize-line"
+                        icon="mingcute:paper-fill"
                         width={16}
                         height={16}
                         className={`text-neu-gre-700 dark:text-neu-gre-500 ${

@@ -47,7 +47,7 @@ export const TaskItem = ({
         ? "bg-acc-green-400/50 dark:bg-acc-green-900/50 border-2 border-acc-green-800/30 dark:border-acc-green-700/30"
         : task.backgroundColor
         ? task.backgroundColor
-        : "bg-neu-gre-300/50 dark:bg-neu-gre-900/50 border-2 border-neu-gre-600/30 dark:border-neu-gre-700/30"
+        : "bg-neu-gre-50/50 dark:bg-neu-gre-900/50 border-2 border-neu-gre-600/30 dark:border-neu-gre-700/30"
     }
     ${editingTask?.id === task.id ? "ring-2 ring-pri-blue-500" : ""}
     focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus-500

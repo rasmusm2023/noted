@@ -304,6 +304,12 @@ const darkColors = {
     500: "#4b5563",
   },
 
+  // Modal Background Colors
+  "modal-bg": {
+    50: "#18202F", // Custom dark modal background
+    100: "#E8EAED", // Custom light modal background
+  },
+
   // Text Colors
   "text-primary": {
     50: "#111827",
