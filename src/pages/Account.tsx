@@ -218,7 +218,7 @@ export function Account() {
   if (loading) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800 p-8 font-inter">
+        <div className="min-h-screen bg-pri-blue-50 dark:bg-neu-gre-800 p-8 font-inter">
           <div className="max-w-2xl mx-auto">
             <div className="text-neu-gre-600 dark:text-neu-gre-300 animate-pulse">
               Loading account details...
@@ -232,7 +232,7 @@ export function Account() {
   if (error) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800 p-8 font-inter">
+        <div className="min-h-screen bg-pri-blue-50 dark:bg-neu-gre-800 p-8 font-inter">
           <div className="max-w-2xl mx-auto">
             <div className="bg-sup-err-100 dark:bg-sup-err-900 text-sup-err-500 dark:text-sup-err-400 p-4 rounded-lg">
               {error}
@@ -245,7 +245,7 @@ export function Account() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-neu-whi-100 dark:bg-neu-gre-800 p-8 mt-16">
+      <div className="min-h-screen bg-pri-blue-50 dark:bg-neu-gre-800 p-8 mt-16">
         <div className="max-w-[1920px] mx-auto space-y-8 px-16 pb-[1000px]">
           <div className="flex items-center space-x-3">
             <Icon

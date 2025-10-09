@@ -265,7 +265,7 @@ export function Dashboard() {
         localStorage.setItem("weatherCache", JSON.stringify(weatherCache));
       } catch (error) {
         console.error("Error fetching temperature:", error);
-        if (error.name === "AbortError") {
+        if (error instanceof Error && error.name === "AbortError") {
           console.log("Weather API request timed out");
         }
       } finally {
@@ -821,7 +821,7 @@ export function Dashboard() {
         }}
       />
       <PageTransition>
-        <div className="min-h-screen bg-bg-white-50 dark:bg-neu-gray-800">
+        <div className="min-h-screen bg-pri-blue-50 dark:bg-neu-gray-800">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="py-8">
               <DashboardHeader
@@ -832,7 +832,7 @@ export function Dashboard() {
                 isWeatherLoading={isWeatherLoading}
                 hasLocationPermission={hasLocationPermission}
               />
-              <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-0 pr-0 sm:pr-8 lg:pr-0 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300 bg-bg-white-50 dark:bg-transparent">
+              <div className="max-w-4xl mx-auto rounded-5xl pl-0 sm:pl-8 lg:pl-0 pr-0 sm:pr-8 lg:pr-0 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 transition-all duration-300 bg-pri-blue-50 dark:bg-transparent">
                 <TaskProgress
                   completionPercentage={completionPercentage}
                   onClearCompleted={handleClearCompleted}

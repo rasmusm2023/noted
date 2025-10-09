@@ -163,7 +163,7 @@ export const DashboardHeader = ({
 
   return (
     <div className="rounded-3xl lg:rounded-5xl pl-4 sm:pl-8 lg:pl-16 pr-4 sm:pr-8 lg:pr-16 pt-4 sm:pt-6 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.2),0_8px_32px_-8px_rgba(0,0,0,0.16)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.24),0_16px_48px_-16px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden">
-      <div className="absolute inset-0 rounded-3xl lg:rounded-5xl bg-gradient-warm dark:bg-gradient-highlighted-task opacity-100"></div>
+      <div className="absolute inset-0 rounded-3xl lg:rounded-5xl bg-gradient-primary dark:bg-gradient-highlighted-task opacity-100"></div>
       <div className="flex flex-col sm:flex-row justify-between items-start relative h-full z-10 gap-4 sm:gap-0">
         <AnimatePresence mode="wait">
           <motion.div

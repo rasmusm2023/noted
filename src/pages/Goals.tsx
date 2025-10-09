@@ -463,7 +463,7 @@ export function Goals() {
           },
         }}
       />
-      <div className="p-0 sm:p-6 md:p-8 mt-0 lg:mt-16 bg-neu-whi-100 dark:bg-neu-gre-800">
+      <div className="p-0 sm:p-6 md:p-8 mt-0 lg:mt-16 bg-pri-blue-50 dark:bg-neu-gre-800">
         <div className="max-w-[1920px] mx-auto space-y-4 sm:space-y-6 md:space-y-8 px-4 sm:px-8 md:px-16 py-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
@@ -772,7 +772,7 @@ export function Goals() {
                             {tasks[goal.id]?.map((task, taskIndex) => (
                               <li
                                 key={task.id}
-                                className="flex items-center justify-between bg-sec-rose-200 dark:bg-neu-gre-800 rounded-md p-3 sm:p-2 cursor-pointer hover:bg-sec-rose-300 dark:hover:bg-neu-gre-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 min-h-[44px]"
+                                className="flex items-center justify-between bg-pri-blue-200 dark:bg-neu-gre-800 rounded-md p-3 sm:p-2 cursor-pointer hover:bg-pri-blue-300 dark:hover:bg-neu-gre-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 min-h-[44px]"
                                 onClick={() => handleTaskClick(task)}
                                 onKeyDown={(e) => {
                                   if (e.key === "Enter" || e.key === " ") {

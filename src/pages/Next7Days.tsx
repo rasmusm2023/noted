@@ -1071,10 +1071,10 @@ export function Next7Days() {
   return (
     <DndProvider backend={HTML5Backend}>
       <style>{globalStyles}</style>
-      <div className="h-screen flex flex-col bg-bg-white-50 dark:bg-neu-gray-800">
+      <div className="h-screen flex flex-col bg-pri-blue-50 dark:bg-neu-gray-800">
         {/* Desktop Header */}
         <div className="fixed top-0 left-[var(--sidebar-width)] right-0 z-50 hidden lg:block">
-          <div className="bg-bg-white-50/95 dark:bg-neu-gray-800/95 backdrop-blur-sm border-b-1 dark:border-neu-gray-700">
+          <div className="bg-pri-blue-50/95 dark:bg-neu-gray-800/95 backdrop-blur-sm border-b-1 dark:border-neu-gray-700">
             <TaskManagementHeader onClearCompleted={handleClearCompleted}>
               <div className="flex items-center space-x-3">
                 <Icon
@@ -1094,7 +1094,7 @@ export function Next7Days() {
         {/* Days Container - Now with dynamic height */}
         <div className="flex-1 overflow-y-auto relative pt-0 lg:pt-20">
           {/* Mobile/Tablet Header */}
-          <div className="lg:hidden bg-neu-whi-100/95 dark:bg-neu-gre-800/95 backdrop-blur-sm border-b border-neu-gre-300/50 dark:border-neu-gre-700/50">
+          <div className="lg:hidden bg-pri-blue-50/95 dark:bg-neu-gre-800/95 backdrop-blur-sm border-b border-neu-gre-300/50 dark:border-neu-gre-700/50">
             <div className="flex items-center justify-between px-4 py-8">
               <div className="flex items-center space-x-3">
                 <Icon

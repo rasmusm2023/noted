@@ -17,7 +17,7 @@ const TASK_COLORS = [
   {
     name: "Stone",
     value:
-      "bg-neu-gre-300/50 dark:bg-neu-gre-900/50 border-2 border-neu-gre-600/30 dark:border-neu-gre-700/30",
+      "bg-neu-gre-50/50 dark:bg-neu-gre-900/50 border-2 border-neu-gre-600/30 dark:border-neu-gre-700/30",
     hover: "hover:bg-neu-gre-400/50 dark:hover:bg-neu-gre-800/50",
   },
   {
@@ -420,7 +420,7 @@ export function TaskModal({
 
   return (
     <div
-      className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity ${
+      className={`fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 transition-opacity ${
         isClosing ? "duration-200" : "duration-150"
       } ${isClosing ? "opacity-0" : isOpening ? "opacity-0" : "opacity-100"}`}
       role="dialog"
@@ -429,32 +429,28 @@ export function TaskModal({
     >
       <div
         ref={modalRef}
-        className={`rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl w-[95%] sm:w-[90%] md:w-[80%] lg:w-[75%] xl:w-[65%] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-4 max-h-[85vh] sm:max-h-[85vh] md:max-h-[85vh] lg:max-h-[90vh] overflow-y-auto relative transition-all ${
+        className={`fixed right-0 top-4 bottom-4 w-[95%] sm:w-[90%] md:w-[80%] lg:w-[75%] xl:w-[65%] max-w-2xl bg-transparent overflow-y-auto transition-transform ${
           isClosing ? "duration-200" : "duration-150"
         } ${
           isClosing
-            ? "opacity-0 scale-95"
+            ? "translate-x-full"
             : isOpening
-            ? "opacity-0 scale-95"
-            : "opacity-100 scale-100"
+            ? "translate-x-full"
+            : "translate-x-0"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* See-through styling layer */}
         <div
-          className={`relative ${
+          className={`relative min-h-full ${
             task.backgroundColor
               ? task.backgroundColor
-              : "bg-neu-gre-300/50 dark:bg-neu-gre-900/50 border-2 border-neu-gre-600/30 dark:border-neu-gre-700/30"
-          } rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl`}
-          style={{
-            position: "relative",
-            minHeight: "100%",
-          }}
+              : "bg-neu-gre-50/50 dark:bg-neu-gre-900/50 border-l-2 border-neu-gre-600/30 dark:border-neu-gre-700/30"
+          } rounded-l-lg sm:rounded-l-xl md:rounded-l-2xl lg:rounded-l-3xl xl:rounded-l-4xl`}
         >
           {/* Solid background layer that covers entire content */}
           <div
-            className="absolute inset-0 bg-[#F3F4F6] dark:bg-[#374151] rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl xl:rounded-4xl"
+            className="absolute inset-0 bg-neu-gre-50 dark:bg-[#18202F] rounded-l-lg sm:rounded-l-xl md:rounded-l-2xl lg:rounded-l-3xl xl:rounded-l-4xl"
             style={{ minHeight: "100%" }}
           ></div>
           <div className="relative z-10">
@@ -466,7 +462,7 @@ export function TaskModal({
                     className={`flex items-center space-x-2 sm:space-x-3 flex-1 rounded-md p-2 sm:p-3 md:p-4 min-w-0 transition-colors duration-200 ${
                       task.completed
                         ? "bg-acc-green-400 dark:bg-acc-green-700 bg-opacity-75"
-                        : "bg-neu-gre-100 dark:bg-neu-gre-700"
+                        : "bg-neu-gre-50 dark:bg-[#18202F]"
                     }`}
                   >
                     <Icon
@@ -521,7 +517,7 @@ export function TaskModal({
                       </button>
                       {showColorPicker && (
                         <div
-                          className="absolute right-0 mt-2 sm:mt-3 p-3 sm:p-4 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg z-10 w-40 sm:w-48 border border-neu-gre-200 dark:border-neu-gre-600"
+                          className="absolute left-0 mt-2 sm:mt-3 p-3 sm:p-4 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg z-10 w-40 sm:w-48 border border-neu-gre-200 dark:border-neu-gre-600"
                           onKeyDown={handleColorPickerKeyDown}
                         >
                           <div className="flex justify-between items-center mb-2 sm:mb-3">
@@ -633,7 +629,7 @@ export function TaskModal({
 
                 {/* Add Subtask Input */}
                 <div className="flex items-center space-x-2 mb-3 sm:mb-4">
-                  <div className="flex items-center space-x-2 flex-1 bg-neu-gre-100 dark:bg-neu-gre-700 rounded-md px-3 sm:px-4 py-2 border-2 border-dashed border-pri-pur-500/75 dark:border-pri-pur-300/75 focus-within:border-2 focus-within:border-solid focus-within:border-pri-pur-500/75 dark:focus-within:border-pri-pur-300/75 transition-all duration-500 ease-in-out group">
+                  <div className="flex items-center space-x-2 flex-1 bg-neu-gre-50 dark:bg-[#18202F] rounded-md px-3 sm:px-4 py-2 border-2 border-dashed border-pri-pur-500/75 dark:border-pri-pur-300/75 focus-within:border-2 focus-within:border-solid focus-within:border-pri-pur-500/75 dark:focus-within:border-pri-pur-300/75 transition-all duration-500 ease-in-out group">
                     <div className="flex items-center justify-center">
                       <Icon
                         icon="mingcute:add-fill"
@@ -669,7 +665,7 @@ export function TaskModal({
                       className={`p-2 sm:p-3 rounded-lg flex items-center justify-between transition-all duration-300 ${
                         subtask.completed
                           ? "bg-acc-green-400 dark:bg-acc-green-700 bg-opacity-75"
-                          : "bg-neu-gre-200 dark:bg-neu-gre-600"
+                          : "bg-neu-gre-200 dark:bg-neu-gre-700"
                       }`}
                     >
                       <div className="flex items-center space-x-2 sm:space-x-3">
