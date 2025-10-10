@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/Buttons/Button";
 import { useNavigate, useLocation } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -19,6 +20,12 @@ export function Login() {
   const formRef = useRef<HTMLFormElement>(null);
   const isNavigating = useRef(false);
   const [passwordWarning, setPasswordWarning] = useState("");
+
+  usePageTitle(
+    isLogin
+      ? "Noted – Track and manage your tasks, all in one place"
+      : "Noted – Track and manage your tasks, all in one place"
+  );
 
   // Redirect if already logged in
   useEffect(() => {

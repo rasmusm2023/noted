@@ -1,4 +1,8 @@
+import { usePageTitle } from "../hooks/usePageTitle";
+
 export function Settings() {
+  usePageTitle("Settings");
+
   return (
     <div className="p-8">
       <h1 className="text-3xl font-medium text-neu-100 mb-6 font-clash">

@@ -20,6 +20,7 @@
     "date-fns": "^4.1.0",
     "firebase": "^11.6.1",
     "framer-motion": "^12.11.3",
+    "gsap": "^3.13.0",
     "react": "^19.1.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",

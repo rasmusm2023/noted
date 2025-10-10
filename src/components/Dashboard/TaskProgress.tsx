@@ -46,11 +46,11 @@ export const TaskProgress = ({
       </div>
 
       <div className="flex items-center space-x-2">
+        <ClearCompletedButton onClearCompleted={onClearCompleted} />
         <TaskLibraryButton
           onTaskSelect={onTaskSelect}
           onRemoveTask={onRemoveTask}
         />
-        <ClearCompletedButton onClearCompleted={onClearCompleted} />
       </div>
     </div>
   );

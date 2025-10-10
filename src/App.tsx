@@ -7,6 +7,8 @@ import {
 } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ListProvider } from "./contexts/ListContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -21,6 +23,7 @@ import { Settings } from "./pages/Settings";
 import { Account } from "./pages/Account";
 import { MidnightTaskMover } from "./components/MidnightTaskMover";
 import { LoadingScreen } from "./components/LoadingScreen";
+import { useAppTitle } from "./hooks/usePageTitle";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -89,13 +92,17 @@ function AnimatedRoutes() {
 }
 
 function App() {
+  useAppTitle("Noted – Track and manage your tasks in one place");
+
   return (
     <Router>
       <AuthProvider>
         <ListProvider>
           <ThemeProvider>
-            <MidnightTaskMover />
-            <AnimatedRoutes />
+            <DndProvider backend={HTML5Backend}>
+              <MidnightTaskMover />
+              <AnimatedRoutes />
+            </DndProvider>
           </ThemeProvider>
         </ListProvider>
       </AuthProvider>

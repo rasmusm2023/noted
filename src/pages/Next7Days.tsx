@@ -7,14 +7,13 @@ import type { Goal } from "../services/goalService";
 import { Icon } from "@iconify/react";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { StatsModal } from "../components/Next7Days/StatsModal";
 import { TaskManagementHeader } from "../components/Next7Days/TaskManagementHeader";
 import { DayColumn } from "../components/Next7Days/DayColumn";
 import { TaskItem } from "../components/Next7Days/TaskItem";
 import { toast } from "react-hot-toast";
 import { ClearCompletedButton } from "../components/Buttons/ClearCompletedButton";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 type DayData = {
   id: string;
@@ -22,11 +21,11 @@ type DayData = {
   items: Task[];
 };
 
-// Add cache types
-type Cache<T> = {
-  data: Map<string, T>;
-  lastUpdated: number;
-};
+// Add cache types for future use
+// type Cache<T> = {
+//   data: Map<string, T>;
+//   lastUpdated: number;
+// };
 
 // Add offline queue type
 type QueuedOperation = {
@@ -38,6 +37,8 @@ type QueuedOperation = {
 
 export function Next7Days() {
   const { currentUser } = useAuth();
+  usePageTitle("Next 7 days");
+
   const [days, setDays] = useState<DayData[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,12 +52,13 @@ export function Next7Days() {
   const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
   const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [, setHighlightNextTask] = useState<string | null>(null);
 
-  // Add caches
-  const [taskCache, setTaskCache] = useState<Cache<Task>>({
-    data: new Map(),
-    lastUpdated: 0,
-  });
+  // Add caches for future use
+  // const [taskCache, setTaskCache] = useState<Cache<Task>>({
+  //   data: new Map(),
+  //   lastUpdated: 0,
+  // });
 
   // Add offline queue
   const [offlineQueue, setOfflineQueue] = useState<QueuedOperation[]>([]);
@@ -144,17 +146,18 @@ export function Next7Days() {
     }
   }, [isOnline, offlineQueue]);
 
-  // Add cache management functions
-  const updateTaskCache = (task: Task) => {
-    setTaskCache((prev) => ({
-      data: new Map(prev.data).set(task.id, task),
-      lastUpdated: Date.now(),
-    }));
-  };
+  // Add cache management functions for future use
+  // const updateTaskCache = (task: Task) => {
+  //   setTaskCache((prev) => ({
+  //     data: new Map(prev.data).set(task.id, task),
+  //     lastUpdated: Date.now(),
+  //   }));
+  // };
 
-  const getFromCache = (id: string, type: "task") => {
-    return taskCache.data.get(id);
-  };
+  // Cache function for future use
+  // const getFromCache = (id: string, type: "task") => {
+  //   return taskCache.data.get(id);
+  // };
 
   // Add offline queue processing
   const processOfflineQueue = async () => {
@@ -186,10 +189,10 @@ export function Next7Days() {
     }
   };
 
-  // Add queue operation function
-  const queueOperation = (operation: QueuedOperation) => {
-    setOfflineQueue((prev) => [...prev, operation]);
-  };
+  // Queue operation function for future use
+  // const queueOperation = (operation: QueuedOperation) => {
+  //   setOfflineQueue((prev) => [...prev, operation]);
+  // };
 
   // Initialize the next 7 days
   useEffect(() => {
@@ -295,11 +298,11 @@ export function Next7Days() {
     processData();
   }, [currentUser, days.length]); // Add days.length to dependencies to ensure we process when days are initialized
 
-  // Add a function to reload data
-  const reloadData = () => {
-    hasLoadedData.current = false;
-    processData();
-  };
+  // Function to reload data for future use
+  // const reloadData = () => {
+  //   hasLoadedData.current = false;
+  //   processData();
+  // };
 
   // Helper function to parse date strings
   const parseDateString = (dateStr: string): Date => {
@@ -420,7 +423,7 @@ export function Next7Days() {
       const newTask = await taskService.createTask(currentUser.uid, taskData);
       console.log("New task created:", newTask);
 
-      updateTaskCache(newTask);
+      // updateTaskCache(newTask);
 
       // Update UI - only add to the selected day
       setDays((prevDays) => {
@@ -1069,7 +1072,7 @@ export function Next7Days() {
   }, []);
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <>
       <style>{globalStyles}</style>
       <div className="h-screen flex flex-col bg-pri-blue-50 dark:bg-neu-gray-800">
         {/* Desktop Header */}
@@ -1159,6 +1162,6 @@ export function Next7Days() {
           onClose={() => setIsStatsModalOpen(false)}
         />
       </div>
-    </DndProvider>
+    </>
   );
 }
