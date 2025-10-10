@@ -16,7 +16,7 @@ export const ClearCompletedButton = ({
         <span className="hidden lg:inline">Clear completed</span>
       </span>
       <Icon
-        icon="mingcute:eraser-fill"
+        icon="mingcute:eraser-line"
         className="w-4 h-4 sm:w-5 sm:h-5"
         aria-hidden="true"
       />

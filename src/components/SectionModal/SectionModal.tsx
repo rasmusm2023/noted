@@ -385,7 +385,7 @@ export const SectionModal: React.FC<SectionModalProps> = ({
                 className="p-2 text-neu-gre-400 hover:text-red-500 transition-colors flex items-center justify-center"
                 aria-label="Delete section"
               >
-                <Icon icon="mingcute:delete-2-fill" className="w-6 h-6" />
+                <Icon icon="mingcute:delete-back-line" className="w-6 h-6" />
               </button>
               <button
                 ref={closeModalButtonRef}

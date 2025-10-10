@@ -324,11 +324,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       {/* Mobile Menu Trigger Button */}
       <button
         onClick={() => {
-          // Close TaskModal if it's open
-          const taskModal = document.querySelector('[role="dialog"]');
-          if (taskModal) {
-            const closeButton = taskModal.querySelector(
-              '[aria-label="Close modal"]'
+          // Close TaskDrawer if it's open
+          const taskDrawer = document.querySelector('[role="dialog"]');
+          if (taskDrawer) {
+            const closeButton = taskDrawer.querySelector(
+              '[aria-label="Close drawer"]'
             );
             if (closeButton instanceof HTMLElement) {
               closeButton.click();
@@ -413,14 +413,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             >
               {isOpen ? (
                 <Icon
-                  icon="mingcute:layout-leftbar-close-fill"
+                  icon="mingcute:arrow-to-left-line"
                   width={24}
                   height={24}
                   aria-hidden="true"
                 />
               ) : (
                 <Icon
-                  icon="mingcute:layout-leftbar-open-fill"
+                  icon="mingcute:arrow-to-right-line"
                   width={24}
                   height={24}
                   aria-hidden="true"
@@ -505,7 +505,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     }
                   >
                     <Icon
-                      icon="mingcute:calendar-day-fill"
+                      icon="mingcute:calendar-day-line"
                       width={20}
                       height={20}
                       className={`text-neu-gre-700 dark:text-neu-gre-500 ${
@@ -536,7 +536,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   >
                     <div className="w-5 h-5 flex items-center justify-center">
                       <Icon
-                        icon="mingcute:trello-board-fill"
+                        icon="mingcute:trello-board-line"
                         width={20}
                         height={20}
                         className={`text-neu-gre-700 dark:text-neu-gre-500 ${
@@ -584,7 +584,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     }
                   >
                     <Icon
-                      icon="mingcute:target-fill"
+                      icon="mingcute:target-line"
                       width={20}
                       height={20}
                       className={`text-neu-gre-700 dark:text-neu-gre-500 ${
@@ -625,7 +625,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       aria-label="Add new list"
                     >
                       <Icon
-                        icon="mingcute:add-fill"
+                        icon="mingcute:add-circle-line"
                         width={20}
                         height={20}
                         aria-hidden="true"
@@ -722,7 +722,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       }
                     >
                       <Icon
-                        icon="mingcute:paper-fill"
+                        icon="mingcute:paper-line"
                         width={16}
                         height={16}
                         className={`text-neu-gre-700 dark:text-neu-gre-500 ${
@@ -767,7 +767,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   aria-label="Settings menu"
                 >
                   <Icon
-                    icon="mingcute:settings-3-fill"
+                    icon="mingcute:settings-3-line"
                     width={24}
                     height={24}
                     aria-label="Settings"

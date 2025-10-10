@@ -252,7 +252,7 @@ export function Account() {
         <div className="max-w-[1920px] mx-auto space-y-8 px-16 pb-[1000px]">
           <div className="flex items-center space-x-3">
             <Icon
-              icon="mingcute:user-3-fill"
+              icon="mingcute:user-3-line"
               className="text-pri-pur-500 dark:text-pri-pur-400 w-8 h-8"
               aria-hidden="true"
             />
@@ -382,11 +382,6 @@ export function Account() {
                     className="py-4 px-4 text-sm font-inter font-medium text-sup-err-500 dark:text-sup-err-400 dark:hover:text-sup-err-700 hover:text-neu-whi-100 hover:bg-sup-err-500 dark:hover:bg-sup-err-200 rounded-md transition-all flex items-center space-x-2 duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
                     aria-label="Delete account"
                   >
-                    <Icon
-                      icon="mingcute:delete-2-fill"
-                      className="w-5 h-5"
-                      aria-hidden="true"
-                    />
                     <span>Delete Account</span>
                   </button>
                 </div>
@@ -422,7 +417,7 @@ export function Account() {
                     role="presentation"
                   >
                     <Icon
-                      icon="mingcute:pencil-fill"
+                      icon="mingcute:pencil-line"
                       className="w-5 h-5"
                       aria-hidden="true"
                     />
@@ -554,11 +549,6 @@ export function Account() {
                       disabled={isDeleting}
                       aria-label="Confirm account deletion"
                     >
-                      <Icon
-                        icon="mingcute:delete-2-fill"
-                        className="w-5 h-5"
-                        aria-hidden="true"
-                      />
                       {isDeleting ? "Deleting..." : "Delete Account"}
                     </button>
                   </div>

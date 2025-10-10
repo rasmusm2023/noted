@@ -1,10 +1,12 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { TaskItem } from "./TaskItem";
 import { DayColumn } from "./DayColumn";
 import type { Task, SectionItem } from "../../types/task";
+import type { Goal } from "../../services/goalService";
 
 interface Next7DaysProps {
   tasks: Task[];
+  goals: Goal[];
   isLoading: boolean;
   onTaskUpdate: (task: Task) => void;
   onTaskDelete: (taskId: string) => void;
@@ -14,13 +16,14 @@ interface Next7DaysProps {
 
 export const Next7Days = ({
   tasks,
+  goals,
   isLoading,
   onTaskUpdate,
   onTaskDelete,
   onTaskAdd,
   onSectionAdd,
 }: Next7DaysProps) => {
-  const [hidingItems, setHidingItems] = useState<Set<string>>(new Set());
+  const [hidingItems] = useState<Set<string>>(new Set());
   const [days, setDays] = useState<
     {
       id: string;
@@ -30,7 +33,49 @@ export const Next7Days = ({
   >([]);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // ... existing useEffect and other functions ...
+  // Initialize days from tasks prop
+  useEffect(() => {
+    if (tasks.length === 0) {
+      // Initialize with next 7 days if no tasks
+      const next7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        return {
+          id: `day-${i}`,
+          date,
+          items: [] as (Task | SectionItem)[],
+        };
+      });
+      setDays(next7Days);
+      return;
+    }
+
+    // Group tasks by date
+    const tasksByDate = new Map<string, Task[]>();
+    tasks.forEach((task) => {
+      const taskDate = new Date(task.date).toDateString();
+      if (!tasksByDate.has(taskDate)) {
+        tasksByDate.set(taskDate, []);
+      }
+      tasksByDate.get(taskDate)!.push(task);
+    });
+
+    // Create next 7 days with tasks
+    const next7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      const dateString = date.toDateString();
+      const dayTasks = tasksByDate.get(dateString) || [];
+
+      return {
+        id: `day-${i}`,
+        date,
+        items: dayTasks as (Task | SectionItem)[],
+      };
+    });
+
+    setDays(next7Days);
+  }, [tasks]);
 
   const moveItem = useCallback(
     (
@@ -66,11 +111,11 @@ export const Next7Days = ({
 
   const renderTask = useCallback(
     (task: Task, dayIndex: number) => {
-      const day = days[dayIndex];
       return (
         <TaskItem
           key={task.id}
           task={task}
+          goals={goals}
           dayIndex={dayIndex}
           editingTask={editingTask}
           onTaskClick={(task: Task, e: React.MouseEvent) => {
@@ -120,7 +165,7 @@ export const Next7Days = ({
         />
       );
     },
-    [days, onTaskUpdate, onTaskDelete, editingTask]
+    [days, onTaskUpdate, onTaskDelete, editingTask, goals]
   );
 
   const renderSection = useCallback((section: SectionItem) => {
@@ -140,15 +185,17 @@ export const Next7Days = ({
   }, []);
 
   const isTask = useCallback((item: Task | SectionItem): item is Task => {
-    return item.type === "task";
+    return item && item.type === "task";
   }, []);
 
   const sortItems = useCallback((items: (Task | SectionItem)[]) => {
-    return [...items].sort((a, b) => {
-      if (a.type === "section" && b.type === "task") return -1;
-      if (a.type === "task" && b.type === "section") return 1;
-      return 0;
-    });
+    return [...items]
+      .filter((item) => item && item.type)
+      .sort((a, b) => {
+        if (a.type === "section" && b.type === "task") return -1;
+        if (a.type === "task" && b.type === "section") return 1;
+        return 0;
+      });
   }, []);
 
   return (
@@ -162,7 +209,7 @@ export const Next7Days = ({
               dayIndex={index}
               isLoading={isLoading}
               hidingItems={hidingItems}
-              onAddTask={(dayIndex: number, title: string, task?: Task) => {
+              onAddTask={(dayIndex: number, _title: string, task?: Task) => {
                 if (task) {
                   onTaskAdd(task);
                   // Add the task to the local state

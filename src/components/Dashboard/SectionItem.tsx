@@ -62,7 +62,7 @@ export const SectionItem = ({
           aria-label={`Delete section "${section.text}"`}
         >
           <Icon
-            icon="mingcute:delete-2-fill"
+            icon="mingcute:delete-back-line"
             width={24}
             height={24}
             aria-label="Delete section"

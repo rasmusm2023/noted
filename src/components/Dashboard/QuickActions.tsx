@@ -1,5 +1,6 @@
 import { Icon } from "@iconify/react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { gsap } from "gsap";
 
 interface QuickActionsProps {
   onAddTask: (title: string, description: string) => void;
@@ -10,6 +11,36 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [focusedInput, setFocusedInput] = useState<"task" | null>(null);
   const taskInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // GSAP animation for enhanced visual feedback
+  useEffect(() => {
+    if (containerRef.current) {
+      const container = containerRef.current;
+
+      if (focusedInput === "task") {
+        // Create a timeline for coordinated animations
+        const tl = gsap.timeline();
+
+        // Animate scale for enhanced focus
+        tl.to(container, {
+          scale: 1.02,
+          duration: 0.3,
+          ease: "power2.out",
+        });
+      } else {
+        // Create a timeline for coordinated animations
+        const tl = gsap.timeline();
+
+        // Animate scale back to normal
+        tl.to(container, {
+          scale: 1,
+          duration: 0.3,
+          ease: "power2.out",
+        });
+      }
+    }
+  }, [focusedInput]);
 
   const handleTaskKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -31,11 +62,15 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
   return (
     <div className="grid grid-cols-1 gap-6">
       <div
-        className={`p-6 bg-pri-pur-500/10 dark:bg-pri-pur-500/20 rounded-lg hover:bg-neu-whi-100 dark:hover:bg-neu-gre-800 transition-colors border-2 ${
+        ref={containerRef}
+        className={`relative p-6 rounded-lg transition-colors border-2 ${
           focusedInput === "task"
-            ? "border-solid border-pri-pur-500 dark:border-pri-pur-400 bg-pri-pur-500/20 dark:bg-pri-pur-500/30"
-            : "border-dashed border-pri-pur-500/75 dark:border-pri-pur-500/50"
+            ? "border-transparent bg-pri-blue-50 dark:bg-pri-blue-900/20"
+            : "border-dashed border-pri-pur-500/75 dark:border-pri-pur-500/50 bg-pri-pur-500/10 dark:bg-pri-pur-500/20 hover:bg-pri-blue-50 dark:hover:bg-pri-blue-900/20"
         }`}
+        style={{
+          transition: "all 0.4s ease-out",
+        }}
         onClick={() => {
           if (taskInputRef.current) {
             taskInputRef.current.focus();
@@ -51,6 +86,13 @@ export const QuickActions = ({ onAddTask }: QuickActionsProps) => {
           }
         }}
       >
+        {/* Solid border overlay for morphing effect */}
+        <div
+          className={`absolute inset-0 rounded-lg border-2 border-solid border-pri-pur-500 dark:border-pri-pur-400 transition-opacity duration-400 ease-out ${
+            focusedInput === "task" ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ pointerEvents: "none" }}
+        />
         <div className="flex items-center space-x-4">
           <div className="p-2 bg-pri-pur-500 dark:bg-pri-pur-400 rounded-md flex items-center justify-center">
             <Icon
