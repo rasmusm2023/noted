@@ -7,21 +7,19 @@ interface ClearCompletedButtonProps {
 
 export const ClearCompletedButton = ({
   onClearCompleted,
-  className = "px-3 sm:px-4 py-2 sm:py-2.5 lg:py-2.5 bg-sup-err-400 dark:bg-sup-err-700 text-neu-whi-100 dark:text-neu-whi-100 lg:bg-neu-gre-300 lg:dark:bg-neu-gre-600 lg:text-neu-gre-700 lg:dark:text-neu-gre-100 border border-sec-rose-900 dark:border-sec-rose-700 rounded-md hover:bg-sup-err-300 dark:hover:bg-sup-err-700 hover:text-neu-gre-900 dark:hover:text-neu-gre-50 transition-colors flex items-center space-x-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500",
+  className = "px-3 py-2 sm:py-3 bg-transparent border-2 border-neu-gre-300 dark:border-neu-gre-600 text-sm font-semibold text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-500 dark:hover:text-sup-err-400 hover:border-sup-err-500 dark:hover:border-sup-err-400 hover:bg-sup-err-50 dark:hover:bg-sup-err-900/20 rounded-md transition-all duration-200 font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 flex items-center justify-center gap-2 min-h-[44px]",
 }: ClearCompletedButtonProps) => {
   return (
     <button onClick={onClearCompleted} tabIndex={2} className={className}>
-      <Icon
-        icon="mingcute:eraser-fill"
-        width={20}
-        height={20}
-        className="w-6 h-6 sm:w-6 sm:h-6 lg:w-5 lg:h-5 text-neu-gre-800 dark:text-neu-whi-100 lg:text-current"
-        color="currentColor"
-      />
-      <span className="text-sm sm:text-base font-inter font-medium">
+      <span className="font-inter font-semibold text-base">
         <span className="lg:hidden">Clear</span>
         <span className="hidden lg:inline">Clear completed</span>
       </span>
+      <Icon
+        icon="mingcute:eraser-fill"
+        className="w-4 h-4 sm:w-5 sm:h-5"
+        aria-hidden="true"
+      />
     </button>
   );
 };

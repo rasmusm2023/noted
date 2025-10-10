@@ -6,17 +6,18 @@ import type { Task, SectionItem } from "../types/task";
 import type { Goal } from "../services/goalService";
 import confetti from "canvas-confetti";
 import { TaskModal } from "../components/TaskModal/TaskModal";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { PageTransition } from "../components/PageTransition";
 import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
 import { TaskProgress } from "../components/Dashboard/TaskProgress";
 import { TaskList } from "../components/Dashboard/TaskList";
 import { QuickActions } from "../components/Dashboard/QuickActions";
 import { toast, Toaster } from "react-hot-toast";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 export function Dashboard() {
   const { currentUser } = useAuth();
+  usePageTitle("Today's tasks");
+
   const [items, setItems] = useState<Task[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -808,7 +809,7 @@ export function Dashboard() {
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <>
       <style>{globalStyles}</style>
       <Toaster
         position="top-center"
@@ -880,6 +881,6 @@ export function Dashboard() {
           onDelete={handleDeleteTask}
         />
       )}
-    </DndProvider>
+    </>
   );
 }

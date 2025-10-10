@@ -429,7 +429,7 @@ export function TaskModal({
     >
       <div
         ref={modalRef}
-        className={`fixed right-0 top-4 bottom-4 w-[95%] sm:w-[90%] md:w-[80%] lg:w-[75%] xl:w-[65%] max-w-2xl bg-transparent overflow-y-auto transition-transform ${
+        className={`fixed right-0 top-0 bottom-0 w-[85%] sm:w-[90%] md:w-[90%] lg:w-[85%] xl:w-[80%] max-w-4xl bg-transparent overflow-y-auto transition-transform ${
           isClosing ? "duration-200" : "duration-150"
         } ${
           isClosing
@@ -440,21 +440,24 @@ export function TaskModal({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* See-through styling layer */}
-        <div
-          className={`relative min-h-full ${
-            task.backgroundColor
-              ? task.backgroundColor
-              : "bg-neu-gre-50/50 dark:bg-neu-gre-900/50 border-l-2 border-neu-gre-600/30 dark:border-neu-gre-700/30"
-          } rounded-l-lg sm:rounded-l-xl md:rounded-l-2xl lg:rounded-l-3xl xl:rounded-l-4xl`}
-        >
-          {/* Solid background layer that covers entire content */}
-          <div
-            className="absolute inset-0 bg-neu-gre-50 dark:bg-[#18202F] rounded-l-lg sm:rounded-l-xl md:rounded-l-2xl lg:rounded-l-3xl xl:rounded-l-4xl"
-            style={{ minHeight: "100%" }}
-          ></div>
+        {/* Background layer with left extension */}
+        <div className="relative bg-neu-gre-50 dark:bg-[#18202F] min-h-full">
+          {/* Extension to left edge to prevent white line */}
+          <div className="absolute top-0 bottom-0 -left-8 w-8 bg-neu-gre-50 dark:bg-[#18202F]"></div>
+
+          {/* Task color overlay if exists */}
+          {task.backgroundColor && (
+            <div
+              className={`absolute inset-0 ${task.backgroundColor}`}
+              style={{
+                backgroundColor: task.backgroundColor.includes("bg-")
+                  ? undefined
+                  : task.backgroundColor,
+              }}
+            ></div>
+          )}
           <div className="relative z-10">
-            <div className="p-4 sm:p-6 md:p-8">
+            <div className="p-8 sm:p-12 md:p-16 lg:p-20 xl:p-24">
               {/* Header */}
               <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
                 <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-1 min-w-0">
@@ -465,11 +468,6 @@ export function TaskModal({
                         : "bg-neu-gre-50 dark:bg-[#18202F]"
                     }`}
                   >
-                    <Icon
-                      icon="mingcute:pencil-3-fill"
-                      className="w-6 h-6 text-neu-gre-800 dark:text-neu-gre-100"
-                      aria-label="Edit task"
-                    />
                     <textarea
                       ref={titleTextareaRef}
                       value={editedTitle}
@@ -492,6 +490,20 @@ export function TaskModal({
                       rows={1}
                       style={{ height: "auto" }}
                     />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        titleTextareaRef.current?.focus();
+                      }}
+                      className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                      aria-label="Focus task title input"
+                    >
+                      <Icon
+                        icon="mingcute:pencil-3-fill"
+                        className="w-6 h-6"
+                        aria-label="Edit task"
+                      />
+                    </button>
                   </div>
                 </div>
                 <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-3 flex-shrink-0">

@@ -657,7 +657,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           }
                         }}
                         placeholder="List name"
-                        className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-100 dark:bg-neu-gre-700 border border-neu-gre-300 dark:border-neu-gre-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter text-neu-gre-700 dark:text-neu-gre-100 placeholder:text-neu-gre-400 dark:placeholder:text-neu-gre-400"
+                        className="w-[calc(100%)] px-3 py-2 text-sm bg-neu-whi-200 dark:bg-neu-gre-700 border border-neu-gre-300 dark:border-neu-gre-600 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-all duration-200 ease-in-out font-inter placeholder:font-inter text-neu-gre-700 dark:text-neu-gre-100 placeholder:text-neu-gre-400 dark:placeholder:text-neu-gre-400"
                         autoFocus
                         aria-label="New list name"
                       />

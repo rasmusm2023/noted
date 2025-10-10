@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { toast } from "react-hot-toast";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../config/firebase";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 // Import custom avatars
 import avatar1 from "../assets/profile-avatars/PFP_option1.png";
@@ -34,6 +35,8 @@ const avatars = [
 
 export function Account() {
   const { currentUser, deleteUser } = useAuth();
+  usePageTitle("Account");
+
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

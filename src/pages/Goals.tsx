@@ -9,15 +9,8 @@ import { PageTransition } from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import {
-  format,
-  isToday,
-  parseISO,
-  parse,
-  getYear,
-  getMonth,
-  getDate,
-} from "date-fns";
+import { format, isToday, parse, getYear, getMonth, getDate } from "date-fns";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 type ProgressType = "percentage" | "numerical";
 
@@ -178,6 +171,8 @@ const GOAL_PLACEHOLDERS = [
 export function Goals() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  usePageTitle("Goals");
+
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tasks, setTasks] = useState<Record<string, Task[]>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -484,13 +479,13 @@ export function Goals() {
               aria-label="Add new goal"
               tabIndex={1}
             >
+              <span>Add goal</span>
               <Icon
                 icon="mingcute:add-fill"
                 width={20}
                 height={20}
                 aria-hidden="true"
               />
-              <span>Add Goal</span>
             </button>
           </div>
 
@@ -769,7 +764,7 @@ export function Goals() {
                             role="list"
                             aria-label={`Tasks for goal: ${goal.title}`}
                           >
-                            {tasks[goal.id]?.map((task, taskIndex) => (
+                            {tasks[goal.id]?.map((task) => (
                               <li
                                 key={task.id}
                                 className="flex items-center justify-between bg-pri-blue-200 dark:bg-neu-gre-800 rounded-md p-3 sm:p-2 cursor-pointer hover:bg-pri-blue-300 dark:hover:bg-neu-gre-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 min-h-[44px]"

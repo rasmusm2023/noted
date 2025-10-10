@@ -1,6 +1,4 @@
 import React, { useState, useCallback } from "react";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { TaskItem } from "./TaskItem";
 import { DayColumn } from "./DayColumn";
 import type { Task, SectionItem } from "../../types/task";
@@ -154,55 +152,53 @@ export const Next7Days = ({
   }, []);
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-x-auto">
-          <div className="flex space-x-4 p-4 min-w-max">
-            {days.map((day, index) => (
-              <DayColumn
-                key={day.date.toISOString()}
-                day={day}
-                dayIndex={index}
-                isLoading={isLoading}
-                hidingItems={hidingItems}
-                onAddTask={(dayIndex: number, title: string, task?: Task) => {
-                  if (task) {
-                    onTaskAdd(task);
-                    // Add the task to the local state
-                    setDays((prevDays) => {
-                      const newDays = [...prevDays];
-                      newDays[dayIndex].items.push(task);
-                      return newDays;
-                    });
-                  }
-                }}
-                onSectionAdded={() => {
-                  const section: SectionItem = {
-                    id: crypto.randomUUID(),
-                    type: "section",
-                    text: "New Section",
-                    userId: "user", // This should be replaced with actual user ID
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  };
-                  onSectionAdd(section);
-                  // Add the section to the local state
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-x-auto">
+        <div className="flex space-x-4 p-4 min-w-max">
+          {days.map((day, index) => (
+            <DayColumn
+              key={day.date.toISOString()}
+              day={day}
+              dayIndex={index}
+              isLoading={isLoading}
+              hidingItems={hidingItems}
+              onAddTask={(dayIndex: number, title: string, task?: Task) => {
+                if (task) {
+                  onTaskAdd(task);
+                  // Add the task to the local state
                   setDays((prevDays) => {
                     const newDays = [...prevDays];
-                    newDays[index].items.push(section);
+                    newDays[dayIndex].items.push(task);
                     return newDays;
                   });
-                }}
-                moveItem={moveItem}
-                renderTask={renderTask}
-                renderSection={renderSection}
-                isTask={isTask}
-                sortItems={sortItems}
-              />
-            ))}
-          </div>
+                }
+              }}
+              onSectionAdded={() => {
+                const section: SectionItem = {
+                  id: crypto.randomUUID(),
+                  type: "section",
+                  text: "New Section",
+                  userId: "user", // This should be replaced with actual user ID
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                };
+                onSectionAdd(section);
+                // Add the section to the local state
+                setDays((prevDays) => {
+                  const newDays = [...prevDays];
+                  newDays[index].items.push(section);
+                  return newDays;
+                });
+              }}
+              moveItem={moveItem}
+              renderTask={renderTask}
+              renderSection={renderSection}
+              isTask={isTask}
+              sortItems={sortItems}
+            />
+          ))}
         </div>
       </div>
-    </DndProvider>
+    </div>
   );
 };

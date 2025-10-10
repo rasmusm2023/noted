@@ -6,9 +6,9 @@ import { listService } from "../services/listService";
 import { listItemService } from "../services/listItemService";
 import type { ListItem } from "../services/listItemService";
 import { Icon } from "@iconify/react";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 type DragItem = {
   id: string;
@@ -207,14 +207,16 @@ export function ListPage() {
   const { currentUser } = useAuth();
   const { lists, removeList, updateList } = useLists();
   const navigate = useNavigate();
+
+  const currentList = lists.find((list) => list.id === listId);
+  usePageTitle(currentList ? `List: ${currentList.name}` : "List");
+
   const [listItems, setListItems] = useState<ListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [newItemText, setNewItemText] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
   const nameInputRef = useRef<HTMLTextAreaElement>(null);
-
-  const currentList = lists.find((list) => list.id === listId);
 
   // Add effect to focus title div when page loads
   useEffect(() => {
@@ -409,163 +411,163 @@ export function ListPage() {
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="mt-0 lg:mt-16 font-inter">
-        <div className="max-w-4xl mx-auto px-0 sm:px-6 lg:px-8">
-          <div className="bg-pri-blue-50 dark:bg-neu-gray-800 rounded-5xl py-8 sm:py-8 lg:py-16 px-4 sm:px-8 lg:px-16 transition-all duration-300">
-            <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2"></div>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-              {isEditingName ? (
-                <div
-                  className="flex items-center space-x-3 w-full bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md p-3 sm:p-4"
-                  role="group"
-                  aria-label="Edit list title"
-                >
-                  <Icon
-                    icon="mingcute:pencil-3-fill"
-                    className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
-                    aria-hidden="true"
-                  />
-                  <textarea
-                    ref={nameInputRef}
-                    value={editedName}
-                    onChange={(e) => setEditedName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleNameEdit();
-                      } else if (e.key === "Escape") {
-                        setEditedName(currentList?.name || "");
-                        setIsEditingName(false);
-                      }
-                    }}
-                    onFocus={() => console.log("Focused: List title textarea")}
-                    onBlur={handleNameEdit}
-                    className="flex-1 bg-transparent text-lg sm:text-xl lg:text-lg font-clash font-medium text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent focus:border-pri-pur-300 dark:focus:border-pri-pur-400 transition-colors duration-200 resize-none overflow-hidden min-h-[28px] py-0"
-                    rows={1}
-                    style={{ height: "auto" }}
-                    aria-label="List title"
-                    tabIndex={0}
-                  />
-                </div>
-              ) : (
-                <div
-                  data-title-div
-                  onClick={() => setIsEditingName(true)}
-                  className="flex items-center space-x-3 w-full bg-neu-gre-200 dark:bg-neu-gre-700 rounded-md p-3 sm:p-4 cursor-pointer hover:bg-neu-gre-300 dark:hover:bg-neu-gre-700/50 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
-                  role="button"
-                  tabIndex={0}
+    <div className="mt-0 lg:mt-16 font-inter">
+      <div className="max-w-4xl mx-auto px-0 sm:px-6 lg:px-8">
+        <div className="bg-pri-blue-50 dark:bg-neu-gray-800 rounded-5xl py-8 sm:py-8 lg:py-16 px-4 sm:px-8 lg:px-16 transition-all duration-300">
+          <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2"></div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            {isEditingName ? (
+              <div
+                className="flex items-center space-x-3 w-full bg-pri-blue-50 dark:bg-neu-gray-800 rounded-md p-3 sm:p-4 group"
+                role="group"
+                aria-label="Edit list title"
+              >
+                <textarea
+                  ref={nameInputRef}
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
+                    if (e.key === "Enter") {
                       e.preventDefault();
-                      setIsEditingName(true);
+                      handleNameEdit();
+                    } else if (e.key === "Escape") {
+                      setEditedName(currentList?.name || "");
+                      setIsEditingName(false);
                     }
                   }}
-                  onFocus={() => console.log("Focused: List title div")}
-                  aria-label={`Edit list title "${currentList.name}"`}
-                >
-                  <Icon
-                    icon="mingcute:pencil-3-fill"
-                    className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
-                    aria-hidden="true"
-                  />
-                  <h1 className="text-lg sm:text-xl lg:text-lg font-clash font-medium text-neu-gre-800 dark:text-neu-gre-100">
-                    {currentList.name}
-                  </h1>
-                </div>
-              )}
-            </div>
-
-            <form
-              onSubmit={handleAddItem}
-              className="mb-8 sm:mb-16"
-              role="form"
-              aria-label="Add new item"
-            >
-              <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2">
-                New item
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex items-center space-x-2 flex-1 bg-neu-gre-200 dark:bg-neu-gre-700 dark:hover:bg-neu-gre-700/50 rounded-md px-3 sm:px-4 py-2 border-2 border-dashed border-pri-pur-300/50 dark:border-pri-pur-300/50 focus-within:border-solid focus-within:ring-2 focus-within:ring-pri-pur-500/75 dark:focus-within:ring-2 dark:focus-within:ring-pri-pur-500/75 transition-all duration-200 ease-in-out">
-                  <div className="flex items-center justify-center">
-                    <Icon
-                      icon="mingcute:add-fill"
-                      className="w-5 h-5 sm:w-6 sm:h-6 text-pri-pur-300 dark:text-pri-pur-400"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    value={newItemText}
-                    onChange={(e) => setNewItemText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleAddItem(e);
-                      if (e.key === "Escape") setNewItemText("");
-                    }}
-                    onFocus={() => console.log("Focused: New item input")}
-                    placeholder="Add item"
-                    className="flex-1 bg-transparent py-2 font-inter text-sm sm:text-base text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus:outline-none"
-                    aria-label="New item text"
-                    tabIndex={0}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto px-4 sm:px-16 py-3 sm:py-4 text-sm sm:text-base bg-pri-pur-500 dark:bg-pri-pur-600 font-inter font-medium text-neu-whi-100 hover:bg-pri-pur-700 dark:hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md flex items-center justify-center gap-2 min-h-[44px] min-w-[44px]"
-                  aria-label="Add new item to list"
+                  onFocus={() => console.log("Focused: List title textarea")}
+                  onBlur={handleNameEdit}
+                  className="flex-1 bg-transparent text-xl sm:text-2xl lg:text-3xl font-clash font-medium text-neu-gre-800 dark:text-neu-gre-100 focus:outline-none cursor-text border-b-2 border-transparent hover:border-pri-pur-300 dark:hover:border-pri-pur-400 focus:border-pri-pur-300 dark:focus:border-pri-pur-400 transition-colors duration-200 resize-none overflow-hidden min-h-[32px] py-0"
+                  rows={1}
+                  style={{ height: "auto" }}
+                  aria-label="List title"
                   tabIndex={0}
-                  onFocus={() => console.log("Focused: Add item button")}
-                >
+                />
+                <Icon
+                  icon="mingcute:pencil-3-fill"
+                  className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
+                  aria-hidden="true"
+                />
+              </div>
+            ) : (
+              <div
+                data-title-div
+                onClick={() => setIsEditingName(true)}
+                className="flex items-center space-x-3 w-full bg-pri-blue-50 dark:bg-neu-gray-800 rounded-md p-3 sm:p-4 cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setIsEditingName(true);
+                  }
+                }}
+                onFocus={() => console.log("Focused: List title div")}
+                aria-label={`Edit list title "${currentList.name}"`}
+              >
+                <h1 className="flex-1 text-xl sm:text-2xl lg:text-3xl font-clash font-medium text-neu-gre-800 dark:text-neu-gre-100">
+                  {currentList.name}
+                </h1>
+                <Icon
+                  icon="mingcute:pencil-3-fill"
+                  className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
+                  aria-hidden="true"
+                />
+              </div>
+            )}
+          </div>
+
+          <form
+            onSubmit={handleAddItem}
+            className="mb-8 sm:mb-16"
+            role="form"
+            aria-label="Add new item"
+          >
+            <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2 font-semibold">
+              Add new item
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex items-center space-x-2 flex-1 bg-neu-gre-50 dark:bg-neu-gray-800 rounded-md px-3 sm:px-4 py-2 border-2 border-dashed border-pri-pur-500/75 dark:border-pri-pur-300/50 focus-within:border-solid focus-within:ring-1 focus-within:ring-pri-pur-500/75 dark:focus-within:ring-1 dark:focus-within:ring-pri-pur-500/75 hover:border-solid hover:ring-1 hover:ring-pri-pur-500/75 dark:hover:ring-1 dark:hover:ring-pri-pur-500/75 transition-all duration-200 ease-in-out">
+                <div className="flex items-center justify-center">
                   <Icon
                     icon="mingcute:add-fill"
-                    className="w-5 h-5 sm:w-6 sm:h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-pri-pur-500 dark:text-pri-pur-400"
                     aria-hidden="true"
                   />
-                  Add to list
-                </button>
-              </div>
-            </form>
-
-            <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2">
-              Listed items
-            </div>
-            <div className="space-y-2 sm:space-y-3">
-              {listItems.length === 0 ? (
-                <div className="text-sm sm:text-base text-neu-gre-600 dark:text-neu-gre-400 text-center py-6 sm:py-8 bg-transparent rounded-lg">
-                  There are no items in this list yet. Add some items above.
                 </div>
-              ) : (
-                listItems.map((item, index) => (
-                  <DraggableListItem
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    moveItem={moveItem}
-                    onToggle={handleToggleItem}
-                    onDelete={handleDeleteItem}
-                  />
-                ))
-              )}
-            </div>
-
-            <div className="mt-8 sm:mt-12">
+                <input
+                  type="text"
+                  value={newItemText}
+                  onChange={(e) => setNewItemText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddItem(e);
+                    if (e.key === "Escape") setNewItemText("");
+                  }}
+                  onFocus={() => console.log("Focused: New item input")}
+                  placeholder=""
+                  className="flex-1 bg-transparent py-2 font-inter text-sm sm:text-base text-neu-gre-800 dark:text-neu-gre-100 placeholder-neu-gre-600 dark:placeholder-neu-gre-400 focus:outline-none"
+                  aria-label="New item text"
+                  tabIndex={0}
+                />
+              </div>
               <button
-                onClick={handleDeleteList}
-                className="w-full sm:w-auto px-4 py-3 sm:py-4 bg-neu-gre-200 dark:bg-neu-gre-800 font-medium text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-500 dark:hover:text-sup-err-400 hover:bg-neu-gre-300 dark:hover:bg-neu-gre-700 rounded-md transition-colors duration-200 font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 flex items-center justify-center gap-2 min-h-[44px] min-w-[44px]"
+                type="submit"
+                className="w-full sm:w-auto px-4 sm:px-16 py-3 sm:py-4 text-sm sm:text-base bg-pri-pur-500 dark:bg-pri-pur-600 font-inter font-medium text-neu-whi-100 hover:bg-pri-pur-700 dark:hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 rounded-md flex items-center justify-center gap-2 min-h-[44px] min-w-[44px]"
+                aria-label="Add new item to list"
                 tabIndex={0}
-                onFocus={() => console.log("Focused: Delete list button")}
+                onFocus={() => console.log("Focused: Add item button")}
               >
+                Add
                 <Icon
-                  icon="mingcute:delete-2-fill"
+                  icon="mingcute:add-fill"
                   className="w-5 h-5 sm:w-6 sm:h-6"
                   aria-hidden="true"
                 />
-                Delete list
               </button>
             </div>
+          </form>
+
+          {listItems.length > 0 && (
+            <div className="text-sm font-semibold text-neu-gre-600 dark:text-neu-gre-300 mb-2 text-right">
+              {listItems.length} {listItems.length === 1 ? "item" : "items"}
+            </div>
+          )}
+          <div className="space-y-2 sm:space-y-3">
+            {listItems.length === 0 ? (
+              <div className="text-sm sm:text-base text-neu-gre-600 dark:text-neu-gre-400 text-center py-6 sm:py-8 bg-transparent rounded-lg">
+                There are no items in this list yet. Add some items above.
+              </div>
+            ) : (
+              listItems.map((item, index) => (
+                <DraggableListItem
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  moveItem={moveItem}
+                  onToggle={handleToggleItem}
+                  onDelete={handleDeleteItem}
+                />
+              ))
+            )}
+          </div>
+
+          <div className="mt-8 sm:mt-12 flex justify-end">
+            <button
+              onClick={handleDeleteList}
+              className="px-3 py-2 sm:py-3 bg-transparent border-2 border-neu-gre-300 dark:border-neu-gre-600 text-sm font-semibold text-sup-err-500 dark:text-sup-err-400 hover:text-sup-err-500 dark:hover:text-sup-err-400 hover:border-sup-err-500 dark:hover:border-sup-err-400 hover:bg-sup-err-50 dark:hover:bg-sup-err-900/20 rounded-md transition-all duration-200 font-inter focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 flex items-center justify-center gap-2 min-h-[44px] min-w-[44px]"
+              tabIndex={0}
+              onFocus={() => console.log("Focused: Delete list button")}
+            >
+              Delete list
+              <Icon
+                icon="mingcute:delete-2-fill"
+                className="w-3 h-3 sm:w-4 sm:h-4"
+                aria-hidden="true"
+              />
+            </button>
           </div>
         </div>
       </div>
-    </DndProvider>
+    </div>
   );
 }
