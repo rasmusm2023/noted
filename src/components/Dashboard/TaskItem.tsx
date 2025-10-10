@@ -231,10 +231,6 @@ export const TaskItem = ({
                   key={goal.id}
                   className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-pri-pur-100 dark:bg-pri-pur-900/30 text-pri-pur-700 dark:text-pri-pur-300 border border-pri-pur-200 dark:border-pri-pur-700/50"
                 >
-                  <Icon
-                    icon="mingcute:target-2-fill"
-                    className="w-3 h-3 mr-1"
-                  />
                   {goal.title}
                 </span>
               ))}
@@ -268,7 +264,7 @@ export const TaskItem = ({
               tabIndex={saveTabIndex}
             >
               <Icon
-                icon="mingcute:classify-add-2-fill"
+                icon="mingcute:classify-add-2-line"
                 width={24}
                 height={24}
                 className="w-6 h-6 sm:w-7 sm:h-7"
@@ -296,7 +292,7 @@ export const TaskItem = ({
               tabIndex={deleteTabIndex}
             >
               <Icon
-                icon="mingcute:delete-2-fill"
+                icon="mingcute:delete-back-line"
                 width={24}
                 height={24}
                 className="w-6 h-6 sm:w-7 sm:h-7"

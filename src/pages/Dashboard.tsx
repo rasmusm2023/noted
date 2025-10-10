@@ -5,7 +5,7 @@ import { goalService } from "../services/goalService";
 import type { Task, SectionItem } from "../types/task";
 import type { Goal } from "../services/goalService";
 import confetti from "canvas-confetti";
-import { TaskModal } from "../components/TaskModal/TaskModal";
+import { TaskDrawer } from "../components/TaskDrawer/TaskDrawer";
 import { PageTransition } from "../components/PageTransition";
 import { DashboardHeader } from "../components/Dashboard/DashboardHeader";
 import { TaskProgress } from "../components/Dashboard/TaskProgress";
@@ -869,7 +869,7 @@ export function Dashboard() {
         </div>
       </PageTransition>
       {selectedTask && (
-        <TaskModal
+        <TaskDrawer
           task={selectedTask}
           isOpen={!!selectedTask}
           onClose={(task) => {

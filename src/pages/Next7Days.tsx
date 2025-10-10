@@ -6,7 +6,7 @@ import type { Task } from "../types/task";
 import type { Goal } from "../services/goalService";
 import { Icon } from "@iconify/react";
 import confetti from "canvas-confetti";
-import { TaskModal } from "../components/TaskModal/TaskModal";
+import { TaskDrawer } from "../components/TaskDrawer/TaskDrawer";
 import { StatsModal } from "../components/Next7Days/StatsModal";
 import { TaskManagementHeader } from "../components/Next7Days/TaskManagementHeader";
 import { DayColumn } from "../components/Next7Days/DayColumn";
@@ -355,11 +355,32 @@ export function Next7Days() {
     return date;
   };
 
-  const isTask = (item: Task): item is Task => {
-    return item.type === "task";
+  const isTask = (item: Task | any): item is Task => {
+    return item && item.type === "task";
   };
 
-  const sortItems = (items: Task[]) => {
+  const renderSection = (section: any) => {
+    return (
+      <div
+        key={section.id}
+        className="p-3 rounded-md bg-neu-gre-100 dark:bg-neu-gre-700"
+      >
+        <h3 className="text-lg font-semibold">{section.text}</h3>
+        {section.time && (
+          <p className="text-sm text-neu-gre-600 dark:text-neu-gre-300">
+            {section.time}
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  const onSectionAdded = () => {
+    // Handle section addition if needed
+    console.log("Section added");
+  };
+
+  const sortItems = (items: (Task | any)[]) => {
     return items.sort((a, b) => {
       // If both items have order, use that for custom sorting
       if (a.order !== undefined && b.order !== undefined) {
@@ -1081,7 +1102,7 @@ export function Next7Days() {
             <TaskManagementHeader onClearCompleted={handleClearCompleted}>
               <div className="flex items-center space-x-3">
                 <Icon
-                  icon="mingcute:trello-board-fill"
+                  icon="mingcute:trello-board-line"
                   className="text-pri-pur-500 w-6 h-6 sm:w-8 sm:h-8"
                   aria-hidden="true"
                 />
@@ -1101,7 +1122,7 @@ export function Next7Days() {
             <div className="flex items-center justify-between px-4 py-8">
               <div className="flex items-center space-x-3">
                 <Icon
-                  icon="mingcute:trello-board-fill"
+                  icon="mingcute:trello-board-line"
                   className="text-pri-pur-500 w-6 h-6"
                   aria-hidden="true"
                 />
@@ -1129,8 +1150,11 @@ export function Next7Days() {
                     isLoading={isLoading}
                     hidingItems={hidingItems}
                     onAddTask={handleAddTask}
+                    onSectionAdded={onSectionAdded}
                     moveItem={moveItem}
                     renderTask={renderTask}
+                    renderSection={renderSection}
+                    isTask={isTask}
                     sortItems={sortItems}
                   />
                 </div>
@@ -1143,7 +1167,7 @@ export function Next7Days() {
         </div>
 
         {selectedTask && (
-          <TaskModal
+          <TaskDrawer
             task={selectedTask}
             isOpen={!!selectedTask}
             onClose={(task) => {

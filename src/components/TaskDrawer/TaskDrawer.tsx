@@ -5,7 +5,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { goalService } from "../../services/goalService";
 import type { Goal } from "../../services/goalService";
 
-interface TaskModalProps {
+interface TaskDrawerProps {
   task: Task;
   isOpen: boolean;
   onClose: (task: Task) => void;
@@ -70,13 +70,13 @@ const TASK_COLORS = [
   },
 ];
 
-export function TaskModal({
+export function TaskDrawer({
   task,
   isOpen,
   onClose,
   onUpdate,
   onDelete,
-}: TaskModalProps) {
+}: TaskDrawerProps) {
   const { currentUser } = useAuth();
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || []);
@@ -92,11 +92,11 @@ export function TaskModal({
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const modalRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
   const subtaskInputRef = useRef<HTMLInputElement>(null);
   const colorPickerButtonRef = useRef<HTMLButtonElement>(null);
   const deleteTaskButtonRef = useRef<HTMLButtonElement>(null);
-  const closeModalButtonRef = useRef<HTMLButtonElement>(null);
+  const closeDrawerButtonRef = useRef<HTMLButtonElement>(null);
 
   // Add new refs for focus trapping
   const firstColorRef = useRef<HTMLButtonElement>(null);
@@ -117,10 +117,10 @@ export function TaskModal({
     }
   }, [editedTitle]);
 
-  // Add focus effect for modal
+  // Add focus effect for drawer
   useEffect(() => {
     if (isOpen) {
-      // Focus the title input when modal opens
+      // Focus the title input when drawer opens
       if (titleTextareaRef.current) {
         titleTextareaRef.current.focus();
         const length = titleTextareaRef.current.value.length;
@@ -129,20 +129,20 @@ export function TaskModal({
     }
   }, [isOpen]);
 
-  // Add focus trap effect for modal
+  // Add focus trap effect for drawer
   useEffect(() => {
     if (isOpen) {
-      // Focus the title input when modal opens
+      // Focus the title input when drawer opens
       if (titleTextareaRef.current) {
         titleTextareaRef.current.focus();
         const length = titleTextareaRef.current.value.length;
         titleTextareaRef.current.setSelectionRange(length, length);
       }
 
-      const handleModalKeyDown = (e: KeyboardEvent) => {
+      const handleDrawerKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Tab") {
-          // Get all focusable elements in the modal
-          const focusableElements = modalRef.current?.querySelectorAll(
+          // Get all focusable elements in the drawer
+          const focusableElements = drawerRef.current?.querySelectorAll(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
           ) as NodeListOf<HTMLElement>;
 
@@ -164,9 +164,9 @@ export function TaskModal({
         }
       };
 
-      document.addEventListener("keydown", handleModalKeyDown);
+      document.addEventListener("keydown", handleDrawerKeyDown);
       return () => {
-        document.removeEventListener("keydown", handleModalKeyDown);
+        document.removeEventListener("keydown", handleDrawerKeyDown);
       };
     }
   }, [isOpen]);
@@ -208,7 +208,7 @@ export function TaskModal({
       onClose({ ...task, shouldClose: true });
     } catch (error) {
       console.error("Error saving changes before closing:", error);
-      // Still close the modal even if save fails
+      // Still close the drawer even if save fails
       onClose({ ...task, shouldClose: true });
     }
   };
@@ -383,7 +383,7 @@ export function TaskModal({
     }
   };
 
-  // Load goals when modal opens
+  // Load goals when drawer opens
   useEffect(() => {
     const loadGoals = async () => {
       if (currentUser) {
@@ -428,7 +428,7 @@ export function TaskModal({
       onClick={handleClickOutside}
     >
       <div
-        ref={modalRef}
+        ref={drawerRef}
         className={`fixed right-0 top-0 bottom-0 w-[85%] sm:w-[90%] md:w-[90%] lg:w-[85%] xl:w-[80%] max-w-4xl bg-transparent overflow-y-auto transition-transform ${
           isClosing ? "duration-200" : "duration-150"
         } ${
@@ -499,7 +499,7 @@ export function TaskModal({
                       aria-label="Focus task title input"
                     >
                       <Icon
-                        icon="mingcute:pencil-3-fill"
+                        icon="mingcute:pencil-3-line"
                         className="w-6 h-6"
                         aria-label="Edit task"
                       />
@@ -594,24 +594,24 @@ export function TaskModal({
                       aria-label="Delete task"
                     >
                       <Icon
-                        icon="mingcute:delete-2-fill"
+                        icon="mingcute:delete-2-line"
                         className="w-6 h-6"
                         aria-label="Delete task"
                       />
                     </button>
                     <button
-                      ref={closeModalButtonRef}
+                      ref={closeDrawerButtonRef}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleClose();
                       }}
                       className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
-                      aria-label="Close modal"
+                      aria-label="Close drawer"
                     >
                       <Icon
                         icon="mingcute:close-circle-fill"
                         className="w-6 h-6"
-                        aria-label="Close modal"
+                        aria-label="Close drawer"
                       />
                     </button>
                   </div>
@@ -644,7 +644,7 @@ export function TaskModal({
                   <div className="flex items-center space-x-2 flex-1 bg-neu-gre-50 dark:bg-[#18202F] rounded-md px-3 sm:px-4 py-2 border-2 border-dashed border-pri-pur-500/75 dark:border-pri-pur-300/75 focus-within:border-2 focus-within:border-solid focus-within:border-pri-pur-500/75 dark:focus-within:border-pri-pur-300/75 transition-all duration-500 ease-in-out group">
                     <div className="flex items-center justify-center">
                       <Icon
-                        icon="mingcute:add-fill"
+                        icon="mingcute:add-circle-line"
                         className="w-5 h-5 sm:w-6 sm:h-6 text-pri-pur-500/75 dark:text-pri-pur-300/75 group-focus-within:text-pri-pur-500 dark:group-focus-within:text-pri-pur-300 transition-colors duration-200"
                       />
                     </div>
@@ -732,7 +732,7 @@ export function TaskModal({
                         aria-label={`Delete subtask "${subtask.title}"`}
                       >
                         <Icon
-                          icon="mingcute:delete-2-fill"
+                          icon="mingcute:delete-back-line"
                           className="w-5 h-5 sm:w-6 sm:h-6"
                         />
                       </button>
@@ -745,7 +745,7 @@ export function TaskModal({
               <div className="mb-6 sm:mb-8">
                 <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
                   <Icon
-                    icon="mingcute:target-fill"
+                    icon="mingcute:target-line"
                     className="text-neu-gre-800 dark:text-neu-gre-100 w-4 h-4 sm:w-5 sm:h-5"
                     aria-hidden="true"
                   />

@@ -192,7 +192,7 @@ const DraggableListItem = ({
           tabIndex={0}
         >
           <Icon
-            icon="mingcute:delete-2-fill"
+            icon="mingcute:delete-back-line"
             className="w-5 h-5 sm:w-6 sm:h-6"
             aria-hidden="true"
           />
@@ -560,7 +560,7 @@ export function ListPage() {
             >
               Delete list
               <Icon
-                icon="mingcute:delete-2-fill"
+                icon="mingcute:delete-back-line"
                 className="w-3 h-3 sm:w-4 sm:h-4"
                 aria-hidden="true"
               />
