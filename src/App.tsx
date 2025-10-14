@@ -21,6 +21,7 @@ import { Next7Days } from "./pages/Next7Days";
 import { Goals } from "./pages/Goals";
 import { Settings } from "./pages/Settings";
 import { Account } from "./pages/Account";
+import { Upgrade } from "./pages/Upgrade";
 import { MidnightTaskMover } from "./components/MidnightTaskMover";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { useAppTitle } from "./hooks/usePageTitle";
@@ -82,6 +83,7 @@ function AnimatedRoutes() {
               <Route path="goals" element={<Goals />} />
               <Route path="settings" element={<Settings />} />
               <Route path="account" element={<Account />} />
+              <Route path="upgrade" element={<Upgrade />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

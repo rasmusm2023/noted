@@ -523,7 +523,7 @@ export function Goals() {
                         tabIndex={3 + index * 6}
                       >
                         <Icon
-                          icon="mingcute:pencil-fill"
+                          icon="mingcute:pencil-line"
                           width={20}
                           height={20}
                           className="w-5 h-5 sm:w-6 sm:h-6"
@@ -751,7 +751,7 @@ export function Goals() {
                       {/* Associated Tasks */}
                       <div className="mt-4">
                         <h4 className="text-sm gap-2 mt-8 sm:mt-16 font-inter font-medium text-neu-gre-800 dark:text-neu-gre-100 mb-2 flex items-center space-x-2">
-                          <Icon icon="mingcute:link-fill" className="w-4 h-4" />
+                          <Icon icon="mingcute:link-line" className="w-4 h-4" />
                           Associated Tasks
                         </h4>
                         {tasks[goal.id]?.length === 0 ? (
@@ -820,7 +820,7 @@ export function Goals() {
                               : "bg-sup-sys-100 dark:bg-sup-sys-900 text-neu-gre-800 dark:text-neu-gre-100"
                           }`}
                         >
-                          {goal.status}
+                          {goal.status === "completed" ? "Completed" : "Active"}
                         </span>
                       </div>
                     </motion.div>

@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { goalService } from "../../services/goalService";
 import type { Goal } from "../../services/goalService";
+import { useNavigate } from "react-router-dom";
 
 interface TaskDrawerProps {
   task: Task;
@@ -78,6 +79,7 @@ export function TaskDrawer({
   onDelete,
 }: TaskDrawerProps) {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || []);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
@@ -383,6 +385,8 @@ export function TaskDrawer({
     }
   };
 
+  const shouldShowDivisionSuggestion = subtasks.length > 10;
+
   // Load goals when drawer opens
   useEffect(() => {
     const loadGoals = async () => {
@@ -670,6 +674,51 @@ export function TaskDrawer({
 
                 {/* Subtasks List */}
                 <div className="space-y-1.5 sm:space-y-2">
+                  {/* AI Division Suggestion - Premium Feature */}
+                  {shouldShowDivisionSuggestion && (
+                    <div className="mb-4 relative">
+                      {/* Gradient Border */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 rounded-lg p-[2px]">
+                        <div className="bg-gradient-to-r from-pri-pur-50 to-pri-tea-50 dark:from-pri-pur-900/20 dark:to-pri-tea-900/20 rounded-lg h-full w-full"></div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="relative p-4 rounded-lg overflow-hidden">
+                        {/* Premium Badge */}
+                        <div className="absolute top-2 right-2">
+                          <div className="bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                            PRO
+                          </div>
+                        </div>
+
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0">
+                            <Icon
+                              icon="mingcute:magic-wand-line"
+                              className="w-5 h-5 text-pri-pur-500 dark:text-pri-pur-400"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-neu-gre-800 dark:text-neu-gre-100 mb-1">
+                              ✨ Task Division by AI
+                            </h4>
+                            <p className="text-xs text-neu-gre-600 dark:text-neu-gre-300 mb-3">
+                              This task has {subtasks.length} subtasks. Upgrade
+                              to Pro to let AI intelligently divide it into
+                              smaller, manageable tasks.
+                            </p>
+                            <button
+                              onClick={() => navigate("/upgrade")}
+                              className="px-3 py-2 bg-pri-pur-500 hover:bg-pri-pur-600 text-white text-sm font-medium rounded-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transform hover:scale-105"
+                            >
+                              Upgrade to Pro
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {subtasks.map((subtask) => (
                     <div
                       key={subtask.id}

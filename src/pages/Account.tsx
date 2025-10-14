@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { usePageTitle } from "../hooks/usePageTitle";
+import { useNavigate } from "react-router-dom";
 
 // Import custom avatars
 import avatar1 from "../assets/profile-avatars/PFP_option1.png";
@@ -35,6 +36,7 @@ const avatars = [
 
 export function Account() {
   const { currentUser, deleteUser } = useAuth();
+  const navigate = useNavigate();
   usePageTitle("Account");
 
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
@@ -291,6 +293,26 @@ export function Account() {
                   </p>
                 </div>
 
+                <div className="space-y-2">
+                  <h2
+                    className="text-sm font-medium text-neu-gre-600 dark:text-neu-gre-300"
+                    id="plan-label"
+                  >
+                    Current Plan
+                  </h2>
+                  <div className="flex items-center justify-between bg-neu-gre-100 dark:bg-neu-gre-700 px-4 py-2 rounded-lg border-2 border-neu-gre-200 dark:border-neu-gre-600 w-full">
+                    <span className="text-lg text-neu-gre-800 dark:text-neu-gre-100">
+                      Free plan
+                    </span>
+                    <button
+                      onClick={() => navigate("/upgrade")}
+                      className="text-sm font-medium text-pri-pur-500 dark:text-pri-pur-400 hover:text-pri-pur-600 dark:hover:text-pri-pur-300 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    >
+                      Upgrade
+                    </button>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <h2
@@ -376,7 +398,35 @@ export function Account() {
                   </p>
                 </div>
 
-                <div className="pt-8 border-t border-neu-gre-200 dark:border-neu-gre-700">
+                <div className="pt-8 border-t border-neu-gre-200 dark:border-neu-gre-700 space-y-4">
+                  {/* Upgrade Button */}
+                  <div className="bg-gradient-to-r from-pri-pur-50 to-pri-tea-50 dark:from-pri-pur-900/20 dark:to-pri-tea-900/20 border border-pri-pur-200 dark:border-pri-pur-700 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 rounded-lg flex items-center justify-center">
+                          <Icon
+                            icon="mingcute:magic-wand-line"
+                            className="w-5 h-5 text-white"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-neu-gre-800 dark:text-neu-gre-100">
+                            Unlock AI Features
+                          </h3>
+                          <p className="text-xs text-neu-gre-600 dark:text-neu-gre-300">
+                            Get AI task division and smart suggestions
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate("/upgrade")}
+                        className="px-4 py-2 bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 text-white text-sm font-medium rounded-md hover:from-pri-pur-600 hover:to-pri-tea-600 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transform hover:scale-105"
+                      >
+                        Upgrade
+                      </button>
+                    </div>
+                  </div>
+
                   <button
                     onClick={() => setShowDeleteModal(true)}
                     className="py-4 px-4 text-sm font-inter font-medium text-sup-err-500 dark:text-sup-err-400 dark:hover:text-sup-err-700 hover:text-neu-whi-100 hover:bg-sup-err-500 dark:hover:bg-sup-err-200 rounded-md transition-all flex items-center space-x-2 duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"

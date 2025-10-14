@@ -1,9 +1,8 @@
 import React, { useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
-import type { Task, SectionItem } from "../../types/task";
+import type { Task } from "../../types/task";
 import { TaskCreationInput } from "./TaskCreationInput";
-import { SectionCreationInput } from "./SectionCreationInput";
 import { TaskLibraryButton } from "../Buttons/TaskLibraryButton";
 import { Icon } from "@iconify/react";
 
@@ -11,13 +10,12 @@ interface DayColumnProps {
   day: {
     id: string;
     date: Date;
-    items: (Task | SectionItem)[];
+    items: Task[];
   };
   dayIndex: number;
   isLoading: boolean;
   hidingItems: Set<string>;
   onAddTask: (dayIndex: number, title: string, task?: Task) => void;
-  onSectionAdded: () => void;
   moveItem: (
     dragIndex: number,
     hoverIndex: number,
@@ -25,9 +23,8 @@ interface DayColumnProps {
     targetDay: number
   ) => void;
   renderTask: (task: Task, dayIndex: number) => React.ReactElement;
-  renderSection: (section: SectionItem) => React.ReactElement;
-  isTask: (item: Task | SectionItem) => item is Task;
-  sortItems: (items: (Task | SectionItem)[]) => (Task | SectionItem)[];
+  isTask: (item: Task) => item is Task;
+  sortItems: (items: Task[]) => Task[];
 }
 
 type DragItem = {
@@ -35,7 +32,7 @@ type DragItem = {
   type: string;
   index: number;
   dayIndex: number;
-  item: Task | SectionItem;
+  item: Task;
 };
 
 const DraggableItem = ({
@@ -43,11 +40,10 @@ const DraggableItem = ({
   index,
   moveItem,
   renderTask,
-  renderSection,
   isTask,
   dayIndex,
 }: {
-  item: Task | SectionItem;
+  item: Task;
   index: number;
   moveItem: (
     dragIndex: number,
@@ -56,8 +52,7 @@ const DraggableItem = ({
     targetDay: number
   ) => void;
   renderTask: (task: Task, dayIndex: number) => React.ReactElement;
-  renderSection: (section: SectionItem) => React.ReactElement;
-  isTask: (item: Task | SectionItem) => item is Task;
+  isTask: (item: Task) => item is Task;
   dayIndex: number;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -181,9 +176,7 @@ const DraggableItem = ({
       aria-grabbed={isDragging}
       aria-dropeffect="move"
     >
-      {isTask && isTask(item)
-        ? renderTask(item, dayIndex)
-        : renderSection(item as SectionItem)}
+      {isTask && isTask(item) ? renderTask(item, dayIndex) : null}
     </div>
   );
 };
@@ -243,10 +236,8 @@ export const DayColumn = ({
   isLoading,
   hidingItems,
   onAddTask,
-  onSectionAdded,
   moveItem,
   renderTask,
-  renderSection,
   isTask,
   sortItems,
 }: DayColumnProps) => {
@@ -256,7 +247,7 @@ export const DayColumn = ({
   return (
     <div
       key={day.date.toISOString()}
-      className={`flex-shrink-0 w-[380px] lg:w-[320px] ${
+      className={`flex-shrink-0 w-[507px] lg:w-[427px] ${
         dayIndex > 1 ? "mt-7" : ""
       }`}
       role="region"
@@ -341,10 +332,6 @@ export const DayColumn = ({
                 { weekday: "long", month: "long", day: "numeric" }
               )}`}
             />
-            <SectionCreationInput
-              dayIndex={dayIndex}
-              onSectionAdded={onSectionAdded}
-            />
           </div>
 
           {/* Tasks and Sections */}
@@ -383,7 +370,6 @@ export const DayColumn = ({
                       index={index}
                       moveItem={moveItem}
                       renderTask={renderTask}
-                      renderSection={renderSection}
                       isTask={isTask}
                       dayIndex={dayIndex}
                     />
