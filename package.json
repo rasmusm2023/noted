@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@iconify-icons/mingcute": "^1.2.9",
     "@iconify/react": "^6.0.0",
     "@supabase/supabase-js": "^2.49.4",

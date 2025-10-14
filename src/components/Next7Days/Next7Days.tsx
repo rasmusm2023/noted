@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { TaskItem } from "./TaskItem";
 import { DayColumn } from "./DayColumn";
-import type { Task, SectionItem } from "../../types/task";
+import type { Task } from "../../types/task";
 import type { Goal } from "../../services/goalService";
 
 interface Next7DaysProps {
@@ -11,7 +11,6 @@ interface Next7DaysProps {
   onTaskUpdate: (task: Task) => void;
   onTaskDelete: (taskId: string) => void;
   onTaskAdd: (task: Task) => void;
-  onSectionAdd: (section: SectionItem) => void;
 }
 
 export const Next7Days = ({
@@ -21,14 +20,13 @@ export const Next7Days = ({
   onTaskUpdate,
   onTaskDelete,
   onTaskAdd,
-  onSectionAdd,
 }: Next7DaysProps) => {
   const [hidingItems] = useState<Set<string>>(new Set());
   const [days, setDays] = useState<
     {
       id: string;
       date: Date;
-      items: (Task | SectionItem)[];
+      items: Task[];
     }[]
   >([]);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -43,7 +41,7 @@ export const Next7Days = ({
         return {
           id: `day-${i}`,
           date,
-          items: [] as (Task | SectionItem)[],
+          items: [] as Task[],
         };
       });
       setDays(next7Days);
@@ -70,7 +68,7 @@ export const Next7Days = ({
       return {
         id: `day-${i}`,
         date,
-        items: dayTasks as (Task | SectionItem)[],
+        items: dayTasks,
       };
     });
 
@@ -168,34 +166,12 @@ export const Next7Days = ({
     [days, onTaskUpdate, onTaskDelete, editingTask, goals]
   );
 
-  const renderSection = useCallback((section: SectionItem) => {
-    return (
-      <div
-        key={section.id}
-        className="p-3 rounded-md bg-neu-gre-100 dark:bg-neu-gre-700"
-      >
-        <h3 className="text-lg font-semibold">{section.text}</h3>
-        {section.time && (
-          <p className="text-sm text-neu-gre-600 dark:text-neu-gre-300">
-            {section.time}
-          </p>
-        )}
-      </div>
-    );
-  }, []);
-
-  const isTask = useCallback((item: Task | SectionItem): item is Task => {
+  const isTask = useCallback((item: Task): item is Task => {
     return item && item.type === "task";
   }, []);
 
-  const sortItems = useCallback((items: (Task | SectionItem)[]) => {
-    return [...items]
-      .filter((item) => item && item.type)
-      .sort((a, b) => {
-        if (a.type === "section" && b.type === "task") return -1;
-        if (a.type === "task" && b.type === "section") return 1;
-        return 0;
-      });
+  const sortItems = useCallback((items: Task[]) => {
+    return [...items];
   }, []);
 
   return (
@@ -220,26 +196,8 @@ export const Next7Days = ({
                   });
                 }
               }}
-              onSectionAdded={() => {
-                const section: SectionItem = {
-                  id: crypto.randomUUID(),
-                  type: "section",
-                  text: "New Section",
-                  userId: "user", // This should be replaced with actual user ID
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                };
-                onSectionAdd(section);
-                // Add the section to the local state
-                setDays((prevDays) => {
-                  const newDays = [...prevDays];
-                  newDays[index].items.push(section);
-                  return newDays;
-                });
-              }}
               moveItem={moveItem}
               renderTask={renderTask}
-              renderSection={renderSection}
               isTask={isTask}
               sortItems={sortItems}
             />

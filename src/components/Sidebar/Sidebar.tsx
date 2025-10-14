@@ -430,48 +430,74 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </div>
 
           {/* User Profile Section */}
-          <div className="px-4 py-3 border-b border-neu-gre-300 dark:border-neu-gre-700">
-            <button
-              ref={firstMenuItemRef}
-              onClick={() => navigate("/account")}
-              className={`w-full flex items-center ${
-                isOpen ? "space-x-3" : "justify-center"
-              } p-2 text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md ${
-                location.pathname === "/account"
-                  ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
-                  : ""
-              }`}
-              aria-label="Go to account settings"
-              aria-current={
-                location.pathname === "/account" ? "page" : undefined
-              }
-            >
-              {userDetails?.useGooglePhoto && userDetails?.photoURL ? (
-                <img
-                  src={userDetails.photoURL}
-                  alt="User's Google profile picture"
-                  className="w-8 h-8 rounded-md object-cover"
-                  aria-hidden="true"
-                />
-              ) : (
-                <img
-                  src={avatars[(userDetails?.selectedAvatar || 1) - 1].src}
-                  alt="User's selected profile avatar"
-                  className="w-8 h-8 rounded-md"
-                  aria-hidden="true"
-                />
-              )}
-              {isOpen && (
-                <div className="flex-1 min-w-0 ml-3">
-                  <p className="text-sm lg:text-base font-medium truncate dark:text-neu-gre-100">
-                    {userDetails.firstName}
-                  </p>
-                  <p className="text-xs lg:text-sm text-neu-gre-500 dark:text-neu-gre-300 truncate">
-                    {currentUser?.email}
-                  </p>
-                </div>
-              )}
-            </button>
+          <div className="border-b border-neu-gre-300 dark:border-neu-gre-700">
+            <div className="px-4 py-3">
+              <button
+                ref={firstMenuItemRef}
+                onClick={() => {
+                  navigate("/account");
+                  if (window.innerWidth < 1024) onToggle();
+                }}
+                className={`w-full flex items-center ${
+                  isOpen ? "space-x-3" : "justify-center"
+                } p-2 text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md ${
+                  location.pathname === "/account"
+                    ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                    : ""
+                }`}
+                aria-label="Go to account settings"
+                aria-current={
+                  location.pathname === "/account" ? "page" : undefined
+                }
+              >
+                {userDetails?.useGooglePhoto && userDetails?.photoURL ? (
+                  <img
+                    src={userDetails.photoURL}
+                    alt="User's Google profile picture"
+                    className="w-8 h-8 rounded-md object-cover"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <img
+                    src={avatars[(userDetails?.selectedAvatar || 1) - 1].src}
+                    alt="User's selected profile avatar"
+                    className="w-8 h-8 rounded-md"
+                    aria-hidden="true"
+                  />
+                )}
+                {isOpen && (
+                  <div className="flex-1 min-w-0 ml-3">
+                    <p className="text-sm lg:text-base font-medium truncate dark:text-neu-gre-100">
+                      {userDetails.firstName}
+                    </p>
+                    <p className="text-xs lg:text-sm text-neu-gre-500 dark:text-neu-gre-300 truncate">
+                      {currentUser?.email}
+                    </p>
+                    <p className="text-xs text-neu-gre-500 dark:text-neu-gre-400 text-center mt-1">
+                      Free plan
+                    </p>
+                  </div>
+                )}
+              </button>
+            </div>
+
+            {/* Upgrade Button - Inside Account Section */}
+            {isOpen && (
+              <div className="px-4 pb-3">
+                <button
+                  onClick={() => {
+                    navigate("/upgrade");
+                    if (window.innerWidth < 1024) onToggle();
+                  }}
+                  className="w-full flex items-center justify-center p-3 rounded-md font-medium text-pri-pur-500 dark:text-pri-pur-400 hover:bg-pri-pur-50 dark:hover:bg-pri-pur-900/20 hover:text-pri-pur-600 dark:hover:text-pri-pur-300 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out border border-pri-pur-200 dark:border-pri-pur-700 bg-pri-pur-50/50 dark:bg-pri-pur-900/10"
+                  aria-current={
+                    location.pathname === "/upgrade" ? "page" : undefined
+                  }
+                >
+                  <span className="text-sm font-medium">Upgrade</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Navigation */}
@@ -744,6 +770,43 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             </div>
           </nav>
 
+          {/* Upgrade Button */}
+          <div className="px-4 pb-2">
+            <button
+              onClick={() => {
+                navigate("/upgrade");
+                if (window.innerWidth < 1024) onToggle();
+              }}
+              className={`w-full flex items-center ${
+                isOpen ? "space-x-3" : "justify-center"
+              } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                location.pathname === "/upgrade"
+                  ? "bg-neu-gre-200 dark:bg-pri-pur-700 text-neu-gre-900 dark:text-neu-whi-100"
+                  : "text-neu-gre-900 dark:text-neu-gre-500"
+              }`}
+              aria-current={
+                location.pathname === "/upgrade" ? "page" : undefined
+              }
+            >
+              <Icon
+                icon="mingcute:tag-2-line"
+                width={24}
+                height={24}
+                className={`text-neu-gre-700 dark:text-neu-gre-500 ${
+                  location.pathname === "/upgrade"
+                    ? "dark:text-neu-whi-100"
+                    : ""
+                }`}
+                aria-label="Upgrade"
+              />
+              {isOpen && (
+                <span className="text-sm lg:text-base font-medium">
+                  Pricing
+                </span>
+              )}
+            </button>
+          </div>
+
           {/* Settings */}
           <div className="px-4 pb-4">
             <div className="flex items-center justify-between">
@@ -802,7 +865,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         }
                       >
                         <Icon
-                          icon="mingcute:sun-fill"
+                          icon="mingcute:sun-line"
                           className="text-neu-gre-700 dark:text-neu-gre-100 group-hover:text-neu-gre-900 dark:group-hover:text-neu-gre-50"
                           aria-label="Toggle theme"
                         />
@@ -835,7 +898,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         aria-label="Toggle language"
                       >
                         <Icon
-                          icon="mingcute:translate-2-fill"
+                          icon="mingcute:translate-2-line"
                           width={16}
                           height={16}
                           aria-label="Change language"
@@ -865,7 +928,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         aria-label="Logout"
                       >
                         <Icon
-                          icon="mingcute:exit-fill"
+                          icon="mingcute:exit-line"
                           width={16}
                           height={16}
                           aria-label="Sign out"
