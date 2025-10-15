@@ -462,6 +462,59 @@ export function TaskDrawer({
           )}
           <div className="relative z-10">
             <div className="p-8 sm:p-12 md:p-16 lg:p-20 xl:p-24">
+              {/* AI Division Suggestion - Premium Feature */}
+              {shouldShowDivisionSuggestion && (
+                <div className="mb-8 sm:mb-10 md:mb-12 relative">
+                  {/* Content with border and see-through orange glass background */}
+                  <div className="relative p-4 rounded-lg border-2 border-sup-war-300 dark:border-sup-war-600 bg-sup-war-50/30 dark:bg-sup-war-900/20 backdrop-blur-sm overflow-hidden">
+                    {/* Premium Badge */}
+                    <div className="absolute top-2 right-2">
+                      <div className="bg-gradient-to-r from-sup-war-500 to-sup-war-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                        PRO
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <Icon
+                          icon="mingcute:magic-wand-line"
+                          className="w-5 h-5 text-sup-war-500 dark:text-sup-war-400"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-base font-semibold text-neu-gre-800 dark:text-neu-gre-100 mb-1">
+                          ✨ Task-splitting recommended
+                        </h4>
+                        <p className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-3">
+                          This task has a whopping {subtasks.length} subtasks.
+                          Let AI efficiently split it into smaller, manageable
+                          tasks in order to keep staying focused and productive.
+                          Available with Pro plan.
+                        </p>
+                        <button
+                          onClick={() => navigate("/upgrade")}
+                          className="group px-4 py-2 bg-gradient-to-r from-sup-war-500 to-sup-war-600 hover:from-sup-war-600 hover:to-sup-war-700 text-white text-sm font-semibold rounded-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transform hover:scale-105 flex items-center justify-center relative overflow-hidden whitespace-nowrap"
+                        >
+                          <div className="relative flex items-center justify-center">
+                            {/* Hidden text to determine button width */}
+                            <span className="invisible whitespace-nowrap">
+                              Upgrade to Pro
+                            </span>
+                            {/* Visible text that transitions */}
+                            <span className="absolute left-1/2 -translate-x-1/2 transition-all duration-300 group-hover:opacity-0 group-hover:-translate-y-2 whitespace-nowrap">
+                              Split task
+                            </span>
+                            <span className="absolute left-1/2 -translate-x-1/2 transition-all duration-300 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 whitespace-nowrap">
+                              Upgrade to Pro
+                            </span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Header */}
               <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
                 <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-1 min-w-0">
@@ -674,51 +727,6 @@ export function TaskDrawer({
 
                 {/* Subtasks List */}
                 <div className="space-y-1.5 sm:space-y-2">
-                  {/* AI Division Suggestion - Premium Feature */}
-                  {shouldShowDivisionSuggestion && (
-                    <div className="mb-4 relative">
-                      {/* Gradient Border */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 rounded-lg p-[2px]">
-                        <div className="bg-gradient-to-r from-pri-pur-50 to-pri-tea-50 dark:from-pri-pur-900/20 dark:to-pri-tea-900/20 rounded-lg h-full w-full"></div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="relative p-4 rounded-lg overflow-hidden">
-                        {/* Premium Badge */}
-                        <div className="absolute top-2 right-2">
-                          <div className="bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                            PRO
-                          </div>
-                        </div>
-
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0">
-                            <Icon
-                              icon="mingcute:magic-wand-line"
-                              className="w-5 h-5 text-pri-pur-500 dark:text-pri-pur-400"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium text-neu-gre-800 dark:text-neu-gre-100 mb-1">
-                              ✨ Task Division by AI
-                            </h4>
-                            <p className="text-xs text-neu-gre-600 dark:text-neu-gre-300 mb-3">
-                              This task has {subtasks.length} subtasks. Upgrade
-                              to Pro to let AI intelligently divide it into
-                              smaller, manageable tasks.
-                            </p>
-                            <button
-                              onClick={() => navigate("/upgrade")}
-                              className="px-3 py-2 bg-pri-pur-500 hover:bg-pri-pur-600 text-white text-sm font-medium rounded-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transform hover:scale-105"
-                            >
-                              Upgrade to Pro
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   {subtasks.map((subtask) => (
                     <div
                       key={subtask.id}

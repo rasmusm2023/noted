@@ -479,13 +479,13 @@ export function Goals() {
               aria-label="Add new goal"
               tabIndex={1}
             >
-              <span>Add goal</span>
               <Icon
                 icon="mingcute:add-fill"
                 width={20}
                 height={20}
                 aria-hidden="true"
               />
+              <span>Add goal</span>
             </button>
           </div>
 
@@ -537,7 +537,7 @@ export function Goals() {
                         tabIndex={4 + index * 6}
                       >
                         <Icon
-                          icon="mingcute:delete-back-line"
+                          icon="mingcute:delete-2-line"
                           width={20}
                           height={20}
                           className="w-5 h-5 sm:w-6 sm:h-6"
@@ -620,8 +620,13 @@ export function Goals() {
                       <div className="flex gap-2 mt-4">
                         <button
                           type="submit"
-                          className="flex-1 px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                          className="flex-1 px-4 py-4 text-base font-inter font-semibold bg-pri-pur-500 text-neu-whi-100 rounded-md hover:bg-pri-pur-700 transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 flex items-center justify-center gap-2"
                         >
+                          <Icon
+                            icon="mingcute:check-fill"
+                            className="w-5 h-5"
+                            aria-hidden="true"
+                          />
                           Save changes
                         </button>
                         <button

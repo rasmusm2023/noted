@@ -444,7 +444,7 @@ export function ListPage() {
                   tabIndex={0}
                 />
                 <Icon
-                  icon="mingcute:pencil-3-fill"
+                  icon="mingcute:pencil-3-line"
                   className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
                   aria-hidden="true"
                 />
@@ -469,7 +469,7 @@ export function ListPage() {
                   {currentList.name}
                 </h1>
                 <Icon
-                  icon="mingcute:pencil-3-fill"
+                  icon="mingcute:pencil-3-line"
                   className="text-neu-gre-800 dark:text-neu-gre-100 w-5 h-5 sm:w-6 sm:h-6"
                   aria-hidden="true"
                 />
@@ -517,12 +517,12 @@ export function ListPage() {
                 tabIndex={0}
                 onFocus={() => console.log("Focused: Add item button")}
               >
-                Add
                 <Icon
                   icon="mingcute:add-fill"
                   className="w-5 h-5 sm:w-6 sm:h-6"
                   aria-hidden="true"
                 />
+                Add
               </button>
             </div>
           </form>
@@ -558,12 +558,12 @@ export function ListPage() {
               tabIndex={0}
               onFocus={() => console.log("Focused: Delete list button")}
             >
-              Delete list
               <Icon
-                icon="mingcute:delete-back-line"
+                icon="mingcute:delete-2-line"
                 className="w-3 h-3 sm:w-4 sm:h-4"
                 aria-hidden="true"
               />
+              Delete list
             </button>
           </div>
         </div>

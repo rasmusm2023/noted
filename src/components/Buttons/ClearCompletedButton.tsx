@@ -11,15 +11,15 @@ export const ClearCompletedButton = ({
 }: ClearCompletedButtonProps) => {
   return (
     <button onClick={onClearCompleted} tabIndex={2} className={className}>
-      <span className="font-inter font-semibold text-base">
-        <span className="lg:hidden">Clear</span>
-        <span className="hidden lg:inline">Clear completed</span>
-      </span>
       <Icon
         icon="mingcute:eraser-line"
         className="w-4 h-4 sm:w-5 sm:h-5"
         aria-hidden="true"
       />
+      <span className="font-inter font-semibold text-base">
+        <span className="lg:hidden">Clear</span>
+        <span className="hidden lg:inline">Clear completed</span>
+      </span>
     </button>
   );
 };
