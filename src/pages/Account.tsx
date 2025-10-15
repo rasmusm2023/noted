@@ -25,6 +25,7 @@ interface UserDetails {
   photoURL?: string | null;
   authProvider?: string;
   useGooglePhoto?: boolean;
+  customProfileImage?: string | null;
 }
 
 const avatars = [
@@ -35,7 +36,7 @@ const avatars = [
 ];
 
 export function Account() {
-  const { currentUser, deleteUser } = useAuth();
+  const { currentUser, deleteUser, logout } = useAuth();
   const navigate = useNavigate();
   usePageTitle("Account");
 
@@ -47,6 +48,9 @@ export function Account() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [customImage, setCustomImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Add refs for focus trap
   const modalRef = useRef<HTMLDivElement>(null);
@@ -55,6 +59,7 @@ export function Account() {
   const resetModalRef = useRef<HTMLDivElement>(null);
   const resetFirstFocusableRef = useRef<HTMLButtonElement>(null);
   const resetLastFocusableRef = useRef<HTMLButtonElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Add focus trap effect
   useEffect(() => {
@@ -112,6 +117,162 @@ export function Account() {
     }
   }, [showDeleteModal, showResetModal]);
 
+  // File validation constants
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  const MAX_DIMENSION = 2048; // Max width/height in pixels
+
+  const validateImageFile = (file: File): string | null => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      return `File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`;
+    }
+
+    // Check file type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return "Only JPEG, PNG, and WebP images are allowed";
+    }
+
+    return null;
+  };
+
+  const validateImageDimensions = (file: File): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        if (img.width > MAX_DIMENSION || img.height > MAX_DIMENSION) {
+          resolve(
+            `Image dimensions must be less than ${MAX_DIMENSION}x${MAX_DIMENSION} pixels`
+          );
+        } else {
+          resolve(null);
+        }
+      };
+      img.onerror = () => {
+        resolve("Invalid image file");
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+    setIsUploading(true);
+
+    try {
+      // Validate file
+      const validationError = validateImageFile(file);
+      if (validationError) {
+        setUploadError(validationError);
+        return;
+      }
+
+      // Validate dimensions
+      const dimensionError = await validateImageDimensions(file);
+      if (dimensionError) {
+        setUploadError(dimensionError);
+        return;
+      }
+
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setCustomImage(previewUrl);
+
+      // Convert to base64 for storage (in a real app, you'd upload to a cloud storage service)
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64String = e.target?.result as string;
+
+        if (!currentUser) return;
+
+        try {
+          const db = getFirestore();
+          await updateDoc(doc(db, "users", currentUser.uid), {
+            customProfileImage: base64String,
+            selectedAvatar: -1, // Custom image
+            useGooglePhoto: false,
+          });
+
+          setSelectedAvatar(-1);
+          setUserDetails((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  customProfileImage: base64String,
+                  selectedAvatar: -1,
+                  useGooglePhoto: false,
+                }
+              : null
+          );
+
+          toast.success("Profile picture updated successfully!");
+        } catch (err) {
+          console.error("Error updating profile picture:", err);
+          setUploadError("Failed to update profile picture");
+        } finally {
+          setIsUploading(false);
+        }
+      };
+
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Error processing file:", err);
+      setUploadError("Failed to process image");
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteCustomImage = async () => {
+    if (!currentUser) return;
+
+    try {
+      const db = getFirestore();
+
+      // Determine which avatar to revert to
+      const revertToGoogle = Boolean(
+        userDetails?.photoURL && userDetails?.authProvider === "google.com"
+      );
+
+      const updateData: any = {
+        customProfileImage: null,
+        selectedAvatar: revertToGoogle ? 0 : 1,
+        useGooglePhoto: revertToGoogle,
+      };
+
+      // Only include fields that have valid values
+      Object.keys(updateData).forEach((key) => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
+
+      await updateDoc(doc(db, "users", currentUser.uid), updateData);
+
+      setSelectedAvatar(revertToGoogle ? 0 : 1);
+      setCustomImage(null);
+      setUserDetails((prev) =>
+        prev
+          ? {
+              ...prev,
+              customProfileImage: null,
+              selectedAvatar: revertToGoogle ? 0 : 1,
+              useGooglePhoto: revertToGoogle,
+            }
+          : null
+      );
+
+      toast.success("Custom image deleted successfully!");
+    } catch (err) {
+      console.error("Error deleting custom image:", err);
+      setError("Failed to delete custom image");
+    }
+  };
+
   const handleAvatarSelect = async (avatarId: number) => {
     if (!currentUser) return;
 
@@ -122,12 +283,28 @@ export function Account() {
         await updateDoc(doc(db, "users", currentUser.uid), {
           selectedAvatar: 0,
           useGooglePhoto: true,
+          customProfileImage: null,
+        });
+      } else if (avatarId === -1) {
+        // Custom image selection - check if it exists in database
+        const customImageData = userDetails?.customProfileImage || customImage;
+        if (!customImageData) {
+          toast.error("Custom image not found. Please upload a new image.");
+          return;
+        }
+
+        // Update to use custom image
+        await updateDoc(doc(db, "users", currentUser.uid), {
+          selectedAvatar: -1,
+          useGooglePhoto: false,
+          customProfileImage: customImageData,
         });
       } else {
         // If selecting custom avatar, update to use that and disable Google photo
         await updateDoc(doc(db, "users", currentUser.uid), {
           selectedAvatar: avatarId,
           useGooglePhoto: false,
+          // Don't remove customProfileImage, just change selection
         });
       }
 
@@ -138,6 +315,10 @@ export function Account() {
               ...prev,
               selectedAvatar: avatarId,
               useGooglePhoto: avatarId === 0,
+              customProfileImage:
+                avatarId === -1
+                  ? userDetails?.customProfileImage || customImage
+                  : prev.customProfileImage,
             }
           : null
       );
@@ -206,6 +387,9 @@ export function Account() {
           const data = userDoc.data() as UserDetails;
           setUserDetails(data);
           setSelectedAvatar(data.selectedAvatar || 1);
+          if (data.customProfileImage) {
+            setCustomImage(data.customProfileImage);
+          }
         } else {
           setError("User details not found");
         }
@@ -293,26 +477,6 @@ export function Account() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <h2
-                    className="text-sm font-medium text-neu-gre-600 dark:text-neu-gre-300"
-                    id="plan-label"
-                  >
-                    Current Plan
-                  </h2>
-                  <div className="flex items-center justify-between bg-neu-gre-100 dark:bg-neu-gre-700 px-4 py-2 rounded-lg border-2 border-neu-gre-200 dark:border-neu-gre-600 w-full">
-                    <span className="text-lg text-neu-gre-800 dark:text-neu-gre-100">
-                      Free plan
-                    </span>
-                    <button
-                      onClick={() => navigate("/upgrade")}
-                      className="text-sm font-medium text-pri-pur-500 dark:text-pri-pur-400 hover:text-pri-pur-600 dark:hover:text-pri-pur-300 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
-                    >
-                      Upgrade
-                    </button>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <h2
@@ -398,6 +562,21 @@ export function Account() {
                   </p>
                 </div>
 
+                <div className="space-y-2">
+                  <h2
+                    className="text-sm font-medium text-neu-gre-600 dark:text-neu-gre-300"
+                    id="plan-label"
+                  >
+                    Current Plan
+                  </h2>
+                  <p
+                    className="text-lg text-neu-gre-800 dark:text-neu-gre-100 bg-neu-gre-100 dark:bg-neu-gre-700 px-4 py-2 rounded-lg border-2 border-neu-gre-200 dark:border-neu-gre-600 w-full"
+                    aria-labelledby="plan-label"
+                  >
+                    Free plan
+                  </p>
+                </div>
+
                 <div className="pt-8 border-t border-neu-gre-200 dark:border-neu-gre-700 space-y-4">
                   {/* Upgrade Button */}
                   <div className="bg-gradient-to-r from-pri-pur-50 to-pri-tea-50 dark:from-pri-pur-900/20 dark:to-pri-tea-900/20 border border-pri-pur-200 dark:border-pri-pur-700 rounded-lg p-4">
@@ -427,13 +606,35 @@ export function Account() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="py-4 px-4 text-sm font-inter font-medium text-sup-err-500 dark:text-sup-err-400 dark:hover:text-sup-err-700 hover:text-neu-whi-100 hover:bg-sup-err-500 dark:hover:bg-sup-err-200 rounded-md transition-all flex items-center space-x-2 duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
-                    aria-label="Delete account"
-                  >
-                    <span>Delete Account</span>
-                  </button>
+                  <div className="flex items-center justify-between gap-4">
+                    <button
+                      onClick={() => {
+                        logout();
+                      }}
+                      className="py-4 px-4 text-sm font-inter font-medium text-neu-gre-700 dark:text-neu-gre-300 hover:text-neu-gre-900 dark:hover:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 rounded-md transition-all flex items-center space-x-2 duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 border border-neu-gre-300 dark:border-neu-gre-600"
+                      aria-label="Logout from account"
+                    >
+                      <Icon
+                        icon="mingcute:exit-line"
+                        className="w-5 h-5"
+                        aria-hidden="true"
+                      />
+                      <span>Logout</span>
+                    </button>
+
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      className="py-4 px-4 text-sm font-inter font-medium text-sup-err-500 dark:text-sup-err-400 dark:hover:text-sup-err-700 hover:text-neu-whi-100 hover:bg-sup-err-500 dark:hover:bg-sup-err-200 rounded-md transition-all flex items-center space-x-2 duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500"
+                      aria-label="Delete account"
+                    >
+                      <Icon
+                        icon="mingcute:delete-2-line"
+                        className="w-5 h-5"
+                        aria-hidden="true"
+                      />
+                      <span>Delete Account</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -455,6 +656,13 @@ export function Account() {
                       alt="User's Google profile picture"
                       className="w-32 h-32 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 object-cover"
                     />
+                  ) : selectedAvatar === -1 &&
+                    (customImage || userDetails?.customProfileImage) ? (
+                    <img
+                      src={customImage || userDetails?.customProfileImage || ""}
+                      alt="User's custom profile picture"
+                      className="w-32 h-32 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 object-cover"
+                    />
                   ) : (
                     <img
                       src={avatars.find((a) => a.id === selectedAvatar)?.src}
@@ -462,16 +670,17 @@ export function Account() {
                       className="w-32 h-32 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                     />
                   )}
-                  <div
-                    className="absolute -bottom-2 -right-2 bg-pri-pur-500 dark:bg-pri-pur-400 text-neu-whi-100 p-2 rounded-md shadow-lg"
-                    role="presentation"
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute -bottom-2 -right-2 bg-pri-pur-500 dark:bg-pri-pur-400 text-neu-whi-100 p-2 rounded-md shadow-lg hover:bg-pri-pur-600 dark:hover:bg-pri-pur-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                    aria-label="Change profile picture"
                   >
                     <Icon
                       icon="mingcute:pencil-line"
                       className="w-5 h-5"
                       aria-hidden="true"
                     />
-                  </div>
+                  </button>
                 </motion.div>
 
                 <div className="w-full">
@@ -531,6 +740,111 @@ export function Account() {
                         />
                       </motion.button>
                     ))}
+
+                    {/* Custom Image Option */}
+                    {(customImage || userDetails?.customProfileImage) && (
+                      <motion.div
+                        key="custom"
+                        className="relative"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <button
+                          onClick={() => handleAvatarSelect(-1)}
+                          className={`p-1 rounded-md transition-all focus:outline-none focus:ring-4 focus:ring-pri-focus-500 ${
+                            selectedAvatar === -1
+                              ? "bg-pri-pur-500 dark:bg-pri-pur-400 ring-4 ring-pri-pur-400 dark:ring-pri-pur-300 shadow-lg"
+                              : "bg-neu-gre-200 dark:bg-neu-gre-700 hover:bg-neu-gre-300 dark:hover:bg-neu-gre-600"
+                          }`}
+                          role="radio"
+                          aria-checked={selectedAvatar === -1}
+                          aria-label="Select custom profile picture"
+                        >
+                          <img
+                            src={
+                              customImage ||
+                              userDetails?.customProfileImage ||
+                              ""
+                            }
+                            alt="Custom profile picture"
+                            className="w-full h-auto rounded-sm object-cover aspect-square"
+                            aria-hidden="true"
+                          />
+                        </button>
+
+                        {/* Delete button for custom image */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCustomImage();
+                          }}
+                          className="absolute -bottom-2 -right-2 bg-neu-gre-500 dark:bg-neu-gre-600 text-neu-whi-100 p-2 rounded-md shadow-lg hover:bg-neu-gre-600 dark:hover:bg-neu-gre-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                          aria-label="Delete custom image"
+                        >
+                          <Icon
+                            icon="mingcute:delete-2-line"
+                            className="w-5 h-5"
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  {/* Upload Custom Image Section */}
+                  <div className="mt-6 space-y-3">
+                    <div>
+                      <h4 className="text-sm font-medium text-neu-gre-700 dark:text-neu-gre-300">
+                        Or upload your own image
+                      </h4>
+                      <p className="text-xs text-neu-gre-500 dark:text-neu-gre-400 mt-1">
+                        Max 5MB, 2048x2048px
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        aria-label="Upload custom profile picture"
+                      />
+
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="py-3 px-4 text-sm font-inter font-medium text-neu-gre-700 dark:text-neu-gre-300 hover:text-neu-gre-900 dark:hover:text-neu-gre-100 hover:bg-neu-gre-100 dark:hover:bg-neu-gre-600 rounded-md transition-all flex items-center space-x-2 duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 border border-neu-gre-300 dark:border-neu-gre-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Upload custom profile picture"
+                      >
+                        {isUploading ? (
+                          <>
+                            <Icon
+                              icon="mingcute:loading-3-line"
+                              className="w-5 h-5 animate-spin"
+                              aria-hidden="true"
+                            />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Icon
+                              icon="mingcute:upload-line"
+                              className="w-5 h-5"
+                              aria-hidden="true"
+                            />
+                            <span>Choose Image</span>
+                          </>
+                        )}
+                      </button>
+
+                      {uploadError && (
+                        <div className="text-sm text-sup-err-500 dark:text-sup-err-400 bg-sup-err-50 dark:bg-sup-err-900/20 border border-sup-err-200 dark:border-sup-err-800 rounded-md p-2">
+                          {uploadError}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -36,12 +36,6 @@ export const TaskLibraryButton = ({
               : "bg-pri-pur-400 text-neu-whi-100 hover:bg-pri-pur-600 dark:bg-pri-pur-500 dark:hover:bg-pri-pur-600"
           }`}
         >
-          {variant === "default" && (
-            <span className="font-inter font-medium text-sm sm:text-base">
-              <span className="lg:hidden">Library</span>
-              <span className="hidden lg:inline">Library</span>
-            </span>
-          )}
           <Icon
             icon="mingcute:classify-2-line"
             className={`${
@@ -54,6 +48,12 @@ export const TaskLibraryButton = ({
                 : "text-pri-blue-900 dark:text-pri-blue-200"
             }`}
           />
+          {variant === "default" && (
+            <span className="font-inter font-medium text-sm sm:text-base">
+              <span className="lg:hidden">Library</span>
+              <span className="hidden lg:inline">Library</span>
+            </span>
+          )}
         </button>
       </div>
 

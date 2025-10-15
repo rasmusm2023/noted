@@ -224,13 +224,14 @@ export const TaskItem = ({
 
               {/* AI Division Indicator - Premium Feature */}
               {task.subtasks.length > 10 && (
-                <div className="flex items-center space-x-1 mt-2 px-2 py-1 bg-gradient-to-r from-pri-pur-100 to-pri-tea-100 dark:from-pri-pur-900/30 dark:to-pri-tea-900/30 rounded-md border border-pri-pur-200 dark:border-pri-pur-700">
+                <div className="inline-flex items-center space-x-1 mt-2 px-2 py-1 bg-gradient-to-r from-sup-war-100 to-sup-war-200 dark:from-sup-war-900/30 dark:to-sup-war-800/30 rounded-md border border-sup-war-300 dark:border-sup-war-600">
                   <Icon
                     icon="mingcute:magic-wand-line"
-                    className="w-3 h-3 text-pri-pur-500 dark:text-pri-pur-400"
+                    className="w-3 h-3 text-sup-war-500 dark:text-sup-war-400"
                   />
-                  <span className="text-xs text-pri-pur-600 dark:text-pri-pur-300 font-medium">
-                    ✨ AI Division Available ({task.subtasks.length} subtasks)
+                  <span className="text-xs text-sup-war-600 dark:text-sup-war-300 font-medium">
+                    ✨ Task-splitting recommended ({task.subtasks.length}{" "}
+                    subtasks)
                   </span>
                 </div>
               )}
