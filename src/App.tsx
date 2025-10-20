@@ -67,7 +67,7 @@ function AnimatedRoutes() {
           !minimumLoadingTime ||
           location.pathname === "/login" ||
           location.pathname === "/login-centered") && (
-          <Routes location={location} key={location.pathname}>
+          <Routes location={location}>
             <Route path="/login" element={<Login />} />
             <Route
               path="/"

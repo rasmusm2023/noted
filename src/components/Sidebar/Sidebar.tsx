@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLists } from "../../contexts/ListContext";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -13,6 +19,7 @@ import avatar2 from "../../assets/profile-avatars/PFP_option2.png";
 import avatar3 from "../../assets/profile-avatars/PFP_option3.png";
 import avatar4 from "../../assets/profile-avatars/PFP_option4.png";
 
+// Move avatars outside component to prevent recreation on every render
 const avatars = [
   { id: 1, src: avatar1 },
   { id: 2, src: avatar2 },
@@ -90,7 +97,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
     fetchUserDetails();
 
-    // Set up a listener for user document changes
+    // Set up a listener for user document changes, but only for specific fields
     if (currentUser) {
       const db = getFirestore();
       const unsubscribe = onSnapshot(
@@ -98,13 +105,30 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         (doc) => {
           if (doc.exists()) {
             const data = doc.data() as UserDetails;
-            setUserDetails((prev) => ({
-              ...prev,
-              selectedAvatar: data.selectedAvatar || 1,
-              photoURL: data.photoURL || undefined,
-              useGooglePhoto: data.useGooglePhoto || false,
-              customProfileImage: data.customProfileImage || null,
-            }));
+            setUserDetails((prev) => {
+              // Only update if the relevant fields have actually changed
+              const newAvatar = data.selectedAvatar || 1;
+              const newPhotoURL = data.photoURL || undefined;
+              const newUseGooglePhoto = data.useGooglePhoto || false;
+              const newCustomProfileImage = data.customProfileImage || null;
+
+              if (
+                prev.selectedAvatar === newAvatar &&
+                prev.photoURL === newPhotoURL &&
+                prev.useGooglePhoto === newUseGooglePhoto &&
+                prev.customProfileImage === newCustomProfileImage
+              ) {
+                return prev; // No change, return same object to prevent re-render
+              }
+
+              return {
+                ...prev,
+                selectedAvatar: newAvatar,
+                photoURL: newPhotoURL,
+                useGooglePhoto: newUseGooglePhoto,
+                customProfileImage: newCustomProfileImage,
+              };
+            });
           }
         }
       );
@@ -270,11 +294,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     }
   }, [isOpen]);
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
+  const handleNavigation = useCallback(
+    (path: string) => {
+      navigate(path);
+    },
+    [navigate]
+  );
 
-  const handleAddList = async () => {
+  const handleAddList = useCallback(async () => {
     if (!currentUser || !newListName.trim()) {
       console.log("Cannot create list: No user or empty name");
       return;
@@ -300,25 +327,107 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     } catch (error) {
       console.error("Error creating list:", error);
     }
-  };
+  }, [currentUser, newListName, addList, handleNavigation]);
 
-  const onTouchStart = (e: React.TouchEvent) => {
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
-  };
+  }, []);
 
-  const onTouchMove = (e: React.TouchEvent) => {
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX);
-  };
+  }, []);
 
-  const onTouchEnd = () => {
+  const onTouchEnd = useCallback(() => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     if (isLeftSwipe && isOpen) {
       onToggle();
     }
-  };
+  }, [touchStart, touchEnd, isOpen, onToggle]);
+
+  // Memoize user avatar selection to prevent unnecessary recalculations
+  const userAvatar = useMemo(() => {
+    if (userDetails?.useGooglePhoto && userDetails?.photoURL) {
+      return {
+        src: userDetails.photoURL,
+        alt: "User's Google profile picture",
+        type: "google" as const,
+      };
+    } else if (
+      userDetails?.selectedAvatar === -1 &&
+      userDetails?.customProfileImage
+    ) {
+      return {
+        src: userDetails.customProfileImage,
+        alt: "User's custom profile picture",
+        type: "custom" as const,
+      };
+    } else {
+      const avatarIndex = Math.max(0, (userDetails?.selectedAvatar || 1) - 1);
+      return {
+        src: avatars[avatarIndex].src,
+        alt: "User's selected profile avatar",
+        type: "default" as const,
+      };
+    }
+  }, [
+    userDetails?.useGooglePhoto,
+    userDetails?.photoURL,
+    userDetails?.selectedAvatar,
+    userDetails?.customProfileImage,
+  ]);
+
+  // Memoize navigation handlers
+  const handleTodayClick = useCallback(() => {
+    navigate("/");
+    if (window.innerWidth < 1024) onToggle();
+  }, [navigate, onToggle]);
+
+  const handleNext7DaysClick = useCallback(() => {
+    navigate("/next7days");
+    if (window.innerWidth < 1024) onToggle();
+  }, [navigate, onToggle]);
+
+  const handleGoalsClick = useCallback(() => {
+    navigate("/goals");
+    if (window.innerWidth < 1024) onToggle();
+  }, [navigate, onToggle]);
+
+  const handleAccountClick = useCallback(() => {
+    navigate("/account");
+    if (window.innerWidth < 1024) onToggle();
+  }, [navigate, onToggle]);
+
+  const handleUpgradeClick = useCallback(() => {
+    navigate("/upgrade");
+    if (window.innerWidth < 1024) onToggle();
+  }, [navigate, onToggle]);
+
+  const handleDashboardClick = useCallback(() => {
+    navigate("/dashboard");
+  }, [navigate]);
+
+  const handleListClick = useCallback(
+    (listId: string) => {
+      navigate(`/list/${listId}`);
+      if (window.innerWidth < 1024) onToggle();
+    },
+    [navigate, onToggle]
+  );
+
+  // Memoize active state calculations to prevent unnecessary recalculations
+  const activeStates = useMemo(
+    () => ({
+      isTodayActive: location.pathname === "/",
+      isNext7DaysActive: location.pathname === "/next7days",
+      isGoalsActive: location.pathname === "/goals",
+      isAccountActive: location.pathname === "/account",
+      isUpgradeActive: location.pathname === "/upgrade",
+    }),
+    [location.pathname]
+  );
 
   return (
     <>
@@ -387,8 +496,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           >
             {isOpen && (
               <button
-                onClick={() => navigate("/dashboard")}
-                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md p-1 -m-1 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 transition-colors duration-200"
+                onClick={handleDashboardClick}
+                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md p-1 -m-1 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 transition-colors duration-200"
                 aria-label="Go to Dashboard"
               >
                 <img
@@ -400,7 +509,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             )}
             <button
               onClick={onToggle}
-              className="hidden lg:flex p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out"
+              className="hidden lg:flex p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out"
               aria-label={isOpen ? "Collapse sidebar" : "Expand sidebar"}
               aria-expanded={isOpen}
             >
@@ -427,14 +536,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             <div className="px-4 py-3">
               <button
                 ref={firstMenuItemRef}
-                onClick={() => {
-                  navigate("/account");
-                  if (window.innerWidth < 1024) onToggle();
-                }}
+                onClick={handleAccountClick}
                 className={`w-full flex items-center ${
                   isOpen ? "space-x-3" : "justify-center"
-                } p-2 text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
-                  location.pathname === "/account"
+                } p-2 text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-colors duration-200 ease-in-out ${
+                  activeStates.isAccountActive
                     ? "bg-pri-blue-200/70 dark:bg-pri-pur-700 text-pri-blue-800 dark:text-neu-whi-100"
                     : ""
                 }`}
@@ -443,33 +549,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   location.pathname === "/account" ? "page" : undefined
                 }
               >
-                {userDetails?.useGooglePhoto && userDetails?.photoURL ? (
-                  <img
-                    src={userDetails.photoURL}
-                    alt="User's Google profile picture"
-                    className="w-10 h-10 rounded-md object-cover"
-                    aria-hidden="true"
-                  />
-                ) : userDetails?.selectedAvatar === -1 &&
-                  userDetails?.customProfileImage ? (
-                  <img
-                    src={userDetails.customProfileImage}
-                    alt="User's custom profile picture"
-                    className="w-10 h-10 rounded-md object-cover"
-                    aria-hidden="true"
-                  />
-                ) : (
-                  <img
-                    src={
-                      avatars[
-                        Math.max(0, (userDetails?.selectedAvatar || 1) - 1)
-                      ].src
-                    }
-                    alt="User's selected profile avatar"
-                    className="w-10 h-10 rounded-md"
-                    aria-hidden="true"
-                  />
-                )}
+                <img
+                  src={userAvatar.src}
+                  alt={userAvatar.alt}
+                  className={`w-10 h-10 rounded-md ${
+                    userAvatar.type === "default" ? "" : "object-cover"
+                  }`}
+                  aria-hidden="true"
+                />
                 {isOpen && (
                   <div className="flex-1 min-w-0 ml-3">
                     <p className="text-sm lg:text-base font-medium truncate dark:text-neu-gre-100 text-left">
@@ -490,13 +577,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             {isOpen && (
               <div className="px-4 pb-3">
                 <button
-                  onClick={() => {
-                    navigate("/upgrade");
-                    if (window.innerWidth < 1024) onToggle();
-                  }}
+                  onClick={handleUpgradeClick}
                   className="w-full flex items-center justify-center p-3 rounded-md font-medium text-pri-pur-600 dark:text-pri-pur-400 hover:bg-pri-pur-100 dark:hover:bg-pri-pur-900/20 hover:text-pri-pur-700 dark:hover:text-pri-pur-300 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out border border-pri-pur-300 dark:border-pri-pur-700 bg-pri-pur-100 dark:bg-pri-pur-900/10"
                   aria-current={
-                    location.pathname === "/upgrade" ? "page" : undefined
+                    activeStates.isUpgradeActive ? "page" : undefined
                   }
                 >
                   <span className="text-sm font-medium">Upgrade</span>
@@ -520,19 +604,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </h2>
                 <div role="group" aria-labelledby="tasks-section">
                   <button
-                    onClick={() => {
-                      navigate("/");
-                      if (window.innerWidth < 1024) onToggle();
-                    }}
+                    onClick={handleTodayClick}
                     className={`w-full flex mb-2 items-center ${
                       isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                      location.pathname === "/"
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                      activeStates.isTodayActive
                         ? "bg-pri-blue-200/70 dark:bg-pri-pur-700 text-pri-blue-800 dark:text-neu-whi-100"
                         : "text-neu-gre-900 dark:text-neu-gre-500"
                     }`}
                     aria-current={
-                      location.pathname === "/" ? "page" : undefined
+                      activeStates.isTodayActive ? "page" : undefined
                     }
                   >
                     <Icon
@@ -540,7 +621,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       width={20}
                       height={20}
                       className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                        location.pathname === "/"
+                        activeStates.isTodayActive
                           ? "text-pri-blue-800 dark:text-neu-whi-100"
                           : ""
                       }`}
@@ -552,19 +633,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   </button>
 
                   <button
-                    onClick={() => {
-                      navigate("/next7days");
-                      if (window.innerWidth < 1024) onToggle();
-                    }}
+                    onClick={handleNext7DaysClick}
                     className={`w-full flex mb-2 items-center ${
                       isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                      location.pathname === "/next7days"
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                      activeStates.isNext7DaysActive
                         ? "bg-pri-blue-200/70 dark:bg-pri-pur-700 text-pri-blue-800 dark:text-neu-whi-100"
                         : "text-neu-gre-900 dark:text-neu-gre-500"
                     }`}
                     aria-current={
-                      location.pathname === "/next7days" ? "page" : undefined
+                      activeStates.isNext7DaysActive ? "page" : undefined
                     }
                   >
                     <div className="w-5 h-5 flex items-center justify-center">
@@ -573,7 +651,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         width={20}
                         height={20}
                         className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                          location.pathname === "/next7days"
+                          activeStates.isNext7DaysActive
                             ? "text-pri-blue-800 dark:text-neu-whi-100"
                             : ""
                         }`}
@@ -601,19 +679,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </h2>
                 <div role="group" aria-labelledby="progress-section">
                   <button
-                    onClick={() => {
-                      navigate("/goals");
-                      if (window.innerWidth < 1024) onToggle();
-                    }}
+                    onClick={handleGoalsClick}
                     className={`w-full flex mb-2 items-center ${
                       isOpen ? "space-x-3" : "justify-center"
-                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                      location.pathname === "/goals"
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                      activeStates.isGoalsActive
                         ? "bg-pri-blue-200/70 dark:bg-pri-pur-700 text-pri-blue-800 dark:text-neu-whi-100"
                         : "text-neu-gre-900 dark:text-neu-gre-500"
                     }`}
                     aria-current={
-                      location.pathname === "/goals" ? "page" : undefined
+                      activeStates.isGoalsActive ? "page" : undefined
                     }
                   >
                     <Icon
@@ -621,7 +696,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       width={20}
                       height={20}
                       className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                        location.pathname === "/goals"
+                        activeStates.isGoalsActive
                           ? "text-pri-blue-800 dark:text-neu-whi-100"
                           : ""
                       }`}
@@ -654,7 +729,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   {isOpen && (
                     <button
                       onClick={() => setIsAddingList(true)}
-                      className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out"
+                      className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out"
                       aria-label="Add new list"
                     >
                       <Icon
@@ -737,13 +812,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   {lists.map((list) => (
                     <button
                       key={list.id}
-                      onClick={() => {
-                        navigate(`/list/${list.id}`);
-                        if (window.innerWidth < 1024) onToggle();
-                      }}
+                      onClick={() => handleListClick(list.id)}
                       className={`w-full flex mb-2 items-center ${
                         isOpen ? "space-x-3" : "justify-center"
-                      } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                      } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
                         location.pathname === `/list/${list.id}`
                           ? "bg-pri-blue-200/70 dark:bg-pri-pur-700 text-pri-blue-800 dark:text-neu-whi-100"
                           : "text-neu-gre-900 dark:text-neu-gre-500"
@@ -794,7 +866,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   }}
                   className={`w-full flex items-center ${
                     isOpen ? "space-x-3" : "justify-center"
-                  } text-base font-medium p-3 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-100 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out`}
+                  } text-base font-medium p-3 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out`}
                   aria-expanded={isSettingsMenuOpen}
                   aria-haspopup="true"
                   aria-label="Settings menu"
