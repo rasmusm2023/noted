@@ -566,7 +566,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       {currentUser?.email}
                     </p>
                     <p className="text-xs text-neu-gre-500 dark:text-neu-gre-400 text-left mt-1">
-                      Free plan
+                      Starter plan
                     </p>
                   </div>
                 )}
