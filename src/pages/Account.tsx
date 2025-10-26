@@ -573,7 +573,7 @@ export function Account() {
                     className="text-lg text-neu-gre-800 dark:text-neu-gre-100 bg-neu-gre-100 dark:bg-neu-gre-700 px-4 py-2 rounded-lg border-2 border-neu-gre-200 dark:border-neu-gre-600 w-full"
                     aria-labelledby="plan-label"
                   >
-                    Free plan
+                    Starter plan
                   </p>
                 </div>
 

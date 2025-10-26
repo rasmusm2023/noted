@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageTransition } from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import { usePageTitle } from "../hooks/usePageTitle";
+import gsap from "gsap";
 
 interface PricingTier {
   id: string;
@@ -19,12 +20,13 @@ interface PricingTier {
   icon: string;
   gradient: string;
   savings?: string;
+  cardIcon: string;
 }
 
 const pricingTiers: PricingTier[] = [
   {
     id: "free",
-    name: "Free",
+    name: "Starter",
     price: "$0",
     period: "month",
     description: "Perfect for getting started with basic task management",
@@ -41,24 +43,28 @@ const pricingTiers: PricingTier[] = [
     icon: "mingcute:user-line",
     gradient:
       "from-neu-gre-100 to-neu-gre-200 dark:from-neu-gre-700 dark:to-neu-gre-600",
+    cardIcon: "mingcute:user-3-line",
   },
   {
     id: "pro",
-    name: "Pro",
+    name: "Pro ✨ ",
     price: "$7.99",
     annualPrice: "$79.99",
     period: "month",
-    description: "For professionals who need advanced productivity features",
+    description:
+      "Supercharge your productivity with your personal AI assistant for structured task management and goal achievement",
     features: [
-      "Everything in Free",
-      "✨ AI Task Division",
+      "AI Bot for all your task needs",
+      "AI task breakdown",
+      "Everything in Starter plan",
+      "AI goals & tasks generator",
+      "Advanced statistics",
       "Smart task suggestions",
-      "Advanced analytics",
-      "Priority task highlighting",
-      "Export to PDF/CSV",
+      "AI habit detection, tracking and creation",
+      "Custom lists (max 50)",
+      "Advanced task filtering & search",
       "Priority support",
-      "Custom themes",
-      "Advanced filters",
+      "Advanced list features & tools",
     ],
     popular: true,
     buttonText: "Start Free Trial",
@@ -67,10 +73,11 @@ const pricingTiers: PricingTier[] = [
     gradient:
       "from-pri-pur-100 to-pri-pur-200 dark:from-pri-pur-900 dark:to-pri-pur-800",
     savings: "Save 17%",
+    cardIcon: "mingcute:flash-line",
   },
   {
     id: "unlimited",
-    name: "Unlimited",
+    name: "Unlimited ♾️",
     price: "$19.99",
     annualPrice: "$199.99",
     period: "month",
@@ -87,13 +94,14 @@ const pricingTiers: PricingTier[] = [
       "White-label options",
       "Custom branding",
     ],
-    buttonText: "Start Free Trial",
+    buttonText: "Coming soon",
     buttonStyle:
-      "bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 hover:from-pri-pur-600 hover:to-pri-tea-600 text-white",
+      "bg-neu-gre-300 dark:bg-neu-gre-700 text-neu-gre-600 dark:text-neu-gre-300 cursor-not-allowed",
     icon: "mingcute:crown-line",
     gradient:
       "from-pri-pur-100 via-pri-tea-100 to-pri-pur-200 dark:from-pri-pur-900 dark:via-pri-tea-900 dark:to-pri-pur-800",
     savings: "Save 17%",
+    cardIcon: "mingcute:group-3-line",
   },
 ];
 
@@ -103,8 +111,9 @@ const testimonials = [
     role: "Product Manager",
     company: "TechCorp",
     content:
-      "Noted's AI task division has revolutionized how I break down complex projects. I'm 40% more productive!",
-    avatar: "👩‍💼",
+      "Noted's AI task division has revolutionized how I break down complex projects. I'm twice as much productive!",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face",
   },
   {
     name: "Marcus Johnson",
@@ -112,7 +121,8 @@ const testimonials = [
     company: "Independent",
     content:
       "The smart suggestions feature helps me stay organized and never miss important deadlines.",
-    avatar: "👨‍🎨",
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
   },
   {
     name: "Emily Rodriguez",
@@ -120,7 +130,8 @@ const testimonials = [
     company: "StartupXYZ",
     content:
       "Our team collaboration features have made project management seamless. Highly recommended!",
-    avatar: "👩‍💻",
+    avatar:
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
   },
 ];
 
@@ -128,12 +139,13 @@ const faqs = [
   {
     question: "Can I change my plan anytime?",
     answer:
-      "Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing differences.",
+      "Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately. Got an ",
+    answerWithLink: true,
   },
   {
     question: "Is there a free trial?",
     answer:
-      "All paid plans come with a 14-day free trial. No credit card required to start. You can cancel anytime during the trial period.",
+      "All paid plans come with a 7-day free trial. No credit card required to start. You can cancel anytime during the trial period.",
   },
   {
     question: "What payment methods do you accept?",
@@ -146,11 +158,6 @@ const faqs = [
       "Absolutely! Cancel anytime with no cancellation fees. You'll keep access until the end of your billing period.",
   },
   {
-    question: "Do you offer refunds?",
-    answer:
-      "Yes, we offer a 30-day money-back guarantee for all paid plans. If you're not satisfied, we'll refund your payment.",
-  },
-  {
     question: "Is my data secure?",
     answer:
       "Your data is encrypted and stored securely. We're SOC 2 compliant and never share your personal information with third parties.",
@@ -159,15 +166,53 @@ const faqs = [
 
 export function Upgrade() {
   const navigate = useNavigate();
-  usePageTitle("Upgrade - Noted");
-  const [selectedTier, setSelectedTier] = useState<string>("pro");
+  usePageTitle("Upgrade");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "annual"
   );
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
+  // Refs for the glow elements
+  const glowRef1 = useRef<HTMLDivElement>(null);
+  const glowRef2 = useRef<HTMLDivElement>(null);
+
+  // GSAP animation for pulsating glow
+  useEffect(() => {
+    if (glowRef1.current && glowRef2.current) {
+      // Set initial values
+      gsap.set(glowRef1.current, { opacity: 0.08, scale: 1 });
+      gsap.set(glowRef2.current, { opacity: 0.05, scale: 1 });
+
+      // Create smooth, continuous pulsing animations with yoyo
+      const timeline = gsap.timeline({ repeat: -1 });
+      timeline.to(glowRef1.current, {
+        opacity: 0.12,
+        scale: 1.02,
+        duration: 3,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: 1,
+      });
+
+      const timeline2 = gsap.timeline({ repeat: -1, delay: 1.5 });
+      timeline2.to(glowRef2.current, {
+        opacity: 0.08,
+        scale: 1.01,
+        duration: 3,
+        ease: "sine.inOut",
+        yoyo: true,
+        repeat: 1,
+      });
+
+      return () => {
+        timeline.kill();
+        timeline2.kill();
+      };
+    }
+  }, []);
+
   const handleUpgrade = (tierId: string) => {
-    if (tierId === "free") return; // Don't allow clicking on current plan
+    if (tierId === "free" || tierId === "unlimited") return; // Don't allow clicking on current plan or coming soon plans
 
     // Here you would integrate with your payment processor
     console.log(`Upgrading to ${tierId} tier (${billingCycle})`);
@@ -186,8 +231,8 @@ export function Upgrade() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-pri-blue-50 via-neu-gre-50 to-pri-pur-50 dark:from-neu-gre-900 dark:via-neu-gre-800 dark:to-neu-gre-900 -mt-16 pt-16 p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-pri-blue-50 via-neu-gre-50 to-pri-pur-50 dark:from-neu-gre-900 dark:via-neu-gre-800 dark:to-neu-gre-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -195,53 +240,49 @@ export function Upgrade() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 rounded-2xl mb-6">
-              <Icon
-                icon="mingcute:magic-wand-line"
-                className="w-8 h-8 text-white"
+            <div className="inline-flex items-center justify-center mb-6">
+              <img
+                src="/assets/favicon/Noted-app-icon.png"
+                alt="Noted"
+                className="h-16 w-16"
               />
             </div>
             <h1 className="text-5xl font-bold text-neu-gre-800 dark:text-neu-gre-100 mb-4">
               Unlock Your Productivity
             </h1>
             <p className="text-xl text-neu-gre-600 dark:text-neu-gre-300 max-w-2xl mx-auto mb-8">
-              Choose the perfect plan for your needs. Upgrade to access
-              AI-powered task management and advanced features.
+              Choose the perfect plan for your needs. Upgrade to access advanced
+              powerful AI bots and get more done faster.
             </p>
 
             {/* Social Proof */}
             <div className="flex items-center justify-center gap-2 text-sm text-neu-gre-600 dark:text-neu-gre-400">
               <div className="flex -space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-pri-pur-400 to-pri-pur-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                <div className="w-8 h-8 bg-gradient-to-r from-neu-gre-400 to-neu-gre-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
                   S
                 </div>
-                <div className="w-8 h-8 bg-gradient-to-r from-pri-tea-400 to-pri-tea-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                <div className="w-8 h-8 bg-gradient-to-r from-neu-gre-500 to-neu-gre-700 rounded-full flex items-center justify-center text-white text-xs font-semibold">
                   M
                 </div>
-                <div className="w-8 h-8 bg-gradient-to-r from-pri-blue-400 to-pri-blue-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                <div className="w-8 h-8 bg-gradient-to-r from-neu-gre-300 to-neu-gre-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
                   E
                 </div>
-                <div className="w-8 h-8 bg-gradient-to-r from-pri-pur-400 to-pri-pur-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                <div className="w-8 h-8 bg-gradient-to-r from-neu-gre-400 to-neu-gre-600 rounded-full flex items-center justify-center text-white text-xs font-semibold">
                   +
                 </div>
               </div>
-              <span>Join 10,000+ productive users</span>
+              <span>Join 1000+ productive users</span>
             </div>
           </motion.div>
 
-          {/* Billing Toggle */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex justify-center mb-12"
-          >
-            <div className="bg-white dark:bg-neu-gre-800 rounded-xl p-1 shadow-lg">
+          {/* Billing Toggle - positioned above cards */}
+          <div className="flex justify-start mb-8">
+            <div className="bg-white dark:bg-neu-gre-800 rounded-xl p-1 shadow-lg flex">
               <button
                 onClick={() => setBillingCycle("monthly")}
-                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center ${
                   billingCycle === "monthly"
-                    ? "bg-pri-pur-500 text-white"
+                    ? "bg-neu-gre-600 dark:bg-neu-gre-700 text-white"
                     : "text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100"
                 }`}
               >
@@ -249,22 +290,22 @@ export function Upgrade() {
               </button>
               <button
                 onClick={() => setBillingCycle("annual")}
-                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 ${
+                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center ${
                   billingCycle === "annual"
-                    ? "bg-pri-pur-500 text-white"
+                    ? "bg-green-500 text-white"
                     : "text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100"
                 }`}
               >
                 Annual
-                <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                <span className="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded-full flex items-center">
                   Save 17%
                 </span>
               </button>
             </div>
-          </motion.div>
+          </div>
 
           {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 items-center">
             {pricingTiers.map((tier, index) => (
               <motion.div
                 key={tier.id}
@@ -277,22 +318,39 @@ export function Upgrade() {
               >
                 {/* Gradient Border for Pro Plan */}
                 {tier.popular && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 rounded-3xl p-[2px]">
+                  <div className="absolute inset-0 bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 rounded-3xl p-[2px] z-10">
                     <div className="bg-white dark:bg-neu-gre-800 rounded-3xl h-full w-full"></div>
                   </div>
                 )}
 
+                {/* Subtle pulsating blue glow for Pro Plan - appears behind the card */}
+                {tier.popular && (
+                  <div
+                    className="absolute -inset-4 rounded-3xl pointer-events-none"
+                    style={{ zIndex: 0 }}
+                  >
+                    <div
+                      ref={glowRef1}
+                      className="absolute inset-0 bg-pri-blue-500 blur-2xl"
+                    ></div>
+                    <div
+                      ref={glowRef2}
+                      className="absolute inset-0 bg-pri-blue-400 blur-xl"
+                    ></div>
+                  </div>
+                )}
+
                 <div
-                  className={`relative bg-white dark:bg-neu-gre-800 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 ${
+                  className={`relative bg-neu-whi-100 dark:bg-neu-gre-800 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 z-20 border-2 border-neu-gre-200 dark:border-neu-gre-700 ${
                     tier.popular
-                      ? "bg-transparent dark:bg-transparent shadow-none"
+                      ? "bg-transparent dark:bg-transparent shadow-none border-none"
                       : ""
                   }`}
                 >
                   {/* Popular Badge */}
                   {tier.popular && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 text-white px-6 py-2 rounded-full text-sm font-semibold">
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-30">
+                      <div className="bg-gradient-to-r from-sup-war-500 to-sup-war-600 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
                         Most Popular
                       </div>
                     </div>
@@ -303,7 +361,7 @@ export function Upgrade() {
                     className={`w-16 h-16 bg-gradient-to-r ${tier.gradient} rounded-2xl flex items-center justify-center mb-6`}
                   >
                     <Icon
-                      icon={tier.icon}
+                      icon={tier.cardIcon}
                       className="w-8 h-8 text-pri-pur-600 dark:text-pri-pur-400"
                     />
                   </div>
@@ -365,17 +423,17 @@ export function Upgrade() {
                         ? "bg-pri-pur-500 hover:bg-pri-pur-600 text-white"
                         : tier.buttonStyle
                     } ${
-                      tier.id === "free"
+                      tier.id === "free" || tier.id === "unlimited"
                         ? "cursor-not-allowed"
                         : "hover:scale-105"
                     }`}
-                    disabled={tier.id === "free"}
+                    disabled={tier.id === "free" || tier.id === "unlimited"}
                   >
                     {tier.buttonText}
                   </button>
 
                   {/* Trust Indicators */}
-                  {tier.id !== "free" && (
+                  {tier.id !== "free" && tier.id !== "unlimited" && (
                     <div className="mt-4 text-center">
                       <div className="flex items-center justify-center gap-2 text-xs text-neu-gre-500 dark:text-neu-gre-400">
                         <Icon
@@ -390,7 +448,6 @@ export function Upgrade() {
               </motion.div>
             ))}
           </div>
-
           {/* Testimonials */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -399,7 +456,7 @@ export function Upgrade() {
             className="mb-16"
           >
             <h2 className="text-3xl font-bold text-center text-neu-gre-800 dark:text-neu-gre-100 mb-8">
-              Loved by Productivity Enthusiasts
+              Loved by productivity enthusiasts around the globe
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {testimonials.map((testimonial, index) => (
@@ -408,10 +465,14 @@ export function Upgrade() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                  className="bg-white dark:bg-neu-gre-800 rounded-xl p-6 shadow-lg"
+                  className="bg-neu-whi-100 dark:bg-neu-gre-800 rounded-xl p-6 shadow-lg border-2 border-neu-gre-200 dark:border-neu-gre-700"
                 >
                   <div className="flex items-center mb-4">
-                    <div className="text-2xl mr-3">{testimonial.avatar}</div>
+                    <img
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full mr-3 object-cover"
+                    />
                     <div>
                       <h4 className="font-semibold text-neu-gre-800 dark:text-neu-gre-100">
                         {testimonial.name}
@@ -516,7 +577,20 @@ export function Upgrade() {
                         className="overflow-hidden"
                       >
                         <div className="px-6 pb-6 text-neu-gre-600 dark:text-neu-gre-300">
-                          {faq.answer}
+                          {faq.answerWithLink ? (
+                            <>
+                              {faq.answer}
+                              <a
+                                href="/upgrade"
+                                className="text-pri-pur-500 hover:text-pri-pur-600 underline"
+                              >
+                                annual plan
+                              </a>
+                              ?
+                            </>
+                          ) : (
+                            faq.answer
+                          )}
                         </div>
                       </motion.div>
                     )}
