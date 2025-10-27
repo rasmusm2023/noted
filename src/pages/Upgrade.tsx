@@ -290,14 +290,15 @@ export function Upgrade() {
               </button>
               <button
                 onClick={() => setBillingCycle("annual")}
-                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center ${
+                className={`px-6 py-2 rounded-lg font-semibold transition-all duration-200 flex items-center justify-between ${
                   billingCycle === "annual"
                     ? "bg-green-500 text-white"
                     : "text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100"
                 }`}
+                style={{ minWidth: "200px" }}
               >
-                Annual
-                <span className="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded-full flex items-center">
+                <span>Annual</span>
+                <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full flex items-center">
                   Save 17%
                 </span>
               </button>
@@ -391,8 +392,25 @@ export function Upgrade() {
                     </p>
                   </div>
 
+                  {/* Upgrade Button */}
+                  <button
+                    onClick={() => handleUpgrade(tier.id)}
+                    className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 ${
+                      tier.id === "pro"
+                        ? "bg-pri-pur-500 hover:bg-pri-pur-600 text-white"
+                        : tier.buttonStyle
+                    } ${
+                      tier.id === "free" || tier.id === "unlimited"
+                        ? "cursor-not-allowed"
+                        : "hover:scale-105"
+                    }`}
+                    disabled={tier.id === "free" || tier.id === "unlimited"}
+                  >
+                    {tier.buttonText}
+                  </button>
+
                   {/* Features */}
-                  <div className="space-y-3 mb-8">
+                  <div className="space-y-3">
                     {tier.features.map((feature, featureIndex) => (
                       <motion.div
                         key={featureIndex}
@@ -414,23 +432,6 @@ export function Upgrade() {
                       </motion.div>
                     ))}
                   </div>
-
-                  {/* Upgrade Button */}
-                  <button
-                    onClick={() => handleUpgrade(tier.id)}
-                    className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-200 ${
-                      tier.id === "pro"
-                        ? "bg-pri-pur-500 hover:bg-pri-pur-600 text-white"
-                        : tier.buttonStyle
-                    } ${
-                      tier.id === "free" || tier.id === "unlimited"
-                        ? "cursor-not-allowed"
-                        : "hover:scale-105"
-                    }`}
-                    disabled={tier.id === "free" || tier.id === "unlimited"}
-                  >
-                    {tier.buttonText}
-                  </button>
 
                   {/* Trust Indicators */}
                   {tier.id !== "free" && tier.id !== "unlimited" && (
