@@ -808,6 +808,23 @@ export function Dashboard() {
     }
   };
 
+  const handleArchiveTask = async (taskId: string) => {
+    if (!currentUser) return;
+
+    try {
+      await taskService.archiveTask(taskId);
+      // Remove task from local state
+      setItems((prevItems) => prevItems.filter((item) => item.id !== taskId));
+      if (selectedTask && selectedTask.id === taskId) {
+        setSelectedTask(null);
+      }
+      toast.success("Task archived");
+    } catch (error) {
+      console.error("Error archiving task:", error);
+      toast.error("Failed to archive task");
+    }
+  };
+
   return (
     <>
       <style>{globalStyles}</style>
@@ -879,6 +896,7 @@ export function Dashboard() {
           }}
           onUpdate={handleEditTask}
           onDelete={handleDeleteTask}
+          onArchive={handleArchiveTask}
         />
       )}
     </>

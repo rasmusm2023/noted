@@ -16,19 +16,21 @@ type DragItem = {
 
 interface TaskListProps {
   items: Task[];
-  goals: Goal[];
-  isLoading: boolean;
-  editingTask: Task | null;
-  onTaskCompletion: (
+  goals?: Goal[];
+  isLoading?: boolean;
+  editingTask?: Task | null;
+  onTaskCompletion?: (
     taskId: string,
     completed: boolean,
-    event: React.MouseEvent
+    event?: React.MouseEvent
   ) => void;
-  onTaskSelect: (task: Task, shouldOpenModal: boolean) => void;
-  onTaskEdit: (task: Task | null) => void;
-  onTaskDelete: (taskId: string) => void;
-  onTaskSave: (taskId: string, isSaved: boolean) => void;
-  onMoveItem: (dragIndex: number, hoverIndex: number) => void;
+  onTaskSelect?: (task: Task, shouldOpenModal?: boolean) => void;
+  onTaskClick?: (task: Task) => void;
+  onTaskEdit?: (task: Task | null) => void;
+  onTaskDelete?: (taskId: string) => void;
+  onTaskSave?: (taskId: string, isSaved?: boolean) => void;
+  onMoveItem?: (dragIndex: number, hoverIndex: number) => void;
+  isArchivePage?: boolean;
 }
 
 const DraggableItem = ({
@@ -173,15 +175,17 @@ const DraggableItem = ({
 
 export const TaskList = ({
   items,
-  goals,
-  isLoading,
-  editingTask,
+  goals = [],
+  isLoading = false,
+  editingTask = null,
   onTaskCompletion,
   onTaskSelect,
+  onTaskClick,
   onTaskEdit,
   onTaskDelete,
   onTaskSave,
   onMoveItem,
+  isArchivePage = false,
 }: TaskListProps) => {
   const { currentUser } = useAuth();
   const listContainerRef = useRef<HTMLDivElement>(null);
@@ -206,7 +210,11 @@ export const TaskList = ({
         });
 
         // Notify parent component to refresh the task list
-        onTaskSelect(newTask, true);
+        if (onTaskSelect) {
+          onTaskSelect(newTask, true);
+        } else if (onTaskClick) {
+          onTaskClick(newTask);
+        }
       } catch (error) {
         console.error("Error creating task from saved task:", error);
       }
@@ -236,12 +244,23 @@ export const TaskList = ({
         isEditing={isEditing}
         editingTitle={editingTitle}
         index={items.findIndex((item) => item.id === task.id)}
-        onCompletion={onTaskCompletion}
-        onSelect={(task) => onTaskSelect(task, true)}
-        onEdit={onTaskEdit}
-        onDelete={onTaskDelete}
-        onTitleChange={(title) => onTaskEdit({ ...task, title })}
-        onSave={onTaskSave}
+        onCompletion={onTaskCompletion || (() => {})}
+        onSelect={(task) => {
+          if (onTaskClick) {
+            onTaskClick(task);
+          } else if (onTaskSelect) {
+            onTaskSelect(task, true);
+          }
+        }}
+        onEdit={onTaskEdit || (() => {})}
+        onDelete={onTaskDelete || (() => {})}
+        onTitleChange={(title) => {
+          if (onTaskEdit) {
+            onTaskEdit({ ...task, title });
+          }
+        }}
+        onSave={onTaskSave || (() => {})}
+        isArchivePage={isArchivePage}
       />
     );
   };
@@ -284,12 +303,16 @@ export const TaskList = ({
     >
       {items.map((item, index) => (
         <div key={item.id} className="relative task-item">
-          <DraggableItem
-            item={item}
-            index={index}
-            moveItem={onMoveItem}
-            renderTask={renderTask}
-          />
+          {onMoveItem ? (
+            <DraggableItem
+              item={item}
+              index={index}
+              moveItem={onMoveItem}
+              renderTask={renderTask}
+            />
+          ) : (
+            renderTask(item)
+          )}
         </div>
       ))}
     </div>
