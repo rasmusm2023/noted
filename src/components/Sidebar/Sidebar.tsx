@@ -395,6 +395,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     if (window.innerWidth < 1024) onToggle();
   }, [navigate, onToggle]);
 
+  const handleArchiveClick = useCallback(() => {
+    navigate("/archive");
+    if (window.innerWidth < 1024) onToggle();
+  }, [navigate, onToggle]);
+
+  const handleScheduleClick = useCallback(() => {
+    navigate("/schedule");
+    if (window.innerWidth < 1024) onToggle();
+  }, [navigate, onToggle]);
+
   const handleAccountClick = useCallback(() => {
     navigate("/account");
     if (window.innerWidth < 1024) onToggle();
@@ -422,9 +432,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     () => ({
       isTodayActive: location.pathname === "/",
       isNext7DaysActive: location.pathname === "/next7days",
+      isScheduleActive: location.pathname === "/schedule",
       isGoalsActive: location.pathname === "/goals",
       isAccountActive: location.pathname === "/account",
       isUpgradeActive: location.pathname === "/upgrade",
+      isArchiveActive: location.pathname === "/archive",
     }),
     [location.pathname]
   );
@@ -664,6 +676,37 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       </span>
                     )}
                   </button>
+
+                  <button
+                    onClick={handleScheduleClick}
+                    className={`w-full flex mb-2 items-center ${
+                      isOpen ? "space-x-3" : "justify-center"
+                    } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                      activeStates.isScheduleActive
+                        ? "bg-pri-blue-200/70 dark:bg-pri-pur-700 text-pri-blue-800 dark:text-neu-whi-100"
+                        : "text-neu-gre-900 dark:text-neu-gre-500"
+                    }`}
+                    aria-current={
+                      activeStates.isScheduleActive ? "page" : undefined
+                    }
+                  >
+                    <Icon
+                      icon="mingcute:calendar-add-line"
+                      width={20}
+                      height={20}
+                      className={`text-neu-gre-700 dark:text-neu-gre-500 ${
+                        activeStates.isScheduleActive
+                          ? "text-pri-blue-800 dark:text-neu-whi-100"
+                          : ""
+                      }`}
+                      aria-label="Schedule"
+                    />
+                    {isOpen && (
+                      <span className="text-sm lg:text-base font-medium">
+                        Schedule
+                      </span>
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -727,18 +770,23 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     LISTS
                   </h2>
                   {isOpen && (
-                    <button
-                      onClick={() => setIsAddingList(true)}
-                      className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out"
-                      aria-label="Add new list"
-                    >
-                      <Icon
-                        icon="mingcute:add-circle-line"
-                        width={20}
-                        height={20}
-                        aria-hidden="true"
-                      />
-                    </button>
+                    <div className="relative group">
+                      <button
+                        onClick={() => setIsAddingList(true)}
+                        className="p-2 rounded-md text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out"
+                        aria-label="Add new list"
+                      >
+                        <Icon
+                          icon="mingcute:add-circle-line"
+                          width={20}
+                          height={20}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                        Create list
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -845,6 +893,40 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Archive Section */}
+              <div className="space-y-1 mt-4">
+                <button
+                  onClick={handleArchiveClick}
+                  className={`w-full flex mb-2 items-center ${
+                    isOpen ? "space-x-3" : "justify-center"
+                  } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
+                    activeStates.isArchiveActive
+                      ? "bg-pri-blue-200/70 dark:bg-pri-pur-700 text-pri-blue-800 dark:text-neu-whi-100"
+                      : "text-neu-gre-900 dark:text-neu-gre-500"
+                  }`}
+                  aria-current={
+                    activeStates.isArchiveActive ? "page" : undefined
+                  }
+                >
+                  <Icon
+                    icon="mingcute:box-2-line"
+                    width={20}
+                    height={20}
+                    className={`text-neu-gre-700 dark:text-neu-gre-500 ${
+                      activeStates.isArchiveActive
+                        ? "text-pri-blue-800 dark:text-neu-whi-100"
+                        : ""
+                    }`}
+                    aria-label="Archive"
+                  />
+                  {isOpen && (
+                    <span className="text-sm lg:text-base font-medium">
+                      Archive
+                    </span>
+                  )}
+                </button>
               </div>
             </div>
           </nav>

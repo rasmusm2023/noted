@@ -216,63 +216,73 @@ export const TaskItem = ({
         <div className="flex items-center ml-2 sm:ml-4">
           <div className="flex flex-col items-center gap-0">
             {onTaskSave && (
+              <div className="relative group">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTaskSave(task.id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onTaskSave(task.id);
+                    }
+                  }}
+                  className={`p-2 sm:p-2 flex items-center justify-center min-w-[24px] min-h-[24px] ${
+                    task.isSaved
+                      ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
+                      : task.completed
+                      ? "text-acc-green-800 dark:text-acc-green-300 hover:text-pri-pur-600 dark:hover:text-pri-pur-600"
+                      : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-300"
+                  } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+                  aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
+                    task.title
+                  }"`}
+                >
+                  <Icon
+                    icon="mingcute:classify-add-2-line"
+                    width={24}
+                    height={24}
+                    className="w-5 h-5"
+                  />
+                </button>
+                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  {task.isSaved ? "Remove from library" : "Save to library"}
+                </div>
+              </div>
+            )}
+            <div className="relative group">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onTaskSave(task.id);
+                  onTaskDelete(task.id);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
                     e.stopPropagation();
-                    onTaskSave(task.id);
+                    onTaskDelete(task.id);
                   }
                 }}
                 className={`p-2 sm:p-2 flex items-center justify-center min-w-[24px] min-h-[24px] ${
-                  task.isSaved
-                    ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
-                    : task.completed
-                    ? "text-acc-green-800 dark:text-acc-green-300 hover:text-pri-pur-600 dark:hover:text-pri-pur-600"
-                    : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-300"
+                  task.completed
+                    ? "text-acc-green-800 dark:text-acc-green-300 hover:text-sup-err-500 dark:hover:text-sup-err-400"
+                    : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
                 } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-                aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
-                  task.title
-                }"`}
+                aria-label={`Delete task "${task.title}"`}
               >
                 <Icon
-                  icon="mingcute:classify-add-2-line"
+                  icon="mingcute:delete-back-line"
                   width={24}
                   height={24}
                   className="w-5 h-5"
                 />
               </button>
-            )}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTaskDelete(task.id);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onTaskDelete(task.id);
-                }
-              }}
-              className={`p-2 sm:p-2 flex items-center justify-center min-w-[24px] min-h-[24px] ${
-                task.completed
-                  ? "text-acc-green-800 dark:text-acc-green-300 hover:text-sup-err-500 dark:hover:text-sup-err-400"
-                  : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
-              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-              aria-label={`Delete task "${task.title}"`}
-            >
-              <Icon
-                icon="mingcute:delete-back-line"
-                width={24}
-                height={24}
-                className="w-5 h-5"
-              />
-            </button>
+              <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                Delete task
+              </div>
+            </div>
           </div>
         </div>
       </div>

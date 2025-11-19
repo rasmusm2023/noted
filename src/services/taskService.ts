@@ -11,6 +11,7 @@ import {
   writeBatch,
   serverTimestamp,
   getDoc,
+  deleteField,
 } from "firebase/firestore";
 import type {
   Task,
@@ -276,7 +277,8 @@ export const taskService = {
           }
         });
 
-        return updatedTasks;
+        // Filter out archived tasks
+        return updatedTasks.filter((task) => !task.isArchived);
       }
 
       // Remove any duplicate tasks (same date and title)
@@ -292,7 +294,10 @@ export const taskService = {
         return acc;
       }, new Map<string, Task>());
 
-      return Array.from(uniqueTasks.values());
+      // Filter out archived tasks
+      return Array.from(uniqueTasks.values()).filter(
+        (task) => !task.isArchived
+      );
     } catch (error) {
       console.error("Error in getUserTasks:", error);
       throw error;
@@ -942,6 +947,108 @@ export const taskService = {
       }
     } catch (error) {
       console.error("Error updating tasks for dark mode:", error);
+      throw error;
+    }
+  },
+
+  // Archive a task
+  async archiveTask(taskId: string): Promise<void> {
+    tracker.trackOperation({
+      type: "write",
+      collection: tasksCollection,
+      operation: "archive",
+      details: { taskId },
+    });
+
+    try {
+      const taskRef = doc(db, tasksCollection, taskId);
+      await updateDoc(taskRef, {
+        isArchived: true,
+        order: deleteField(), // Remove order value
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error archiving task:", error);
+      throw error;
+    }
+  },
+
+  // Unarchive a task
+  async unarchiveTask(taskId: string, userId: string): Promise<void> {
+    tracker.trackOperation({
+      type: "write",
+      collection: tasksCollection,
+      operation: "unarchive",
+      details: { taskId },
+    });
+
+    try {
+      // Get all tasks for the user to determine the top order
+      const tasks = await this.getUserTasks(userId);
+      const nonArchivedTasks = tasks.filter(
+        (task) => !task.isArchived && task.id !== taskId
+      );
+      
+      // Find the minimum order value, or use 0 if no tasks exist
+      const minOrder = nonArchivedTasks.length > 0
+        ? Math.min(...nonArchivedTasks.map((task) => task.order ?? 0))
+        : 0;
+      
+      // Set order to be at the top (one less than the minimum)
+      const topOrder = minOrder - 1;
+
+      const taskRef = doc(db, tasksCollection, taskId);
+      await updateDoc(taskRef, {
+        isArchived: false,
+        order: topOrder,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error unarchiving task:", error);
+      throw error;
+    }
+  },
+
+  // Get all archived tasks for a user
+  async getArchivedTasks(userId: string): Promise<Task[]> {
+    tracker.trackOperation({
+      type: "read",
+      collection: tasksCollection,
+      operation: "getArchived",
+      details: { userId },
+    });
+
+    if (!userId) {
+      console.error("getArchivedTasks called with no userId");
+      return [];
+    }
+
+    try {
+      const tasksRef = collection(db, tasksCollection);
+      const q = query(
+        tasksRef,
+        where("userId", "==", userId),
+        where("isArchived", "==", true)
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        return [];
+      }
+
+      const tasks = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date(data.updatedAt),
+        } as Task;
+      });
+
+      return tasks;
+    } catch (error) {
+      console.error("Error in getArchivedTasks:", error);
       throw error;
     }
   },

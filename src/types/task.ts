@@ -26,6 +26,9 @@ export interface Task extends BaseItem {
   goalIds?: string[]; // Optional property to link task to multiple goals
   isSaved?: boolean; // Optional property to mark task as saved for quick reuse
   originalTaskId?: string; // Optional property to link saved task to original task
+  isArchived?: boolean; // Optional property to mark task as archived
+  duration?: number; // Optional duration in minutes
+  time?: string; // Optional time in HH:mm format
 }
 
 export interface SectionItem extends BaseItem {

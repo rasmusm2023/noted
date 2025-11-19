@@ -17,7 +17,8 @@ interface TaskItemProps {
   onEdit: (task: Task | null) => void;
   onDelete: (taskId: string) => void;
   onTitleChange: (title: string) => void;
-  onSave: (taskId: string, isSaved: boolean) => void;
+  onSave: (taskId: string, isSaved?: boolean) => void;
+  isArchivePage?: boolean;
 }
 
 export const TaskItem = ({
@@ -32,6 +33,7 @@ export const TaskItem = ({
   onDelete,
   onTitleChange,
   onSave,
+  isArchivePage = false,
 }: TaskItemProps) => {
   const containerTabIndex = 4 + index * 4;
   const completionTabIndex = containerTabIndex + 1;
@@ -75,88 +77,90 @@ export const TaskItem = ({
       role="button"
     >
       <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
-        <div className="flex items-center justify-center h-full flex-shrink-0">
-          <button
-            tabIndex={completionTabIndex}
-            onClick={(e) => {
-              e.stopPropagation();
-              onCompletion(task.id, !task.completed, e);
-            }}
-            onKeyDown={(e) => {
-              console.log("Key pressed:", e.key);
-              if (e.key === "Enter") {
-                e.preventDefault();
+        {!isArchivePage && (
+          <div className="flex items-center justify-center h-full flex-shrink-0">
+            <button
+              tabIndex={completionTabIndex}
+              onClick={(e) => {
                 e.stopPropagation();
-                const button = e.currentTarget;
-                const rect = button.getBoundingClientRect();
-                const syntheticEvent = {
-                  stopPropagation: () => {},
-                  preventDefault: () => {},
-                  clientX: rect.left + rect.width / 2,
-                  clientY: rect.top + rect.height / 2,
-                  currentTarget: {
-                    closest: () => {
-                      const taskItem = button.closest(".task-item");
-                      if (taskItem) {
-                        taskItem.classList.add("task-completing");
-                      }
-                      return taskItem;
+                onCompletion(task.id, !task.completed, e);
+              }}
+              onKeyDown={(e) => {
+                console.log("Key pressed:", e.key);
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const button = e.currentTarget;
+                  const rect = button.getBoundingClientRect();
+                  const syntheticEvent = {
+                    stopPropagation: () => {},
+                    preventDefault: () => {},
+                    clientX: rect.left + rect.width / 2,
+                    clientY: rect.top + rect.height / 2,
+                    currentTarget: {
+                      closest: () => {
+                        const taskItem = button.closest(".task-item");
+                        if (taskItem) {
+                          taskItem.classList.add("task-completing");
+                        }
+                        return taskItem;
+                      },
                     },
-                  },
-                  altKey: false,
-                  button: 0,
-                  buttons: 0,
-                  ctrlKey: false,
-                  metaKey: false,
-                  shiftKey: false,
-                  getModifierState: () => false,
-                  detail: 0,
-                  screenX: 0,
-                  screenY: 0,
-                  pageX: 0,
-                  pageY: 0,
-                  relatedTarget: null,
-                  movementX: 0,
-                  movementY: 0,
-                  nativeEvent: e.nativeEvent,
-                  bubbles: true,
-                  cancelable: true,
-                  defaultPrevented: false,
-                  eventPhase: 0,
-                  isTrusted: true,
-                  timeStamp: Date.now(),
-                  type: "click",
-                  target: button,
-                  view: window,
-                } as unknown as React.MouseEvent;
-                console.log("Completing task:", task.id);
-                onCompletion(task.id, !task.completed, syntheticEvent);
-              }
-            }}
-            className={`transition-all duration-300 flex items-center justify-center min-w-[32px] min-h-[32px] p-2 sm:p-2 ${
-              task.completed
-                ? "text-acc-green-800 dark:text-acc-green-300 hover:text-acc-green-700 dark:hover:text-acc-green-400"
-                : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500"
-            } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
-            aria-label={`Mark task "${task.title}" as ${
-              task.completed ? "incomplete" : "complete"
-            }`}
-          >
-            {task.completed ? (
-              <Icon
-                icon="mingcute:check-2-fill"
-                className="w-6 h-6 sm:w-7 sm:h-7"
-                aria-label="Mark task as complete"
-              />
-            ) : (
-              <Icon
-                icon="mingcute:round-line"
-                className="w-6 h-6 sm:w-7 sm:h-7 text-neu-gre-700 dark:text-neu-gre-100 hover:text-acc-green-500 dark:hover:text-acc-green-400"
-              />
-            )}
-          </button>
-        </div>
-        <div className="flex-1 min-w-0 overflow-hidden">
+                    altKey: false,
+                    button: 0,
+                    buttons: 0,
+                    ctrlKey: false,
+                    metaKey: false,
+                    shiftKey: false,
+                    getModifierState: () => false,
+                    detail: 0,
+                    screenX: 0,
+                    screenY: 0,
+                    pageX: 0,
+                    pageY: 0,
+                    relatedTarget: null,
+                    movementX: 0,
+                    movementY: 0,
+                    nativeEvent: e.nativeEvent,
+                    bubbles: true,
+                    cancelable: true,
+                    defaultPrevented: false,
+                    eventPhase: 0,
+                    isTrusted: true,
+                    timeStamp: Date.now(),
+                    type: "click",
+                    target: button,
+                    view: window,
+                  } as unknown as React.MouseEvent;
+                  console.log("Completing task:", task.id);
+                  onCompletion(task.id, !task.completed, syntheticEvent);
+                }
+              }}
+              className={`transition-all duration-300 flex items-center justify-center min-w-[32px] min-h-[32px] p-2 sm:p-2 ${
+                task.completed
+                  ? "text-acc-green-800 dark:text-acc-green-300 hover:text-acc-green-700 dark:hover:text-acc-green-400"
+                  : "text-neu-gre-800 dark:text-neu-whi-100 hover:text-sup-suc-500"
+              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md`}
+              aria-label={`Mark task "${task.title}" as ${
+                task.completed ? "incomplete" : "complete"
+              }`}
+            >
+              {task.completed ? (
+                <Icon
+                  icon="mingcute:check-2-fill"
+                  className="w-6 h-6 sm:w-7 sm:h-7"
+                  aria-label="Mark task as complete"
+                />
+              ) : (
+                <Icon
+                  icon="mingcute:round-line"
+                  className="w-6 h-6 sm:w-7 sm:h-7 text-neu-gre-700 dark:text-neu-gre-100 hover:text-acc-green-500 dark:hover:text-acc-green-400"
+                />
+              )}
+            </button>
+          </div>
+        )}
+        <div className={`flex-1 min-w-0 overflow-hidden ${isArchivePage ? "pl-2 sm:pl-4" : ""}`}>
           <div className="flex items-center min-w-0 overflow-hidden">
             <h3
               className={`text-sm sm:text-base font-inter font-medium truncate w-full ${
@@ -253,66 +257,112 @@ export const TaskItem = ({
         </div>
         <div className="flex items-center ml-2 sm:ml-4">
           <div className="flex flex-col lg:flex-row items-center gap-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onSave(task.id, task.isSaved || false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onSave(task.id, task.isSaved || false);
-                }
-              }}
-              className={`p-2 sm:p-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] ${
-                task.isSaved
-                  ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
-                  : task.completed
-                  ? "text-acc-green-800 dark:text-acc-green-300 hover:text-pri-pur-600 dark:hover:text-pri-pur-600"
-                  : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
-              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-              aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
-                task.title
-              }"`}
-              tabIndex={saveTabIndex}
-            >
-              <Icon
-                icon="mingcute:classify-add-2-line"
-                width={24}
-                height={24}
-                className="w-6 h-6 sm:w-7 sm:h-7"
-                aria-label="Add to library"
-              />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(task.id);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
+            {isArchivePage ? (
+              <div className="relative group">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSave(task.id);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onSave(task.id);
+                    }
+                  }}
+                  className={`p-2 sm:p-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] ${
+                    task.completed
+                      ? "text-acc-green-800 dark:text-acc-green-300 hover:text-pri-pur-600 dark:hover:text-pri-pur-600"
+                      : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
+                  } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+                  aria-label={`Unarchive task "${task.title}"`}
+                  tabIndex={saveTabIndex}
+                >
+                  <Icon
+                    icon="mingcute:unarchive-line"
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 sm:w-7 sm:h-7"
+                    aria-label="Unarchive task"
+                  />
+                </button>
+                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  Unarchive task
+                </div>
+              </div>
+            ) : (
+              <div className="relative group">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSave(task.id, task.isSaved || false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onSave(task.id, task.isSaved || false);
+                    }
+                  }}
+                  className={`p-2 sm:p-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] ${
+                    task.isSaved
+                      ? "text-pri-pur-200 hover:text-pri-pur-100 scale-110"
+                      : task.completed
+                      ? "text-acc-green-800 dark:text-acc-green-300 hover:text-pri-pur-600 dark:hover:text-pri-pur-600"
+                      : "text-neu-gre-500 hover:text-pri-pur-600 dark:text-neu-whi-100/70 dark:hover:text-pri-pur-600"
+                  } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+                  aria-label={`${task.isSaved ? "Unsave" : "Save"} task "${
+                    task.title
+                  }"`}
+                  tabIndex={saveTabIndex}
+                >
+                  <Icon
+                    icon="mingcute:classify-add-2-line"
+                    width={24}
+                    height={24}
+                    className="w-6 h-6 sm:w-7 sm:h-7"
+                    aria-label="Add to library"
+                  />
+                </button>
+                <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  {task.isSaved ? "Remove from library" : "Save to library"}
+                </div>
+              </div>
+            )}
+            <div className="relative group">
+              <button
+                onClick={(e) => {
                   e.stopPropagation();
                   onDelete(task.id);
-                }
-              }}
-              className={`p-2 sm:p-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] ${
-                task.completed
-                  ? "text-acc-green-800 dark:text-acc-green-300 hover:text-sup-err-500 dark:hover:text-sup-err-400"
-                  : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
-              } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
-              aria-label={`Delete task "${task.title}"`}
-              tabIndex={deleteTabIndex}
-            >
-              <Icon
-                icon="mingcute:delete-back-line"
-                width={24}
-                height={24}
-                className="w-6 h-6 sm:w-7 sm:h-7"
-                aria-label="Delete task"
-              />
-            </button>
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onDelete(task.id);
+                  }
+                }}
+                className={`p-2 sm:p-2.5 flex items-center justify-center min-w-[44px] min-h-[44px] ${
+                  task.completed
+                    ? "text-acc-green-800 dark:text-acc-green-300 hover:text-sup-err-500 dark:hover:text-sup-err-400"
+                    : "text-neu-gre-500 hover:text-sup-err-500 dark:text-neu-whi-100/70 dark:hover:text-sup-err-400"
+                } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500 focus-visible:rounded-md transition-all duration-300 hover:bg-neu-800/50`}
+                aria-label={`Delete task "${task.title}"`}
+                tabIndex={deleteTabIndex}
+              >
+                <Icon
+                  icon="mingcute:delete-back-line"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 sm:w-7 sm:h-7"
+                  aria-label="Delete task"
+                />
+              </button>
+              <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                Delete task
+              </div>
+            </div>
           </div>
         </div>
       </div>

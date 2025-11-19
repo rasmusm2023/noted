@@ -12,6 +12,7 @@ interface TaskDrawerProps {
   onClose: (task: Task) => void;
   onUpdate: (taskId: string, updates: Partial<Task>) => Promise<void>;
   onDelete: (taskId: string) => Promise<void>;
+  onArchive?: (taskId: string) => Promise<void>;
 }
 
 const TASK_COLORS = [
@@ -77,6 +78,7 @@ export function TaskDrawer({
   onClose,
   onUpdate,
   onDelete,
+  onArchive,
 }: TaskDrawerProps) {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -565,7 +567,7 @@ export function TaskDrawer({
                 </div>
                 <div className="flex items-center space-x-1 sm:space-x-2 ml-2 sm:ml-3 flex-shrink-0">
                   <div className="flex items-center space-x-1 sm:space-x-2 rounded-lg p-1">
-                    <div className="relative" ref={colorPickerRef}>
+                    <div className="relative group" ref={colorPickerRef}>
                       <button
                         ref={colorPickerButtonRef}
                         onClick={(e) => {
@@ -584,6 +586,11 @@ export function TaskDrawer({
                           }`}
                         />
                       </button>
+                      {!showColorPicker && (
+                        <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                          Change task color
+                        </div>
+                      )}
                       {showColorPicker && (
                         <div
                           className="absolute left-0 mt-2 sm:mt-3 p-3 sm:p-4 bg-neu-whi-100 dark:bg-neu-gre-700 rounded-lg shadow-lg z-10 w-40 sm:w-48 border border-neu-gre-200 dark:border-neu-gre-600"
@@ -640,37 +647,71 @@ export function TaskDrawer({
                         </div>
                       )}
                     </div>
-                    <button
-                      ref={deleteTaskButtonRef}
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        await onDelete(task.id);
-                        onClose({ ...task, shouldClose: true });
-                      }}
-                      className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-400 dark:hover:text-sup-err-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
-                      aria-label="Delete task"
-                    >
-                      <Icon
-                        icon="mingcute:delete-2-line"
-                        className="w-6 h-6"
+                    {onArchive && !task.isArchived && (
+                      <div className="relative group">
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (onArchive) {
+                              await onArchive(task.id);
+                              onClose({ ...task, shouldClose: true });
+                            }
+                          }}
+                          className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
+                          aria-label="Archive task"
+                        >
+                          <Icon
+                            icon="mingcute:box-2-line"
+                            className="w-6 h-6"
+                            aria-label="Archive task"
+                          />
+                        </button>
+                        <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                          Archive task
+                        </div>
+                      </div>
+                    )}
+                    <div className="relative group">
+                      <button
+                        ref={deleteTaskButtonRef}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          await onDelete(task.id);
+                          onClose({ ...task, shouldClose: true });
+                        }}
+                        className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-sup-err-400 dark:hover:text-sup-err-500 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                         aria-label="Delete task"
-                      />
-                    </button>
-                    <button
-                      ref={closeDrawerButtonRef}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClose();
-                      }}
-                      className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
-                      aria-label="Close drawer"
-                    >
-                      <Icon
-                        icon="mingcute:close-circle-fill"
-                        className="w-6 h-6"
+                      >
+                        <Icon
+                          icon="mingcute:delete-2-line"
+                          className="w-6 h-6"
+                          aria-label="Delete task"
+                        />
+                      </button>
+                      <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                        Delete task
+                      </div>
+                    </div>
+                    <div className="relative group">
+                      <button
+                        ref={closeDrawerButtonRef}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleClose();
+                        }}
+                        className="p-1.5 sm:p-2 text-neu-gre-600 dark:text-neu-gre-300 hover:text-neu-gre-800 dark:hover:text-neu-gre-100 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 rounded-md"
                         aria-label="Close drawer"
-                      />
-                    </button>
+                      >
+                        <Icon
+                          icon="mingcute:close-circle-fill"
+                          className="w-6 h-6"
+                          aria-label="Close drawer"
+                        />
+                      </button>
+                      <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-neu-gre-800 dark:bg-neu-gre-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                        Close drawer
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
