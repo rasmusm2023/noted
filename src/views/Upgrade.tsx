@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { PageTransition } from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
@@ -165,7 +167,7 @@ const faqs = [
 ];
 
 export function Upgrade() {
-  const navigate = useNavigate();
+  const router = useRouter();
   usePageTitle("Upgrade");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "annual"
@@ -222,7 +224,7 @@ export function Upgrade() {
     alert(
       `Starting free trial for ${tierId} tier! Payment integration would happen here.`
     );
-    navigate("/dashboard");
+    router.push("/dashboard");
   };
 
   const toggleFaq = (index: number) => {

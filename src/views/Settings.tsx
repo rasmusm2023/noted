@@ -1,3 +1,5 @@
+"use client";
+
 import { usePageTitle } from "../hooks/usePageTitle";
 
 export function Settings() {

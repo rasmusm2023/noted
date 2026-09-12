@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useEffect, useState } from "react";
 import type { User, UserCredential } from "firebase/auth";
 import {
@@ -9,7 +11,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
-import { auth } from "../config/firebase";
+import { auth, isFirebaseConfigured } from "../config/firebase";
 import {
   getFirestore,
   doc,
@@ -65,6 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    if (!isFirebaseConfigured) {
+      setLoading(false);
+      setIsInitialized(true);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         // Check if this user needs timezone update

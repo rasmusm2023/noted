@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
@@ -8,13 +10,14 @@ import { toast } from "react-hot-toast";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { usePageTitle } from "../hooks/usePageTitle";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 // Import custom avatars
 import avatar1 from "../assets/profile-avatars/PFP_option1.png";
 import avatar2 from "../assets/profile-avatars/PFP_option2.png";
 import avatar3 from "../assets/profile-avatars/PFP_option3.png";
 import avatar4 from "../assets/profile-avatars/PFP_option4.png";
+import { assetSrc } from "../lib/assetSrc";
 
 interface UserDetails {
   email: string;
@@ -29,15 +32,15 @@ interface UserDetails {
 }
 
 const avatars = [
-  { id: 1, src: avatar1 },
-  { id: 2, src: avatar2 },
-  { id: 3, src: avatar3 },
-  { id: 4, src: avatar4 },
+  { id: 1, src: assetSrc(avatar1) },
+  { id: 2, src: assetSrc(avatar2) },
+  { id: 3, src: assetSrc(avatar3) },
+  { id: 4, src: assetSrc(avatar4) },
 ];
 
 export function Account() {
   const { currentUser, deleteUser, logout } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   usePageTitle("Account");
 
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
@@ -598,7 +601,7 @@ export function Account() {
                         </div>
                       </div>
                       <button
-                        onClick={() => navigate("/upgrade")}
+                        onClick={() => router.push("/upgrade")}
                         className="px-4 py-2 bg-gradient-to-r from-pri-pur-500 to-pri-tea-500 text-white text-sm font-medium rounded-md hover:from-pri-pur-600 hover:to-pri-tea-600 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transform hover:scale-105"
                       >
                         Upgrade

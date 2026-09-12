@@ -5,7 +5,7 @@ import { HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 export const geminiConfig = {
   // Get API key from environment variables
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
 
   // Gemini model configuration
   model: "gemini-1.5-flash",
@@ -43,7 +43,7 @@ export const geminiConfig = {
 export const validateGeminiConfig = () => {
   if (!geminiConfig.apiKey) {
     console.warn(
-      "Gemini API key not found. Please set VITE_GEMINI_API_KEY in your .env file"
+      "Gemini API key not found. Please set NEXT_PUBLIC_GEMINI_API_KEY or VITE_GEMINI_API_KEY in your .env file"
     );
     return false;
   }

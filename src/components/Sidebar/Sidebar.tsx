@@ -1,3 +1,5 @@
+"use client";
+
 import React, {
   useState,
   useRef,
@@ -7,24 +9,27 @@ import React, {
 } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLists } from "../../contexts/ListContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import { usePathname, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { listService } from "../../services/listService";
 import { getFirestore, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { useTheme } from "../../contexts/ThemeContext";
+import { ListIconPicker } from "./ListIconPicker";
+import { DEFAULT_LIST_ICON } from "../../lib/listIcons";
 
 // Import custom avatars
 import avatar1 from "../../assets/profile-avatars/PFP_option1.png";
 import avatar2 from "../../assets/profile-avatars/PFP_option2.png";
 import avatar3 from "../../assets/profile-avatars/PFP_option3.png";
 import avatar4 from "../../assets/profile-avatars/PFP_option4.png";
+import { assetSrc } from "../../lib/assetSrc";
 
 // Move avatars outside component to prevent recreation on every render
 const avatars = [
-  { id: 1, src: avatar1 },
-  { id: 2, src: avatar2 },
-  { id: 3, src: avatar3 },
-  { id: 4, src: avatar4 },
+  { id: 1, src: assetSrc(avatar1) },
+  { id: 2, src: assetSrc(avatar2) },
+  { id: 3, src: assetSrc(avatar3) },
+  { id: 4, src: assetSrc(avatar4) },
 ];
 
 interface SidebarProps {
@@ -44,11 +49,13 @@ interface UserDetails {
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const { currentUser, logout } = useAuth();
-  const { lists, addList } = useLists();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { lists, addList, updateList } = useLists();
+  const pathname = usePathname();
+  const router = useRouter();
   const [isAddingList, setIsAddingList] = useState(false);
   const [newListName, setNewListName] = useState("");
+  const [newListIcon, setNewListIcon] = useState(DEFAULT_LIST_ICON);
+  const [iconPickerFor, setIconPickerFor] = useState<string | null>(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -296,9 +303,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   const handleNavigation = useCallback(
     (path: string) => {
-      navigate(path);
+      router.push(path);
     },
-    [navigate]
+    [router]
   );
 
   const handleAddList = useCallback(async () => {
@@ -311,7 +318,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       console.log("Creating new list:", newListName.trim());
       const newList = await listService.createList(
         currentUser.uid,
-        newListName.trim()
+        newListName.trim(),
+        newListIcon
       );
       console.log("List created successfully:", newList);
 
@@ -320,14 +328,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
       // Reset the form
       setNewListName("");
+      setNewListIcon(DEFAULT_LIST_ICON);
       setIsAddingList(false);
+      setIconPickerFor(null);
 
       // Navigate to the new list
       handleNavigation(`/list/${newList.id}`);
     } catch (error) {
       console.error("Error creating list:", error);
     }
-  }, [currentUser, newListName, addList, handleNavigation]);
+  }, [currentUser, newListName, newListIcon, addList, handleNavigation]);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     setTouchEnd(null);
@@ -381,64 +391,64 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
   // Memoize navigation handlers
   const handleTodayClick = useCallback(() => {
-    navigate("/");
+    router.push("/");
     if (window.innerWidth < 1024) onToggle();
-  }, [navigate, onToggle]);
+  }, [router, onToggle]);
 
   const handleNext7DaysClick = useCallback(() => {
-    navigate("/next7days");
+    router.push("/next7days");
     if (window.innerWidth < 1024) onToggle();
-  }, [navigate, onToggle]);
+  }, [router, onToggle]);
 
   const handleGoalsClick = useCallback(() => {
-    navigate("/goals");
+    router.push("/goals");
     if (window.innerWidth < 1024) onToggle();
-  }, [navigate, onToggle]);
+  }, [router, onToggle]);
 
   const handleArchiveClick = useCallback(() => {
-    navigate("/archive");
+    router.push("/archive");
     if (window.innerWidth < 1024) onToggle();
-  }, [navigate, onToggle]);
+  }, [router, onToggle]);
 
   const handleScheduleClick = useCallback(() => {
-    navigate("/schedule");
+    router.push("/schedule");
     if (window.innerWidth < 1024) onToggle();
-  }, [navigate, onToggle]);
+  }, [router, onToggle]);
 
   const handleAccountClick = useCallback(() => {
-    navigate("/account");
+    router.push("/account");
     if (window.innerWidth < 1024) onToggle();
-  }, [navigate, onToggle]);
+  }, [router, onToggle]);
 
   const handleUpgradeClick = useCallback(() => {
-    navigate("/upgrade");
+    router.push("/upgrade");
     if (window.innerWidth < 1024) onToggle();
-  }, [navigate, onToggle]);
+  }, [router, onToggle]);
 
   const handleDashboardClick = useCallback(() => {
-    navigate("/dashboard");
-  }, [navigate]);
+    router.push("/dashboard");
+  }, [router]);
 
   const handleListClick = useCallback(
     (listId: string) => {
-      navigate(`/list/${listId}`);
+      router.push(`/list/${listId}`);
       if (window.innerWidth < 1024) onToggle();
     },
-    [navigate, onToggle]
+    [router, onToggle]
   );
 
   // Memoize active state calculations to prevent unnecessary recalculations
   const activeStates = useMemo(
     () => ({
-      isTodayActive: location.pathname === "/",
-      isNext7DaysActive: location.pathname === "/next7days",
-      isScheduleActive: location.pathname === "/schedule",
-      isGoalsActive: location.pathname === "/goals",
-      isAccountActive: location.pathname === "/account",
-      isUpgradeActive: location.pathname === "/upgrade",
-      isArchiveActive: location.pathname === "/archive",
+      isTodayActive: pathname === "/",
+      isNext7DaysActive: pathname === "/next7days",
+      isScheduleActive: pathname === "/schedule",
+      isGoalsActive: pathname === "/goals",
+      isAccountActive: pathname === "/account",
+      isUpgradeActive: pathname === "/upgrade",
+      isArchiveActive: pathname === "/archive",
     }),
-    [location.pathname]
+    [pathname]
   );
 
   return (
@@ -558,7 +568,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 }`}
                 aria-label="Go to account settings"
                 aria-current={
-                  location.pathname === "/account" ? "page" : undefined
+                  pathname === "/account" ? "page" : undefined
                 }
               >
                 <img
@@ -800,6 +810,33 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     aria-label="Add new list form"
                   >
                     <div className="flex items-center gap-1 animate-fadeIn">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setIconPickerFor((current) =>
+                              current === "new" ? null : "new"
+                            )
+                          }
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-neu-gre-700 hover:bg-neu-gre-200 dark:text-neu-gre-300 dark:hover:bg-pri-pur-700/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500"
+                          aria-label="Choose list icon"
+                          aria-expanded={iconPickerFor === "new"}
+                        >
+                          <Icon
+                            icon={newListIcon}
+                            width={18}
+                            height={18}
+                            aria-hidden="true"
+                          />
+                        </button>
+                        {iconPickerFor === "new" && (
+                          <ListIconPicker
+                            value={newListIcon}
+                            onChange={setNewListIcon}
+                            onClose={() => setIconPickerFor(null)}
+                          />
+                        )}
+                      </div>
                       <input
                         type="text"
                         value={newListName}
@@ -810,6 +847,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           } else if (e.key === "Escape") {
                             setIsAddingList(false);
                             setNewListName("");
+                            setNewListIcon(DEFAULT_LIST_ICON);
+                            setIconPickerFor(null);
                           }
                         }}
                         placeholder="List name"
@@ -835,6 +874,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                           onClick={() => {
                             setIsAddingList(false);
                             setNewListName("");
+                            setNewListIcon(DEFAULT_LIST_ICON);
+                            setIconPickerFor(null);
                           }}
                           className="p-0 ml-2 text-neu-gre-500 dark:text-neu-gre-300 hover:text-neu-gre-700 dark:hover:text-neu-gre-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 rounded-md transition-all duration-200 ease-in-out"
                           aria-label="Cancel creating new list"
@@ -858,39 +899,85 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   aria-labelledby="lists-section"
                 >
                   {lists.map((list) => (
-                    <button
+                    <div
                       key={list.id}
-                      onClick={() => handleListClick(list.id)}
-                      className={`w-full flex mb-2 items-center ${
-                        isOpen ? "space-x-3" : "justify-center"
-                      } p-3 rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500 transition-colors duration-200 ease-in-out ${
-                        location.pathname === `/list/${list.id}`
+                      className={`relative w-full flex mb-2 items-center ${
+                        isOpen ? "space-x-1" : "justify-center"
+                      } rounded-md font-medium text-neu-gre-700 dark:text-neu-gre-500 hover:bg-neu-gre-200 dark:hover:bg-pri-pur-700/50 hover:text-neu-gre-900 dark:hover:text-neu-whi-100 font-inter transition-colors duration-200 ease-in-out ${
+                        pathname === `/list/${list.id}`
                           ? "bg-pri-blue-200/70 dark:bg-pri-pur-700 text-pri-blue-800 dark:text-neu-whi-100"
                           : "text-neu-gre-900 dark:text-neu-gre-500"
                       }`}
-                      aria-current={
-                        location.pathname === `/list/${list.id}`
-                          ? "page"
-                          : undefined
-                      }
                     >
-                      <Icon
-                        icon="mingcute:paper-line"
-                        width={16}
-                        height={16}
-                        className={`text-neu-gre-700 dark:text-neu-gre-500 ${
-                          location.pathname === `/list/${list.id}`
-                            ? "text-pri-blue-800 dark:text-neu-whi-100"
-                            : ""
-                        }`}
-                        aria-hidden="true"
-                      />
-                      {isOpen && (
-                        <span className="text-xs lg:text-sm font-normal">
-                          {list.name}
-                        </span>
+                      {isOpen ? (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setIconPickerFor((current) =>
+                              current === list.id ? null : list.id
+                            );
+                          }}
+                          className={`ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 ${
+                            pathname === `/list/${list.id}`
+                              ? "text-pri-blue-800 dark:text-neu-whi-100"
+                              : "text-neu-gre-700 dark:text-neu-gre-500"
+                          }`}
+                          aria-label={`Change icon for ${list.name}`}
+                          aria-expanded={iconPickerFor === list.id}
+                        >
+                          <Icon
+                            icon={list.icon || DEFAULT_LIST_ICON}
+                            width={16}
+                            height={16}
+                            aria-hidden="true"
+                          />
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => handleListClick(list.id)}
+                        className={`flex min-w-0 flex-1 items-center ${
+                          isOpen ? "space-x-2 pr-3" : "justify-center"
+                        } p-3 rounded-md font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 dark:focus-visible:ring-pri-focus-500`}
+                        aria-current={
+                          pathname === `/list/${list.id}` ? "page" : undefined
+                        }
+                      >
+                        {!isOpen && (
+                          <Icon
+                            icon={list.icon || DEFAULT_LIST_ICON}
+                            width={16}
+                            height={16}
+                            className={
+                              pathname === `/list/${list.id}`
+                                ? "text-pri-blue-800 dark:text-neu-whi-100"
+                                : "text-neu-gre-700 dark:text-neu-gre-500"
+                            }
+                            aria-hidden="true"
+                          />
+                        )}
+                        {isOpen && (
+                          <span className="text-xs lg:text-sm font-normal truncate">
+                            {list.name}
+                          </span>
+                        )}
+                      </button>
+                      {iconPickerFor === list.id && (
+                        <ListIconPicker
+                          value={list.icon || DEFAULT_LIST_ICON}
+                          onChange={async (icon) => {
+                            try {
+                              await listService.updateList(list.id, { icon });
+                              updateList(list.id, { icon });
+                            } catch (error) {
+                              console.error("Error updating list icon:", error);
+                            }
+                          }}
+                          onClose={() => setIconPickerFor(null)}
+                        />
                       )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>

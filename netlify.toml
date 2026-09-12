@@ -1,11 +1,8 @@
 [build]
-  command = "tsc && vite build"
-  publish = "dist"
+  command = "next build"
 
 [build.environment]
   NODE_VERSION = "18"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200 
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

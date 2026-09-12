@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import type { ReactElement } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import type { Task } from "../../types/task";
@@ -42,7 +43,7 @@ const DraggableItem = ({
   item: Task;
   index: number;
   moveItem: (dragIndex: number, hoverIndex: number) => void;
-  renderTask: (task: Task) => JSX.Element;
+  renderTask: (task: Task) => ReactElement;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [{ isDragging }, drag] = useDrag({

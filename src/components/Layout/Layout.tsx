@@ -1,26 +1,28 @@
+"use client";
+
 import { useState, useEffect, useCallback, memo } from "react";
 import { Sidebar } from "../Sidebar";
 import { Footer } from "../Footer";
 import { motion } from "framer-motion";
-import { useLocation, Outlet } from "react-router-dom";
+import { usePathname } from "next/navigation";
 
 // Memoize the Sidebar component to prevent unnecessary re-renders
 const MemoizedSidebar = memo(Sidebar);
 
 // Separate component for the main content area to isolate re-renders
-function MainContent() {
-  const location = useLocation();
+function MainContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
 
   return (
     <main className="flex-1 overflow-auto flex flex-col">
       <div className="flex-1">
         <motion.div
-          key={location.pathname}
+          key={pathname}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
         >
-          <Outlet />
+          {children}
         </motion.div>
       </div>
       <Footer />
@@ -28,13 +30,8 @@ function MainContent() {
   );
 }
 
-export function Layout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    const savedState = localStorage.getItem("sidebarCollapsed");
-    // If there's a saved state, use it (inverted since we store collapsed state)
-    // If no saved state, default to expanded (true)
-    return savedState ? !JSON.parse(savedState) : true;
-  });
+export function Layout({ children }: { children: React.ReactNode }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Add effect to sync with localStorage on mount
   useEffect(() => {
@@ -62,7 +59,7 @@ export function Layout() {
   return (
     <div className="flex h-screen">
       <MemoizedSidebar isOpen={isSidebarOpen} onToggle={handleSidebarToggle} />
-      <MainContent />
+      <MainContent>{children}</MainContent>
     </div>
   );
 }

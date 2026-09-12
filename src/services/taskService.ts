@@ -131,13 +131,15 @@ class FirestoreTracker {
 
 const tracker = FirestoreTracker.getInstance();
 
-// Make tracker accessible globally for stats viewing
-(window as any).tracker = tracker;
+if (typeof window !== "undefined") {
+  // Make tracker accessible globally for stats viewing
+  (window as any).tracker = tracker;
 
-// Add periodic stats logging
-setInterval(() => {
-  tracker.logStats();
-}, 5 * 60 * 1000); // Log every 5 minutes
+  // Add periodic stats logging
+  setInterval(() => {
+    tracker.logStats();
+  }, 5 * 60 * 1000); // Log every 5 minutes
+}
 
 const tasksCollection = "tasks";
 const savedTasksCollection = "savedTasks"; // New collection for saved tasks

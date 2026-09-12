@@ -34,6 +34,7 @@ import coldIcon from "../../assets/animated-weather-icons/thermometer-colder.svg
 import hotIcon from "../../assets/animated-weather-icons/thermometer-warmer.svg";
 import windIcon from "../../assets/animated-weather-icons/wind.svg";
 import notAvailableIcon from "../../assets/animated-weather-icons/not-available.svg";
+import { assetSrc } from "../../lib/assetSrc";
 
 interface DashboardHeaderProps {
   currentDate: string;
@@ -66,7 +67,7 @@ export const DashboardHeader = ({
     const currentHour = new Date().getHours();
     const isDay = currentHour >= 6 && currentHour < 18;
 
-    const iconMap: { [key: string]: string } = {
+    const iconMap: { [key: string]: string | { src: string } } = {
       // Clear conditions
       Clear: isDay ? clearDayIcon : clearNightIcon,
 
@@ -113,7 +114,9 @@ export const DashboardHeader = ({
     };
 
     // Handle OpenWeather API specific conditions
-    const getOpenWeatherIcon = (mainCondition: string): string => {
+    const getOpenWeatherIcon = (
+      mainCondition: string
+    ): string | { src: string } => {
       switch (mainCondition) {
         case "Clear":
           return isDay ? clearDayIcon : clearNightIcon;
@@ -150,7 +153,7 @@ export const DashboardHeader = ({
       }
     };
 
-    const iconSrc = iconMap[condition] || getOpenWeatherIcon(condition);
+    const iconSrc = assetSrc(iconMap[condition] || getOpenWeatherIcon(condition));
 
     return (
       <img
@@ -162,8 +165,26 @@ export const DashboardHeader = ({
   };
 
   return (
-    <div className="rounded-3xl lg:rounded-5xl pl-4 sm:pl-8 lg:pl-16 pr-4 sm:pr-8 lg:pr-16 pt-4 sm:pt-6 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.2),0_8px_32px_-8px_rgba(0,0,0,0.16)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.24),0_16px_48px_-16px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden">
-      <div className="absolute inset-0 rounded-3xl lg:rounded-5xl bg-gradient-primary dark:bg-gradient-highlighted-task opacity-100"></div>
+    <div className="rounded-3xl lg:rounded-5xl pl-4 sm:pl-8 lg:pl-8 pr-4 sm:pr-8 lg:pr-8 pt-4 sm:pt-6 lg:pt-8 pb-4 sm:pb-6 lg:pb-8 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.2),0_8px_32px_-8px_rgba(0,0,0,0.16)] hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.24),0_16px_48px_-16px_rgba(0,0,0,0.2)] transition-all duration-300 relative overflow-hidden">
+      <div
+        className="greeting-sky absolute inset-0 rounded-3xl lg:rounded-5xl"
+        aria-hidden="true"
+      >
+        <div className="greeting-sky__wash" />
+        <div className="greeting-sky__cloud greeting-sky__cloud--a">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="greeting-sky__cloud greeting-sky__cloud--b">
+          <span />
+          <span />
+        </div>
+        <div className="greeting-sky__cloud greeting-sky__cloud--c">
+          <span />
+          <span />
+        </div>
+      </div>
       <div className="flex flex-col sm:flex-row justify-between items-start relative h-full z-10 gap-4 sm:gap-0">
         <AnimatePresence mode="wait">
           <motion.div
@@ -178,8 +199,8 @@ export const DashboardHeader = ({
               <div className="text-lg sm:text-xl lg:text-2xl">
                 <Greeting className="text-lg sm:text-xl lg:text-3xl" />
               </div>
-              <div className="text-base sm:text-lg lg:text-lg">
-                <MotivationalQuote className="text-base sm:text-lg lg:text-lg mb-4 sm:mb-8" />
+              <div className="text-sm sm:text-md lg:text-md">
+                <MotivationalQuote className="text-sm sm:text-md lg:text-md mb-4 sm:mb-8" />
               </div>
             </div>
             <div className="flex lg:hidden w-[30%]">

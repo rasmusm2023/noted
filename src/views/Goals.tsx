@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { goalService } from "../services/goalService";
@@ -8,7 +10,7 @@ import { Icon } from "@iconify/react";
 import { PageTransition } from "../components/PageTransition";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast, Toaster } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { format, isToday, parse, getYear, getMonth, getDate } from "date-fns";
 import { usePageTitle } from "../hooks/usePageTitle";
 
@@ -170,7 +172,7 @@ const GOAL_PLACEHOLDERS = [
 
 export function Goals() {
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   usePageTitle("Goals");
 
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -367,9 +369,9 @@ export function Goals() {
 
   const handleTaskClick = (task: Task) => {
     if (isToday(task.date)) {
-      navigate("/dashboard");
+      router.push("/dashboard");
     } else {
-      navigate("/next7days");
+      router.push("/next7days");
     }
   };
 

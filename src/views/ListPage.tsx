@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useLists } from "../contexts/ListContext";
 import { listService } from "../services/listService";
@@ -9,6 +11,8 @@ import { Icon } from "@iconify/react";
 import { useDrag, useDrop } from "react-dnd";
 import type { DropTargetMonitor, DragSourceMonitor } from "react-dnd";
 import { usePageTitle } from "../hooks/usePageTitle";
+import { ListIconPicker } from "../components/Sidebar/ListIconPicker";
+import { DEFAULT_LIST_ICON } from "../lib/listIcons";
 
 type DragItem = {
   id: string;
@@ -203,10 +207,11 @@ const DraggableListItem = ({
 };
 
 export function ListPage() {
-  const { listId } = useParams<{ listId: string }>();
+  const params = useParams();
+  const listId = params.listId as string | undefined;
   const { currentUser } = useAuth();
   const { lists, removeList, updateList } = useLists();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const currentList = lists.find((list) => list.id === listId);
   usePageTitle(currentList ? `List: ${currentList.name}` : "List");
@@ -216,6 +221,7 @@ export function ListPage() {
   const [newItemText, setNewItemText] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const nameInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Add effect to focus title div when page loads
@@ -338,7 +344,7 @@ export function ListPage() {
       // Remove from context
       removeList(listId);
       // Navigate back to dashboard
-      navigate("/");
+      router.push("/");
     } catch (error) {
       console.error("Error deleting list:", error);
     }
@@ -400,7 +406,7 @@ export function ListPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-neu-400">List not found</div>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => router.push("/")}
             className="mt-4 px-4 py-2 bg-pri-blue-500 text-white rounded-md hover:bg-pri-blue-600 transition-colors"
           >
             Return to Dashboard
@@ -416,6 +422,36 @@ export function ListPage() {
         <div className="bg-pri-blue-50 dark:bg-neu-gray-800 rounded-5xl py-8 sm:py-8 lg:py-16 px-4 sm:px-8 lg:px-16 transition-all duration-300">
           <div className="text-sm text-neu-gre-600 dark:text-neu-gre-300 mb-2"></div>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsIconPickerOpen((open) => !open)}
+                className="flex h-12 w-12 items-center justify-center rounded-md bg-pri-blue-50 text-neu-gre-800 hover:bg-neu-gre-200 dark:bg-neu-gray-800 dark:text-neu-gre-100 dark:hover:bg-pri-pur-700/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pri-focus-500"
+                aria-label={`Change icon for ${currentList.name}`}
+                aria-expanded={isIconPickerOpen}
+              >
+                <Icon
+                  icon={currentList.icon || DEFAULT_LIST_ICON}
+                  className="w-6 h-6"
+                  aria-hidden="true"
+                />
+              </button>
+              {isIconPickerOpen && (
+                <ListIconPicker
+                  value={currentList.icon || DEFAULT_LIST_ICON}
+                  onChange={async (icon) => {
+                    if (!listId) return;
+                    try {
+                      await listService.updateList(listId, { icon });
+                      updateList(listId, { icon });
+                    } catch (error) {
+                      console.error("Error updating list icon:", error);
+                    }
+                  }}
+                  onClose={() => setIsIconPickerOpen(false)}
+                />
+              )}
+            </div>
             {isEditingName ? (
               <div
                 className="flex items-center space-x-3 w-full bg-pri-blue-50 dark:bg-neu-gray-800 rounded-md p-3 sm:p-4 group"

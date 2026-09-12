@@ -1,7 +1,9 @@
+"use client";
+
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/Buttons/Button";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useRouter, useSearchParams } from "next/navigation";
 import { usePageTitle } from "../hooks/usePageTitle";
 
 export function Login() {
@@ -15,8 +17,8 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const { login, signup, currentUser, loginWithGoogle } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
   const isNavigating = useRef(false);
   const [passwordWarning, setPasswordWarning] = useState("");
@@ -31,10 +33,10 @@ export function Login() {
   useEffect(() => {
     if (currentUser) {
       console.log("Login - User already logged in, redirecting to dashboard");
-      const from = location.state?.from?.pathname || "/";
-      navigate(from, { replace: true });
+      const from = searchParams.get("from") || "/";
+      router.replace(from);
     }
-  }, [currentUser, navigate, location]);
+  }, [currentUser, router, searchParams]);
 
   // Prevent form reset during navigation
   useEffect(() => {
@@ -160,12 +162,12 @@ export function Login() {
       if (isLogin) {
         await login(email, password);
         isNavigating.current = true;
-        const from = location.state?.from?.pathname || "/";
-        navigate(from, { replace: true });
+        const from = searchParams.get("from") || "/";
+        router.replace(from);
       } else {
         await signup(email, password, firstName.trim(), lastName.trim());
         isNavigating.current = true;
-        navigate("/", { replace: true });
+        router.replace("/");
       }
     } catch (err: any) {
       setError(getErrorMessage(err.code));
@@ -179,8 +181,8 @@ export function Login() {
       setLoading(true);
       await loginWithGoogle();
       isNavigating.current = true;
-      const from = location.state?.from?.pathname || "/";
-      navigate(from, { replace: true });
+      const from = searchParams.get("from") || "/";
+      router.replace(from);
     } catch (err: any) {
       console.error("Google sign-in error:", err);
       setError(

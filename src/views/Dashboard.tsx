@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { taskService } from "../services/taskService";
@@ -181,7 +183,10 @@ export function Dashboard() {
   useEffect(() => {
     // Preload API call for faster response
     const preloadWeatherAPI = () => {
-      const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+      const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY?.replace(
+        /^["']|["']$/g,
+        ""
+      ).trim();
       if (apiKey) {
         // Preload the API endpoint with a more realistic location
         fetch(
@@ -215,10 +220,12 @@ export function Dashboard() {
         // Set loading state only if we need to fetch from API
         setIsWeatherLoading(true);
 
-        const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+        const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY?.replace(
+          /^["']|["']$/g,
+          ""
+        ).trim();
 
         if (!apiKey) {
-          console.error("OpenWeather API key is not configured");
           setIsWeatherLoading(false);
           return;
         }
@@ -273,6 +280,16 @@ export function Dashboard() {
         setIsWeatherLoading(false);
       }
     };
+
+    const weatherApiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY?.replace(
+      /^["']|["']$/g,
+      ""
+    ).trim();
+
+    if (!weatherApiKey) {
+      setIsWeatherLoading(false);
+      return;
+    }
 
     // Function to get current position and fetch weather
     const getPositionAndFetchWeather = () => {

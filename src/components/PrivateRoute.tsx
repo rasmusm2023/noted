@@ -1,4 +1,6 @@
-import { Navigate, useLocation } from "react-router-dom";
+"use client";
+
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { useEffect, useState } from "react";
 
@@ -8,7 +10,8 @@ interface PrivateRouteProps {
 
 export function PrivateRoute({ children }: PrivateRouteProps) {
   const { currentUser, loading } = useAuth();
-  const location = useLocation();
+  const pathname = usePathname();
+  const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
@@ -20,12 +23,18 @@ export function PrivateRoute({ children }: PrivateRouteProps) {
     }
   }, [loading]);
 
-  if (loading || isChecking) {
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && !isChecking && !currentUser) {
+      const from =
+        pathname && pathname !== "/login"
+          ? `?from=${encodeURIComponent(pathname)}`
+          : "";
+      router.replace(`/login${from}`);
+    }
+  }, [loading, isChecking, currentUser, pathname, router]);
 
-  if (!currentUser) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  if (loading || isChecking || !currentUser) {
+    return null;
   }
 
   return <>{children}</>;

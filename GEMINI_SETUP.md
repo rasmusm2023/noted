@@ -11,6 +11,8 @@ Create a `.env` file in your project root (same level as `package.json`):
 ```bash
 # .env file
 VITE_GEMINI_API_KEY=your_actual_gemini_api_key_here
+# Next.js also accepts:
+# NEXT_PUBLIC_GEMINI_API_KEY=your_actual_gemini_api_key_here
 ```
 
 ### Step 2: Get Your Gemini API Key

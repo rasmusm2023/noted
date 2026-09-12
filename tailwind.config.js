@@ -2,7 +2,7 @@
 const { lightColors, darkColors } = require("./src/styles/colors");
 
 module.exports = {
-  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   darkMode: "class",
   theme: {
     extend: {
@@ -26,6 +26,7 @@ module.exports = {
       fontFamily: {
         inter: ["Inter", "sans-serif"],
         clash: ["Clash Display", "sans-serif"],
+        instrument: ["Instrument Sans", "sans-serif"],
       },
       fontSize: {
         xs: [

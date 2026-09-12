@@ -15,15 +15,21 @@ export interface CustomList {
   name: string;
   userId: string;
   createdAt: Date;
+  icon?: string;
 }
 
 export const listService = {
-  async createList(userId: string, name: string): Promise<CustomList> {
+  async createList(
+    userId: string,
+    name: string,
+    icon?: string
+  ): Promise<CustomList> {
     try {
       const listData = {
         name,
         userId,
         createdAt: new Date(),
+        ...(icon ? { icon } : {}),
       };
 
       const docRef = await addDoc(collection(db, "lists"), listData);
@@ -32,6 +38,7 @@ export const listService = {
         name,
         userId,
         createdAt: new Date(),
+        icon,
       };
     } catch (error) {
       console.error("Error creating list:", error);
@@ -52,6 +59,7 @@ export const listService = {
         name: doc.data().name,
         userId: doc.data().userId,
         createdAt: doc.data().createdAt.toDate(),
+        icon: doc.data().icon,
       }));
     } catch (error) {
       console.error("Error getting user lists:", error);

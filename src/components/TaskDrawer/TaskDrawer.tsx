@@ -1,10 +1,12 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from "react";
 import type { Task, Subtask } from "../../types/task";
 import { Icon } from "@iconify/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { goalService } from "../../services/goalService";
 import type { Goal } from "../../services/goalService";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 interface TaskDrawerProps {
   task: Task;
@@ -81,7 +83,7 @@ export function TaskDrawer({
   onArchive,
 }: TaskDrawerProps) {
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [subtasks, setSubtasks] = useState<Subtask[]>(task.subtasks || []);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
@@ -494,7 +496,7 @@ export function TaskDrawer({
                           Available with Pro plan.
                         </p>
                         <button
-                          onClick={() => navigate("/upgrade")}
+                          onClick={() => router.push("/upgrade")}
                           className="group px-4 py-2 bg-gradient-to-r from-sup-war-500 to-sup-war-600 hover:from-sup-war-600 hover:to-sup-war-700 text-white text-sm font-semibold rounded-md transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pri-focus-500 transform hover:scale-105 flex items-center justify-center relative overflow-hidden whitespace-nowrap"
                         >
                           <div className="relative flex items-center justify-center">
